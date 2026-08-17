@@ -187,9 +187,9 @@ export class TelegramService {
     const descText = data.description ? `Nội dung: ${this.escapeHtml(data.description)}\n` : '';
 
     const msg =
-      `<b>LỊCH HỌP CÔNG TY MỚI</b>\n` +
+      `<b>LỊCH HỌP MỚI</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Chủ đề: <b>${safeTitle}</b>\n` +
+      `Meeting: <b>${safeTitle}</b>\n` +
       `By: ${safeCreator}\n` +
       `Bắt đầu: ${this.formatDateTime(data.startTime)}\n` +
       `Kết thúc: ${this.formatDateTime(data.endTime)}\n` +
@@ -310,7 +310,7 @@ export class TelegramService {
     const msg =
       `<b>HỦY LỊCH HỌP</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Chủ đề: <b>${safeTitle}</b>\n` +
+      `Meeting: <b>${safeTitle}</b>\n` +
       `Hủy bởi: ${safeCanceller}`;
 
     return this.sendMessage(msg.trim());
@@ -384,9 +384,9 @@ export class TelegramService {
     const statusText = data.status === 'ACCEPTED' ? 'Tham gia' : 'Vắng mặt';
 
     const msg =
-      `<b>PHẢN HỒI THAM GIA HỌP</b>\n` +
+      `<b>PHẢN HỒI LỊCH HỌP</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Chủ đề: <b>${safeTitle}</b>\n` +
+      `Meeting: <b>${safeTitle}</b>\n` +
       `By: ${safeUser}\n` +
       `Phản hồi: ${statusText}`;
 
@@ -406,10 +406,9 @@ export class TelegramService {
     const safeCode = this.escapeHtml(data.roomCode);
 
     const msg =
-      `<b>YÊU CẦU GIA NHẬP CÔNG TY</b>\n` +
+      `<b>YÊU CẦU GIA NHẬP</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Người xin vào: <b>${safeUser}</b>\n` +
-      `Email: ${safeEmail}\n` +
+      `Thành viên: ${safeUser} - ${safeEmail}\n` +
       `Mã phòng: ${safeCode}`;
 
     return this.sendMessage(msg.trim());
