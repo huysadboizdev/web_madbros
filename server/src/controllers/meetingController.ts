@@ -41,13 +41,9 @@ export class MeetingController {
     }
   }
 
-  // Tạo cuộc họp mới & Tự động gửi Email thông báo toàn bộ thành viên
+  // Tạo cuộc họp mới & Tự động gửi thông báo Telegram và Web đến toàn bộ thành viên
   static async createMeeting(req: AuthenticatedRequest, res: Response) {
     try {
-      if (req.user?.role === 'MEMBER') {
-        return res.status(403).json({ message: 'Nhân viên không có quyền đặt lịch họp. Chỉ Ban Giám Đốc, Thư Ký hoặc Quản Lý mới có quyền lên lịch họp.' });
-      }
-
       const workspaceId = req.user!.workspaceId;
       const createdById = req.user!.userId;
       const { title, description, meetingLink, location, startTime, endTime, notifyAll, participantIds, sendEmail } = req.body;

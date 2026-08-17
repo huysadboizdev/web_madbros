@@ -48,7 +48,7 @@ export const MeetingsPage: React.FC = () => {
   const { theme } = useTheme();
   const { subscribe } = useSocket();
   const isLight = theme === 'light';
-  const canScheduleMeeting = user?.role === 'ADMIN' || user?.role === 'SECRETARY' || user?.role === 'MANAGER';
+  const canScheduleMeeting = true;
 
   const [meetings, setMeetings] = useState<MeetingItem[]>([]);
   const [loading, setLoading] = useState(true);
