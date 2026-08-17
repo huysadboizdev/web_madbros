@@ -52,9 +52,12 @@ export class MeetingController {
       const createdById = req.user!.userId;
       const { title, description, meetingLink, location, startTime, endTime, notifyAll, participantIds, sendEmail } = req.body;
 
-      if (!title || !startTime || !endTime) {
-        return res.status(400).json({ message: 'Vui lòng cung cấp tiêu đề, thời gian bắt đầu và kết thúc' });
+      if (!title || !startTime) {
+        return res.status(400).json({ message: 'Vui lòng cung cấp tiêu đề và thời gian bắt đầu cuộc họp' });
       }
+
+      const start = new Date(startTime);
+      const end = endTime ? new Date(endTime) : new Date(start.getTime() + 60 * 60 * 1000);
 
       const workspace = await prisma.workspace.findUnique({
         where: { id: workspaceId },
@@ -80,10 +83,10 @@ export class MeetingController {
           data: {
             title: title.trim(),
             description,
-            meetingLink,
-            location,
-            startTime: new Date(startTime),
-            endTime: new Date(endTime),
+            meetingLink: meetingLink?.trim() || null,
+            location: location?.trim() || null,
+            startTime: start,
+            endTime: end,
             notifyAll: !!notifyAll,
             workspaceId,
             createdById,

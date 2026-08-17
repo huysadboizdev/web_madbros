@@ -124,17 +124,19 @@ export const MeetingsPage: React.FC = () => {
 
   const handleCreateMeeting = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !startTime || !endTime) return;
+    if (!title || !startTime) return;
 
     try {
       setCreating(true);
+      const start = new Date(startTime);
+      const end = new Date(start.getTime() + 60 * 60 * 1000); // Tự động 1 tiếng
+
       await api.post('/meetings', {
         title: title.trim(),
         description: description.trim(),
-        meetingLink: meetingLink.trim(),
         location: location.trim(),
-        startTime: new Date(startTime).toISOString(),
-        endTime: new Date(endTime).toISOString(),
+        startTime: start.toISOString(),
+        endTime: end.toISOString(),
         notifyAll,
         participantIds: notifyAll ? [] : selectedParticipantIds,
         sendEmail,
@@ -631,35 +633,7 @@ export const MeetingsPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Thời Gian Kết Thúc <span className="text-rose-400">*</span>
-              </label>
-              <input
-                type="datetime-local"
-                required
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Link Phòng Họp Online (Google Meet / Zoom / Teams)
-              </label>
-              <input
-                type="url"
-                placeholder="https://meet.google.com/xyz-abcd-efg"
-                value={meetingLink}
-                onChange={(e) => setMeetingLink(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Địa Điểm Họp Trực Tiếp (Nếu có)
+                Địa Điểm Họp / Ghi Chú Phòng Họp
               </label>
               <input
                 type="text"
