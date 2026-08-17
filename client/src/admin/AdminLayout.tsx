@@ -62,21 +62,21 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
 
   return (
     <div
-      className={`min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950 relative transition-colors duration-300 ${
-        isLight ? 'bg-[#f4f7fb] text-slate-800' : 'bg-[#050811] text-slate-100'
+      className={`min-h-screen flex flex-col selection:bg-blue-600 selection:text-white relative transition-colors duration-300 ${
+        isLight ? 'bg-[#f4f7fb] text-slate-800' : 'bg-[#0B0F19] text-slate-100'
       }`}
     >
       {/* Ambient background glows */}
-      <div className="ambient-glow-purple" />
       <div className="ambient-glow-blue" />
+      <div className="ambient-glow-purple" />
       <div className="ambient-glow-emerald" />
 
-      {/* Admin Executive Top Navbar (Cố định 100% trên đỉnh màn hình, không bao giờ trôi) */}
+      {/* Admin Executive Top Navbar (Cố định 100% trên đỉnh màn hình, chuẩn màu MadBros) */}
       <header
         className={`w-full fixed top-0 left-0 right-0 z-40 backdrop-blur-2xl border-b transition-all duration-300 ${
           isLight
             ? 'bg-white/95 border-slate-200 shadow-sm'
-            : 'bg-slate-950/90 border-amber-500/20 shadow-lg shadow-black/40'
+            : 'bg-[#0B0F19]/95 border-blue-500/20 shadow-lg shadow-black/50'
         }`}
       >
         <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
@@ -90,8 +90,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
                 <div
                   className={`w-9 h-9 sm:w-10 sm:h-10 rounded-2xl p-1.5 shadow-lg group-hover:scale-105 transition-all duration-300 flex items-center justify-center shrink-0 border ${
                     isLight
-                      ? 'bg-white border-amber-300 shadow-amber-500/10'
-                      : 'bg-slate-900 border-amber-500/30 shadow-amber-500/20'
+                      ? 'bg-white border-blue-200 shadow-blue-500/10'
+                      : 'bg-slate-900 border-blue-500/30 shadow-blue-500/20'
                   }`}
                 >
                   <img src="/logo.png" alt="Logo" className="w-full h-full object-contain drop-shadow-sm" />
@@ -103,16 +103,16 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
                         isLight ? 'text-slate-900' : 'text-white'
                       }`}
                     >
-                      MAD<span className="text-amber-500">BROS</span>
+                      MAD<span className="text-blue-500">BROS</span>
                     </span>
                     <span
-                      className={`px-1.5 py-0.5 rounded-full font-extrabold text-[9px] uppercase tracking-wider flex items-center gap-1 shadow-sm border ${
+                      className={`px-2 py-0.5 rounded-full font-extrabold text-[9px] uppercase tracking-wider flex items-center gap-1 shadow-sm border ${
                         isLight
-                          ? 'bg-amber-100 border-amber-300 text-amber-800'
-                          : 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                          ? 'bg-blue-50 border-blue-300 text-blue-800'
+                          : 'bg-blue-500/20 border-blue-500/40 text-blue-300'
                       }`}
                     >
-                      <Crown className="w-2.5 h-2.5" /> BOSS
+                      <Crown className="w-2.5 h-2.5 text-blue-400" /> BOSS
                     </span>
                   </div>
                   <p className={`text-[11px] font-medium truncate max-w-[130px] sm:max-w-[200px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
@@ -136,7 +136,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
                     onClick={() => handleAdminTabChange(item.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 ${
                       isActive
-                        ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 shadow-md shadow-amber-500/25 font-extrabold'
+                        ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white shadow-md shadow-blue-600/30 font-extrabold'
                         : isLight
                         ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
                         : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -171,8 +171,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
                 <div
                   className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs border ${
                     isLight
-                      ? 'bg-amber-100 text-amber-900 border-amber-200'
-                      : 'bg-slate-800 text-amber-400 border-slate-700'
+                      ? 'bg-blue-100 text-blue-900 border-blue-200'
+                      : 'bg-blue-950/60 text-blue-300 border-blue-500/30'
                   }`}
                 >
                   {user?.name?.slice(0, 1).toUpperCase()}
@@ -181,7 +181,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
                   <p className={`text-xs font-bold leading-tight truncate max-w-[120px] ${isLight ? 'text-slate-900' : 'text-white'}`}>
                     {user?.name}
                   </p>
-                  <p className={`text-[10px] font-semibold uppercase ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
+                  <p className={`text-[10px] font-semibold uppercase ${isLight ? 'text-blue-700' : 'text-blue-400'}`}>
                     {user?.role}
                   </p>
                 </div>
@@ -211,7 +211,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
                   onClick={() => handleAdminTabChange(item.id)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition ${
                     isActive
-                      ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md'
+                      ? 'bg-blue-600 text-white font-extrabold shadow-md shadow-blue-600/30'
                       : isLight
                       ? 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
                       : 'text-slate-400 hover:text-white bg-slate-900/60 border border-slate-800'
@@ -243,7 +243,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
         className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t backdrop-blur-2xl px-2 py-1.5 transition-all duration-300 ${
           isLight
             ? 'bg-white/95 border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]'
-            : 'bg-slate-950/95 border-amber-500/20 shadow-[0_-4px_20px_rgba(0,0,0,0.4)]'
+            : 'bg-[#0B0F19]/95 border-blue-500/20 shadow-[0_-4px_20px_rgba(0,0,0,0.4)]'
         }`}
       >
         <div className="flex items-center justify-around max-w-lg mx-auto">
@@ -256,8 +256,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
                 className={`flex flex-col items-center justify-center py-1 px-1.5 rounded-xl transition-all duration-150 relative ${
                   isActive
                     ? isLight
-                      ? 'text-amber-700 font-bold'
-                      : 'text-amber-400 font-bold'
+                      ? 'text-blue-700 font-bold'
+                      : 'text-blue-400 font-bold'
                     : isLight
                     ? 'text-slate-500 hover:text-slate-800'
                     : 'text-slate-400 hover:text-slate-200'
@@ -265,7 +265,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
               >
                 <div
                   className={`p-1 rounded-lg transition-transform ${
-                    isActive ? (isLight ? 'bg-amber-100 scale-110' : 'bg-amber-500/20 scale-110') : ''
+                    isActive ? (isLight ? 'bg-blue-100 scale-110' : 'bg-blue-500/20 scale-110') : ''
                   }`}
                 >
                   {item.icon}
@@ -274,7 +274,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
                   {item.label}
                 </span>
                 {isActive && (
-                  <span className="absolute -bottom-0.5 w-4 h-0.5 rounded-full bg-amber-500" />
+                  <span className="absolute -bottom-0.5 w-4 h-0.5 rounded-full bg-blue-500" />
                 )}
               </button>
             );
@@ -287,14 +287,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
         className={`py-5 border-t backdrop-blur-md text-xs z-10 transition-colors duration-300 ${
           isLight
             ? 'bg-white/90 border-slate-200 text-slate-500'
-            : 'bg-slate-950/80 border-slate-800/80 text-slate-500'
+            : 'bg-[#0B0F19]/80 border-slate-800/80 text-slate-500'
         }`}
       >
         <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-            <span className={`font-medium ${isLight ? 'text-amber-800' : 'text-amber-400/90'}`}>
-              Trung tâm Quản trị Cấp cao đang hoạt động
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+            <span className={`font-medium ${isLight ? 'text-blue-800' : 'text-blue-400/90'}`}>
+              Trung tâm Quản trị Cấp cao MadBros đang hoạt động
             </span>
           </div>
           <p>© 2026 MadBros Enterprise Boss Portal. Bản quyền quản trị bảo mật cao.</p>

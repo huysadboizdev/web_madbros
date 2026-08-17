@@ -187,8 +187,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
       <div
         className={`relative overflow-hidden rounded-3xl p-6 sm:p-7 border backdrop-blur-2xl transition-all duration-300 ${
           isLight
-            ? 'bg-gradient-to-r from-amber-100/70 via-orange-50 to-white border-amber-200/90 shadow-xl shadow-amber-500/5'
-            : 'bg-gradient-to-r from-amber-950/40 via-purple-950/25 to-slate-900 border-amber-500/30 shadow-xl'
+            ? 'bg-gradient-to-r from-blue-100/80 via-indigo-50 to-white border-blue-200/90 shadow-xl shadow-blue-500/5'
+            : 'bg-gradient-to-r from-[#0B0F19] via-[#111928] to-[#0B0F19] border-blue-500/30 shadow-xl'
         }`}
       >
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
@@ -196,8 +196,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
             <div
               className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl p-2.5 shadow-lg flex items-center justify-center shrink-0 border transition-all ${
                 isLight
-                  ? 'bg-white border-amber-200 shadow-amber-500/10'
-                  : 'bg-slate-900 border-amber-500/40 shadow-amber-500/20'
+                  ? 'bg-white border-blue-200 shadow-blue-500/10'
+                  : 'bg-slate-900 border-blue-500/40 shadow-blue-500/20'
               }`}
             >
               <img src="/logo.png" alt="Company Logo" className="w-full h-full object-contain drop-shadow-sm" />
@@ -208,18 +208,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold flex items-center gap-1.5 shadow-sm border ${
                     isLight
-                      ? 'bg-amber-500/15 border-amber-400/50 text-amber-800'
-                      : 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                      ? 'bg-blue-500/15 border-blue-400/50 text-blue-800'
+                      : 'bg-blue-500/20 border-blue-500/40 text-blue-300'
                   }`}
                 >
-                  <ShieldCheck className="w-3.5 h-3.5" /> TRUNG TÂM ĐIỀU HÀNH DOANH NGHIỆP
+                  <ShieldCheck className="w-3.5 h-3.5 text-blue-400" /> TRUNG TÂM ĐIỀU HÀNH DOANH NGHIỆP
                 </span>
                 <span
                   className={`text-[11px] font-bold flex items-center gap-1 ${
-                    isLight ? 'text-emerald-700' : 'text-emerald-400'
+                    isLight ? 'text-blue-700' : 'text-blue-400'
                   }`}
                 >
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Quyền Boss Tối Cao
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" /> Quyền Boss Tối Cao
                 </span>
               </div>
               <h1
@@ -244,20 +244,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
             </button>
             <button
               onClick={() => setActiveAdminTab('users')}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl text-xs font-bold shadow-md shadow-blue-600/25 transition hover:scale-105 cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl text-xs font-bold shadow-md shadow-indigo-600/25 transition hover:scale-105 cursor-pointer"
             >
               <UserPlus className="w-4 h-4" /> Thêm Nhân Viên
             </button>
             <button
               onClick={() => setActiveAdminTab('tasks')}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 rounded-2xl text-xs font-extrabold shadow-md shadow-amber-500/25 transition hover:scale-105 cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl text-xs font-extrabold shadow-md shadow-blue-600/25 transition hover:scale-105 cursor-pointer"
             >
               <CheckSquare className="w-4 h-4" /> Giao Công Việc
             </button>
           </div>
         </div>
 
-        <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
       </div>
 
       {/* 2. Pending Approval Alert Banner (High visibility) */}
@@ -265,25 +265,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
         <div
           className={`p-4 sm:p-5 rounded-3xl border shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in transition-all ${
             isLight
-              ? 'bg-gradient-to-r from-amber-100 via-orange-50 to-amber-50 border-amber-300 text-amber-950'
-              : 'bg-gradient-to-r from-amber-950/70 via-orange-950/50 to-slate-900 border-amber-500/50 text-white'
+              ? 'bg-gradient-to-r from-blue-100 via-indigo-50 to-blue-50 border-blue-300 text-blue-950'
+              : 'bg-gradient-to-r from-[#111928] via-[#0B0F19] to-[#111928] border-blue-500/50 text-white'
           }`}
         >
           <div className="flex items-center gap-3">
             <div
               className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-base shrink-0 border ${
                 isLight
-                  ? 'bg-amber-200 border-amber-300 text-amber-800'
-                  : 'bg-amber-500/20 border-amber-500/40 text-amber-400'
+                  ? 'bg-blue-200 border-blue-300 text-blue-800'
+                  : 'bg-blue-500/20 border-blue-500/40 text-blue-400'
               }`}
             >
               <Clock className="w-5 h-5 animate-spin" />
             </div>
             <div>
-              <h4 className={`font-extrabold text-sm ${isLight ? 'text-amber-950' : 'text-white'}`}>
-                Có <span className="text-amber-600 dark:text-amber-400 font-extrabold">{overview.pendingApprovalsCount} nhân viên mới</span> vừa nhập mã phòng và đang chờ bạn phê duyệt!
+              <h4 className={`font-extrabold text-sm ${isLight ? 'text-blue-950' : 'text-white'}`}>
+                Có <span className="text-blue-600 dark:text-blue-400 font-extrabold">{overview.pendingApprovalsCount} nhân viên mới</span> vừa nhập mã phòng và đang chờ bạn phê duyệt!
               </h4>
-              <p className={`text-xs mt-0.5 ${isLight ? 'text-amber-800' : 'text-slate-300'}`}>
+              <p className={`text-xs mt-0.5 ${isLight ? 'text-blue-800' : 'text-slate-300'}`}>
                 Nhân viên bị cách ly bảo mật và chỉ được vào phòng làm việc sau khi bạn duyệt tay.
               </p>
             </div>
@@ -291,7 +291,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
 
           <button
             onClick={() => setActiveAdminTab('users')}
-            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl font-extrabold text-xs shadow-lg shadow-amber-500/30 transition hover:scale-105 shrink-0"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-extrabold text-xs shadow-lg shadow-blue-500/30 transition hover:scale-105 shrink-0"
           >
             Mở Danh Sách Duyệt Ngay ➔
           </button>
@@ -355,8 +355,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
                 <div
                   className={`p-2 rounded-xl border ${
                     isLight
-                      ? 'bg-amber-100 text-amber-700 border-amber-200'
-                      : 'bg-amber-500/15 text-amber-400 border-amber-500/20'
+                      ? 'bg-blue-100 text-blue-700 border-blue-200'
+                      : 'bg-blue-500/15 text-blue-400 border-blue-500/20'
                   }`}
                 >
                   <KeyRound className="w-4 h-4" />
@@ -407,14 +407,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
                           ? 'bg-rose-50 border-rose-300 text-rose-700 focus:border-rose-500'
                           : 'bg-rose-950/20 border-rose-500/40 text-rose-300 focus:border-rose-500'
                         : isLight
-                        ? 'bg-white border-slate-300 text-amber-800 focus:border-amber-500'
-                        : 'bg-slate-900 border-slate-700 text-amber-400 focus:border-amber-500'
+                        ? 'bg-white border-slate-300 text-blue-800 focus:border-blue-500'
+                        : 'bg-slate-900 border-slate-700 text-blue-400 focus:border-blue-500'
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowRoomCode(!showRoomCode)}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-amber-500 transition cursor-pointer"
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-blue-500 transition cursor-pointer"
                     title={showRoomCode ? 'Ẩn mã phòng' : 'Hiện mã phòng'}
                   >
                     {showRoomCode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -425,7 +425,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
                   <button
                     type="submit"
                     disabled={updatingCode}
-                    className="px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 text-slate-950 rounded-xl text-xs font-extrabold shadow-md shadow-amber-500/20 transition whitespace-nowrap cursor-pointer disabled:opacity-50 flex items-center justify-center text-center"
+                    className="px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 text-white rounded-xl text-xs font-extrabold shadow-md shadow-blue-500/20 transition whitespace-nowrap cursor-pointer disabled:opacity-50 flex items-center justify-center text-center"
                   >
                     {updatingCode ? 'Đang lưu...' : 'Lưu (15p)'}
                   </button>
