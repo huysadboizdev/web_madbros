@@ -20,6 +20,7 @@ model Workspace {
   meetings      Meeting[]
   transactions  Transaction[]
   assets        Asset[]
+  announcements Announcement[]
   settings      SystemSetting?
 }
 
@@ -46,6 +47,7 @@ model User {
   transactions    Transaction[]
   notifications   Notification[]
   assignedAssets  Asset[]              @relation("AssetAssignee")
+  announcements   Announcement[]       @relation("AnnouncementCreator")
 }
 
 model Task {
@@ -180,5 +182,19 @@ model SystemSetting {
   smtpPass    String?
   smtpFrom    String?   @default("Thông Báo Công Ty <no-reply@madbros.vn>")
   smtpSecure  Boolean   @default(false)
+  updatedAt   DateTime  @updatedAt
+}
+
+model Announcement {
+  id          String    @id @default(uuid())
+  title       String
+  content     String
+  priority    String    @default("NORMAL") // NORMAL, IMPORTANT, URGENT
+  pinned      Boolean   @default(false)
+  createdById String
+  createdBy   User      @relation("AnnouncementCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }

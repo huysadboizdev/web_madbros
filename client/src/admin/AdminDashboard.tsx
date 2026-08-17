@@ -27,6 +27,8 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
+import { AnnouncementsFeed } from '../components/AnnouncementsFeed';
+
 interface AdminDashboardProps {
   setActiveAdminTab: (tab: string) => void;
 }
@@ -339,7 +341,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
         />
       </div>
 
-      {/* 4. Responsive Split: Room Code + Modules (7 cols) & Recent Staff (5 cols) */}
+      {/* 4. Bảng Tin & Thông Báo Chung Toàn Công Ty */}
+      <AnnouncementsFeed />
+
+      {/* 5. Responsive Split: Room Code + Modules (7 cols) & Recent Staff (5 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Room Code Manager + Modules (7 cols) */}
         <div className="lg:col-span-7 space-y-6">

@@ -565,7 +565,7 @@ export const TasksPage: React.FC = () => {
             </span>
           </div>
           <p className={`text-xs sm:text-sm mt-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-            Quy trình tiếp nhận task qua email & web ➔ thực hiện việc con ➔ nộp báo cáo ➔ nghiệm thu hoàn thành
+            Quy trình tiếp nhận task qua Web & Telegram ➔ thực hiện việc con ➔ nộp báo cáo ➔ nghiệm thu hoàn thành
           </p>
         </div>
 

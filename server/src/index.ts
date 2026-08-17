@@ -15,6 +15,7 @@ import notificationRoutes from './routes/notificationRoutes';
 import workspaceRoutes from './routes/workspaceRoutes';
 import statsRoutes from './routes/statsRoutes';
 import adminRoutes from './routes/adminRoutes';
+import announcementRoutes from './routes/announcementRoutes';
 import { bootstrapAdminAccount } from './services/bootstrapService';
 import { SocketService } from './services/socketService';
 
@@ -38,6 +39,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/announcements', announcementRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

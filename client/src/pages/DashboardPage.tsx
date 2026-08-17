@@ -25,6 +25,7 @@ import {
   FileCheck,
   FileSignature,
 } from 'lucide-react';
+import { AnnouncementsFeed } from '../components/AnnouncementsFeed';
 
 interface DashboardProps {
   setActiveTab: (tab: string) => void;
@@ -297,6 +298,9 @@ export const DashboardPage: React.FC<DashboardProps> = ({ setActiveTab }) => {
           </>
         )}
       </div>
+
+      {/* Bảng Tin & Thông Báo Chung Toàn Công Ty */}
+      <AnnouncementsFeed />
 
       {/* Main Grid: 12-Column Responsive Widescreen Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">

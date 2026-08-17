@@ -207,7 +207,58 @@ export class TelegramService {
   }
 
   /**
-   * 1.3 Admin duyệt thành viên mới gia nhập công ty
+   * Escape HTML entities to prevent Telegram parse errors
+   */
+  public static escapeHtml(text?: string | null): string {
+    if (!text) return '';
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  /**
+   * 1.3 Phát Thông Báo Chung Toàn Công Ty (Announcement Broadcast)
+   */
+  public static async notifyAnnouncementBroadcast(data: {
+    title: string;
+    content: string;
+    priority?: string;
+    senderName: string;
+    roleTitle?: string;
+    telegramTag?: string | null;
+  }) {
+    const tagFormatted = this.formatTelegramTag(data.telegramTag);
+    const tagHeader = tagFormatted ? `🔔 ${tagFormatted} ` : '';
+    const priorityIcon =
+      data.priority === 'URGENT'
+        ? '🚨 <b>[THÔNG BÁO KHẨN CẤP TOÀN CÔNG TY]</b>'
+        : data.priority === 'IMPORTANT'
+        ? '🔥 <b>[THÔNG BÁO QUAN TRỌNG]</b>'
+        : '📢 <b>[THÔNG BÁO NỘI BỘ DOANH NGHIỆP]</b>';
+
+    const safeTitle = this.escapeHtml(data.title);
+    const safeContent = this.escapeHtml(data.content);
+    const safeSender = this.escapeHtml(data.senderName);
+    const safeRole = this.escapeHtml(data.roleTitle || 'Ban Giám Đốc');
+
+    const msg =
+      `${tagHeader}${priorityIcon}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `📌 <b>Tiêu đề:</b> <b>${safeTitle}</b>\n` +
+      `👑 <b>Người phát:</b> ${safeSender} (<i>${safeRole}</i>)\n` +
+      `⏰ <b>Thời gian:</b> ${this.formatDateTime(new Date())}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `📝 <b>Nội dung thông báo:</b>\n` +
+      `${safeContent}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `👉 <i>Toàn thể cán bộ nhân viên lưu ý thực hiện nghiêm túc!</i>`;
+
+    return this.sendMessage(msg);
+  }
+
+  /**
+   * 1.4 Admin duyệt thành viên mới gia nhập công ty
    */
   public static async notifyUserApproved(data: {
     userName: string;
