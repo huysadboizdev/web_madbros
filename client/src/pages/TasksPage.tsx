@@ -700,11 +700,11 @@ export const TasksPage: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
           <select
             value={filterPriority}
             onChange={(e) => setFilterPriority(e.target.value)}
-            className={`px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition border ${
+            className={`w-full sm:w-auto px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition border ${
               isLight
                 ? 'bg-slate-50 border-slate-300 text-slate-800'
                 : 'bg-slate-900/80 border-slate-700/80 text-slate-300'
@@ -720,7 +720,7 @@ export const TasksPage: React.FC = () => {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className={`px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition border ${
+            className={`w-full sm:w-auto px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition border ${
               isLight
                 ? 'bg-slate-50 border-slate-300 text-slate-800'
                 : 'bg-slate-900/80 border-slate-700/80 text-slate-300'
@@ -732,24 +732,6 @@ export const TasksPage: React.FC = () => {
             <option value="REVIEW">Chờ nghiệm thu</option>
             <option value="DONE">Đã hoàn thành</option>
           </select>
-
-          <div className={`flex items-center gap-1.5 text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-            <span>Hiển thị:</span>
-            <select
-              value={pageSize}
-              onChange={(e) => setPageSize(Number(e.target.value))}
-              className={`px-2 py-1.5 rounded-lg text-xs focus:outline-none border ${
-                isLight
-                  ? 'bg-slate-50 border-slate-300 text-slate-800'
-                  : 'bg-slate-900/80 border-slate-700/80 text-slate-300'
-              }`}
-            >
-              <option value={8}>8 việc</option>
-              <option value={12}>12 việc</option>
-              <option value={24}>24 việc</option>
-              <option value={48}>48 việc</option>
-            </select>
-          </div>
         </div>
       </div>
 

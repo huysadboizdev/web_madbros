@@ -37,7 +37,7 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
@@ -46,7 +46,7 @@ export const Modal: React.FC<ModalProps> = ({
 
       {/* Dialog content */}
       <div
-        className={`relative w-full ${maxWidth} rounded-3xl shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 border transition-colors ${
+        className={`relative w-full ${maxWidth} rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 border transition-colors my-auto ${
           isLight
             ? 'bg-white border-slate-200 text-slate-900 shadow-slate-300/60'
             : 'bg-slate-900 border-slate-700/80 text-slate-100 shadow-black/80'
@@ -54,18 +54,18 @@ export const Modal: React.FC<ModalProps> = ({
       >
         {/* Header */}
         <div
-          className={`flex items-center justify-between px-6 py-4 border-b ${
+          className={`flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b ${
             isLight
               ? 'bg-slate-50 border-slate-200 text-slate-900'
               : 'bg-slate-800/60 border-slate-800 text-white'
           }`}
         >
-          <h3 className={`text-base sm:text-lg font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+          <h3 className={`text-sm sm:text-lg font-bold truncate pr-2 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
             {title}
           </h3>
           <button
             onClick={onClose}
-            className={`p-1.5 rounded-xl transition ${
+            className={`p-1.5 rounded-xl transition cursor-pointer shrink-0 ${
               isLight
                 ? 'text-slate-400 hover:text-slate-800 hover:bg-slate-200'
                 : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
@@ -76,7 +76,7 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
 
         {/* Body */}
-        <div className="p-6 max-h-[80vh] overflow-y-auto">{children}</div>
+        <div className="p-4 sm:p-6 max-h-[82vh] overflow-y-auto scrollbar-thin">{children}</div>
       </div>
     </div>
   );

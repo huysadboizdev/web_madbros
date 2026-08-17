@@ -231,7 +231,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({ setActiveTab }) => {
       )}
 
       {/* Stat Cards Grid (Adaptive Theme) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6">
         <StatCard
           title={isMember ? 'Công Việc Của Tôi' : 'Tổng Công Việc'}
           value={tasks.total || 0}

@@ -436,10 +436,11 @@ export const AdminUsersPage: React.FC = () => {
         </div>
       </div>
 
-      {/* TAB 1: ACTIVE USERS TABLE */}
+      {/* TAB 1: ACTIVE USERS TABLE & MOBILE CARDS */}
       {activeTab === 'ACTIVE' && (
         <div className="glass-panel rounded-3xl shadow-xl overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead
                 className={`font-semibold border-b uppercase tracking-wider text-[10px] ${
@@ -573,13 +574,117 @@ export const AdminUsersPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Cards View (md:hidden) */}
+          <div className="md:hidden p-3 space-y-3">
+            {paginatedList.map((u) => {
+              const isSelf = u.id === currentUser?.id;
+              return (
+                <div
+                  key={u.id}
+                  className={`p-4 rounded-2xl border space-y-3 ${
+                    isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-900/80 border-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-sm">
+                        {u.name.slice(0, 1).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-white'}`}>{u.name}</h4>
+                          {isSelf && (
+                            <span className="text-[9px] bg-blue-500/20 text-blue-600 dark:text-blue-400 font-extrabold px-1.5 py-0.5 rounded border border-blue-500/30">
+                              Bạn
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-400 font-mono">{u.email}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => {
+                          setSelectedUser(u);
+                          setShowResetPassModal(true);
+                        }}
+                        className={`p-2 rounded-xl transition ${
+                          isLight ? 'text-amber-600 bg-amber-50' : 'text-amber-400 bg-amber-500/10'
+                        }`}
+                        title="Đổi mật khẩu"
+                      >
+                        <KeyRound className="w-4 h-4" />
+                      </button>
+                      {!isSelf && (
+                        <button
+                          onClick={() => handleDeleteUser(u)}
+                          className={`p-2 rounded-xl transition ${
+                            isLight ? 'text-rose-600 bg-rose-50' : 'text-rose-400 bg-rose-500/10'
+                          }`}
+                          title="Xóa nhân viên"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-xs">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block mb-1">Vai Trò:</span>
+                      <select
+                        disabled={isSelf}
+                        value={u.role}
+                        onChange={(e) => handleUpdateRole(u.id, e.target.value)}
+                        className={`w-full px-2 py-1.5 rounded-xl text-xs font-bold border transition ${
+                          u.role === 'ADMIN'
+                            ? 'bg-blue-600/15 border-blue-500/40 text-blue-600 dark:text-blue-400'
+                            : u.role === 'SECRETARY'
+                            ? 'bg-rose-600/15 border-rose-500/40 text-rose-600 dark:text-rose-400'
+                            : u.role === 'MANAGER'
+                            ? 'bg-purple-600/15 border-purple-500/40 text-purple-600 dark:text-purple-400'
+                            : isLight
+                            ? 'bg-white border-slate-300 text-slate-700'
+                            : 'bg-slate-800 border-slate-700 text-slate-300'
+                        }`}
+                      >
+                        <option value="ADMIN">🛡️ Admin</option>
+                        <option value="SECRETARY">📋 Thư Ký</option>
+                        <option value="MANAGER">⚡ Quản Lý</option>
+                        <option value="MEMBER">👤 Nhân Viên</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-slate-400 block mb-1">Công Việc:</span>
+                      <div className={`px-2 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border ${
+                        isLight ? 'bg-white border-slate-200 text-slate-700' : 'bg-slate-800/80 border-slate-700 text-slate-300'
+                      }`}>
+                        <CheckSquare className="w-3.5 h-3.5 text-blue-500" />
+                        <span>{u._count?.assignedTasks || 0} việc</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {paginatedList.length === 0 && (
+              <div className="py-8 text-center text-xs text-slate-400">
+                Không tìm thấy nhân sự nào phù hợp
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {/* TAB 2: PENDING APPROVAL USERS TABLE */}
+      {/* TAB 2: PENDING APPROVAL USERS TABLE & MOBILE CARDS */}
       {activeTab === 'PENDING' && (
         <div className={`rounded-3xl shadow-xl overflow-hidden border ${isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'}`}>
-          <div className="overflow-x-auto">
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead
                 className={`font-semibold border-b uppercase tracking-wider text-[10px] ${
@@ -686,6 +791,82 @@ export const AdminUsersPage: React.FC = () => {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Cards (md:hidden) */}
+          <div className="md:hidden p-3 space-y-3">
+            {filteredList.map((u) => {
+              const currentSelectedRole = pendingRowRoles[u.id] || 'MEMBER';
+              return (
+                <div
+                  key={u.id}
+                  className={`p-4 rounded-2xl border space-y-3 ${
+                    isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-900/80 border-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center font-bold text-amber-600 dark:text-amber-400 text-xs shrink-0">
+                      {u.name.slice(0, 1).toUpperCase()}
+                    </div>
+                    <div>
+                      <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-white'}`}>{u.name}</h4>
+                      <p className="text-[11px] text-slate-400 font-mono">{u.email}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-slate-400">Mã phòng nhập:</span>
+                      <span className="font-mono font-extrabold px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs">
+                        {u.joinCodeUsed || 'N/A'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[11px] text-slate-400 block mb-1">Cấp quyền:</span>
+                      <select
+                        value={currentSelectedRole}
+                        onChange={(e) =>
+                          setPendingRowRoles({ ...pendingRowRoles, [u.id]: e.target.value })
+                        }
+                        className="w-full px-3 py-2 rounded-xl text-xs font-bold border focus:outline-none transition"
+                      >
+                        <option value="MEMBER">👤 Nhân Viên Thông Thường</option>
+                        <option value="SECRETARY">📋 Thư Ký / Trợ Lý Giám Đốc</option>
+                        <option value="MANAGER">⚡ Trưởng Nhóm / Quản Lý</option>
+                        <option value="ADMIN">🛡️ Quản Trị Cấp Cao (Admin)</option>
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <button
+                        onClick={() => handleReject(u)}
+                        className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition ${
+                          isLight ? 'border-slate-300 text-slate-700 hover:bg-slate-100' : 'border-slate-700 text-slate-300 hover:bg-slate-800'
+                        }`}
+                      >
+                        <UserX className="w-3.5 h-3.5 text-rose-500" />
+                        <span>Từ Chối</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleQuickApprove(u)}
+                        className="py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/30 flex items-center justify-center gap-1 transition"
+                      >
+                        <UserCheck className="w-3.5 h-3.5" />
+                        <span>Duyệt Ngay</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {filteredList.length === 0 && (
+              <div className="py-8 text-center text-xs text-slate-400">
+                Không có yêu cầu xin gia nhập nào đang chờ duyệt
+              </div>
+            )}
           </div>
         </div>
       )}
