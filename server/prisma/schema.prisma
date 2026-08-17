@@ -1,0 +1,160 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Workspace {
+  id           String        @id @default(uuid())
+  name         String
+  code         String        @unique // Invite code for members to join
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  users        User[]
+  tasks        Task[]
+  meetings     Meeting[]
+  transactions Transaction[]
+  settings     SystemSetting?
+}
+
+model User {
+  id             String               @id @default(uuid())
+  email          String               @unique
+  name           String
+  password       String
+  role           String               @default("MEMBER") // ADMIN, MANAGER, MEMBER
+  avatar         String?
+  workspaceId    String
+  workspace      Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  createdTasks   Task[]               @relation("TaskCreator")
+  assignedTasks  TaskAssignee[]
+  subtasks       Subtask[]            @relation("SubtaskAssignee")
+  createdMeetings Meeting[]           @relation("MeetingCreator")
+  meetings       MeetingParticipant[]
+  transactions   Transaction[]
+  notifications  Notification[]
+}
+
+model Task {
+  id             String         @id @default(uuid())
+  title          String
+  description    String?
+  priority       String         @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status         String         @default("PENDING_ACCEPT") // PENDING_ACCEPT, IN_PROGRESS, REVIEW, DONE
+  dueDate        DateTime?
+  completionNote String?        // Ghi chú/link báo cáo khi nộp duyệt task
+  reviewFeedback String?        // Nhận xét khi duyệt hoặc yêu cầu làm lại
+  createdById    String
+  createdBy      User           @relation("TaskCreator", fields: [createdById], references: [id])
+  workspaceId    String
+  workspace      Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  subtasks       Subtask[]
+  assignees      TaskAssignee[]
+}
+
+model Subtask {
+  id           String    @id @default(uuid())
+  title        String
+  isCompleted  Boolean   @default(false)
+  taskId       String
+  task         Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  assignedToId String?
+  assignedTo   User?     @relation("SubtaskAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  dueDate      DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+model TaskAssignee {
+  id             String    @id @default(uuid())
+  taskId         String
+  task           Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status         String    @default("PENDING") // PENDING (Chờ nhận), ACCEPTED (Đã nhận), DECLINED (Từ chối)
+  acceptedAt     DateTime?
+  declinedReason String?
+  createdAt      DateTime  @default(now())
+
+  @@unique([taskId, userId])
+}
+
+model Meeting {
+  id          String               @id @default(uuid())
+  title       String
+  description String?
+  meetingLink String?              // Zoom / Google Meet URL
+  location    String?              // Offline meeting room or office
+  startTime   DateTime
+  endTime     DateTime
+  notifyAll   Boolean              @default(true)
+  workspaceId String
+  workspace   Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdById String
+  createdBy   User                 @relation("MeetingCreator", fields: [createdById], references: [id])
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  participants MeetingParticipant[]
+}
+
+model MeetingParticipant {
+  id        String   @id @default(uuid())
+  meetingId String
+  meeting   Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    String   @default("INVITED") // INVITED, ACCEPTED, DECLINED
+  createdAt DateTime @default(now())
+
+  @@unique([meetingId, userId])
+}
+
+model Transaction {
+  id          String    @id @default(uuid())
+  type        String    // INCOME or EXPENSE
+  amount      Float
+  category    String    // e.g., "Lương thưởng", "Dự án", "Thuê văn phòng", "Thiết bị", "Marketing", "Khác"
+  description String?
+  date        DateTime  @default(now())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdById String
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String
+  type      String   @default("SYSTEM") // TASK, MEETING, FINANCE, SYSTEM
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model SystemSetting {
+  id          String    @id @default(uuid())
+  workspaceId String    @unique
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  smtpHost    String?   @default("smtp.gmail.com")
+  smtpPort    Int?      @default(587)
+  smtpUser    String?
+  smtpPass    String?
+  smtpFrom    String?   @default("Thông Báo Công Ty <no-reply@madbros.vn>")
+  smtpSecure  Boolean   @default(false)
+  updatedAt   DateTime  @updatedAt
+}
