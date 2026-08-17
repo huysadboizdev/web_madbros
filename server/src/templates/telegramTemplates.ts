@@ -1,49 +1,14 @@
 /**
  * =========================================================================
- * 💌 TELEGRAM MESSAGE TEMPLATES - MẪU TIN NHẮN THÔNG BÁO BOT TELEGRAM
+ * TELEGRAM MESSAGE TEMPLATES - MẪU TIN NHẮN THÔNG BÁO BOT TELEGRAM (TỐI GIẢN)
  * =========================================================================
- * Bạn có thể tự do mở file này để chỉnh sửa câu chữ, thêm bớt icon,
- * đổi cấu trúc dòng hoặc biến tấu theo phong cách riêng của công ty!
+ * Đảm bảo 100% không icon/emoji, trực quan, mạch lạc, dễ đọc trên mọi thiết bị.
  * =========================================================================
  */
 
 export const TelegramTemplates = {
   /**
-   * 1. MẪU CHÀO MỪNG THÀNH VIÊN MỚI (KHI ĐƯỢC DUYỆT VÀO CÔNG TY)
-   * -------------------------------------------------------------
-   * Dưới đây là các biến có sẵn:
-   * - data.name: Tên thành viên (VD: Minh Vũ)
-   * - data.email: Email (VD: vungocminh2k38btx@gmail.com)
-   * - data.role: Vai trò (VD: Thành Viên / Thư Ký / Quản Trị Viên)
-   * - data.approverName: Người phê duyệt (VD: Quản Trị Viên)
-   */
-  welcomeNewMember(data: {
-    name: string;
-    email: string;
-    role: string;
-    approverName?: string;
-  }): string {
-    // MẪU 1: Kiểu đầy đủ chi tiết có icon (Bạn có thể bật mẫu này hoặc sửa trực tiếp)
-    /*
-    return (
-      `👋 Nhiệt liệt chào mừng thành viên mới gia nhập công ty:\n` +
-      `👤 Họ và tên: <b>${data.name}</b>\n` +
-      `📧 Email: <code>${data.email}</code>\n` +
-      `💼 Vai trò: ${data.role}\n` +
-      `👑 Người phê duyệt: ${data.approverName || 'Quản Trị Viên'}`
-    );
-    */
-
-    // MẪU 2: Kiểu ngắn gọn, súc tích (Đang được kích hoạt mặc định)
-    return (
-      `<b>CHÀO MỪNG THÀNH VIÊN MỚI</b>\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Thành viên mới: <b>${data.name}</b> - <code>${data.email}</code> - ${data.role}`
-    );
-  },
-
-  /**
-   * 2. MẪU GIAO VIỆC MỚI (TẠO TASK)
+   * 1. MẪU GIAO VIỆC MỚI (ADMIN GIAO VIỆC CHO NHÂN VIÊN)
    */
   taskCreated(data: {
     title: string;
@@ -57,65 +22,73 @@ export const TelegramTemplates = {
     const tagHeader = data.telegramTag ? `${data.telegramTag}\n` : '';
     const subtaskText =
       data.subtasks && data.subtasks.length > 0
-        ? `Checklist (${data.subtasks.length}):\n` +
+        ? `• <b>Danh sách việc con (${data.subtasks.length}):</b>\n` +
           data.subtasks.map((s, idx) => `  ${idx + 1}. ${s}`).join('\n') +
           '\n'
         : '';
 
     return (
-      `${tagHeader}<b>GIAO VIỆC MỚI</b>\n` +
+      `${tagHeader}<b>THÔNG BÁO GIAO VIỆC</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Task: <b>${data.title}</b>\n` +
-      `By: ${data.creatorName}\n` +
-      `Phụ trách: <code>${data.assignees}</code>\n` +
-      `Tiến độ: Chưa làm\n` +
-      `Hạn: ${data.dueDate}\n` +
-      (data.description ? `Mô tả: <i>${data.description}</i>\n` : '') +
+      `• <b>Công việc:</b> ${data.title}\n` +
+      `• <b>Người giao:</b> ${data.creatorName}\n` +
+      `• <b>Người phụ trách:</b> ${data.assignees}\n` +
+      `• <b>Hạn hoàn thành:</b> ${data.dueDate}\n` +
+      (data.description ? `• <b>Nội dung:</b> <i>${data.description}</i>\n` : '') +
       subtaskText
     ).trim();
   },
 
   /**
-   * 3. MẪU NHÂN VIÊN TIẾP NHẬN CÔNG VIỆC
+   * 2. MẪU CẢNH BÁO ĐẾN HẠN DEADLINE (NHÂN VIÊN CHƯA XONG VIỆC)
    */
-  taskAccepted(data: { title: string; userName: string }): string {
+  taskOverdueDeadline(data: {
+    title: string;
+    assignees: string;
+    dueDate: string;
+    telegramTag?: string;
+  }): string {
+    const tagHeader = data.telegramTag ? `${data.telegramTag}\n` : '';
+
     return (
-      `<b>TIẾP NHẬN CÔNG VIỆC</b>\n` +
+      `${tagHeader}<b>CẢNH BÁO: ĐẾN HẠN CÔNG VIỆC CHƯA XONG</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Task: <b>${data.title}</b>\n` +
-      `By: ${data.userName}\n` +
-      `Tiến độ: Đang làm`
-    );
+      `• <b>Công việc:</b> ${data.title}\n` +
+      `• <b>Người phụ trách:</b> ${data.assignees}\n` +
+      `• <b>Hạn hoàn thành:</b> ${data.dueDate}\n` +
+      `• <b>Tình trạng:</b> Chưa hoàn thành (Yêu cầu khẩn trương xử lý hoặc báo cáo tiến độ)`
+    ).trim();
   },
 
   /**
-   * 4. MẪU NHÂN VIÊN NỘP BÁO CÁO NGHIỆM THU
+   * 3. MẪU NHÂN VIÊN BÁO HOÀN THÀNH CÔNG VIỆC
    */
   taskSubmitted(data: {
     title: string;
     userName: string;
+    completionTime?: string;
     completedSubtasks?: number;
     totalSubtasks?: number;
     report?: string | null;
   }): string {
     const subtaskText =
       data.totalSubtasks && data.totalSubtasks > 0
-        ? `Checklist: ${data.completedSubtasks || 0}/${data.totalSubtasks}\n`
+        ? `• <b>Tiến độ việc con:</b> ${data.completedSubtasks || 0}/${data.totalSubtasks}\n`
         : '';
 
     return (
-      `<b>NỘP BÁO CÁO NGHIỆM THU</b>\n` +
+      `<b>THÔNG BÁO HOÀN THÀNH CÔNG VIỆC</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Task: <b>${data.title}</b>\n` +
-      `By: ${data.userName}\n` +
-      `Tiến độ: Đang nộp duyệt\n` +
+      `• <b>Công việc:</b> ${data.title}\n` +
+      `• <b>Người thực hiện:</b> ${data.userName}\n` +
+      `• <b>Thời gian hoàn thành:</b> ${data.completionTime || 'Vừa xong'}\n` +
       subtaskText +
-      (data.report ? `Báo cáo: <i>${data.report}</i>` : '')
+      (data.report ? `• <b>Báo cáo kết quả:</b> <i>${data.report}</i>` : '')
     ).trim();
   },
 
   /**
-   * 5. MẪU SẾP DUYỆT NGHIỆM THU HOẶC YÊU CẦU SỬA LẠI
+   * 4. MẪU SẾP DUYỆT NGHIỆM THU HOẶC YÊU CẦU SỬA LẠI
    */
   taskReviewed(data: {
     title: string;
@@ -126,110 +99,108 @@ export const TelegramTemplates = {
   }): string {
     if (data.action === 'APPROVE') {
       return (
-        `<b>NGHIỆM THU THÀNH CÔNG</b>\n` +
+        `<b>THÔNG BÁO NGHIỆM THU CÔNG VIỆC</b>\n` +
         `━━━━━━━━━━━━━━━━━━━━\n` +
-        `Task: <b>${data.title}</b>\n` +
-        `By: ${data.assigneeNames}\n` +
-        `Duyệt bởi: ${data.reviewerName}\n` +
-        (data.feedback ? `Đánh giá: <i>${data.feedback}</i>\n` : '') +
-        `Tiến độ: Hoàn thành`
+        `• <b>Công việc:</b> ${data.title}\n` +
+        `• <b>Người thực hiện:</b> ${data.assigneeNames}\n` +
+        `• <b>Người duyệt:</b> ${data.reviewerName}\n` +
+        `• <b>Trạng thái:</b> Đã duyệt hoàn thành\n` +
+        (data.feedback ? `• <b>Nhận xét:</b> <i>${data.feedback}</i>` : '')
       ).trim();
     } else {
       return (
-        `<b>YÊU CẦU LÀM LẠI CÔNG VIỆC</b>\n` +
+        `<b>YÊU CẦU CHỈNH SỬA CÔNG VIỆC</b>\n` +
         `━━━━━━━━━━━━━━━━━━━━\n` +
-        `Task: <b>${data.title}</b>\n` +
-        `By: ${data.assigneeNames}\n` +
-        `Yêu cầu bởi: ${data.reviewerName}\n` +
-        (data.feedback ? `Lý do: <i>${data.feedback}</i>\n` : '') +
-        `Tiến độ: Đang làm`
+        `• <b>Công việc:</b> ${data.title}\n` +
+        `• <b>Người thực hiện:</b> ${data.assigneeNames}\n` +
+        `• <b>Người yêu cầu:</b> ${data.reviewerName}\n` +
+        `• <b>Trạng thái:</b> Cần làm lại / chỉnh sửa\n` +
+        (data.feedback ? `• <b>Lý do:</b> <i>${data.feedback}</i>` : '')
       ).trim();
     }
   },
 
   /**
-   * 6. MẪU PHÁT THÔNG BÁO CHUNG TOÀN CÔNG TY (BROADCAST)
+   * 5. MẪU THÔNG BÁO CUỘC HỌP (KHÔNG LINK - CHỈ THỜI GIAN BẮT ĐẦU - KHÔNG BÁO THAM GIA/VẮNG)
+   */
+  meetingCreated(data: {
+    title: string;
+    creatorName: string;
+    startTime: string;
+    location?: string | null;
+    description?: string | null;
+  }): string {
+    const locText = data.location ? `• <b>Địa điểm:</b> ${data.location}\n` : '';
+    const descText = data.description ? `• <b>Nội dung:</b> <i>${data.description}</i>\n` : '';
+
+    return (
+      `<b>THÔNG BÁO LỊCH HỌP</b>\n` +
+      `━━━━━━━━━━━━━━━━━━━━\n` +
+      `• <b>Cuộc họp:</b> ${data.title}\n` +
+      `• <b>Thời gian bắt đầu:</b> ${data.startTime}\n` +
+      locText +
+      `• <b>Người chủ trì:</b> ${data.creatorName}\n` +
+      descText
+    ).trim();
+  },
+
+  /**
+   * 6. MẪU HỦY LỊCH HỌP
+   */
+  meetingDeleted(data: { title: string; cancellerName: string }): string {
+    return (
+      `<b>HỦY LỊCH HỌP</b>\n` +
+      `━━━━━━━━━━━━━━━━━━━━\n` +
+      `• <b>Cuộc họp:</b> ${data.title}\n` +
+      `• <b>Hủy bởi:</b> ${data.cancellerName}`
+    );
+  },
+
+  /**
+   * 7. MẪU PHÁT THÔNG BÁO KẾ HOẠCH CHUNG TOÀN CÔNG TY
    */
   announcementBroadcast(data: {
     title: string;
     content: string;
     senderName: string;
-    roleTitle: string;
+    roleTitle?: string;
     time: string;
     telegramTag?: string;
   }): string {
     const tagHeader = data.telegramTag ? `${data.telegramTag}\n` : '';
 
     return (
-      `${tagHeader}📌 <b>${data.title}</b>\n` +
-      `By: ${data.senderName} - ${data.roleTitle}\n` +
-      `Time: ${data.time}\n` +
+      `${tagHeader}<b>THÔNG BÁO KẾ HOẠCH</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
-      `📝 ${data.content}`
+      `• <b>Kế hoạch:</b> ${data.title}\n` +
+      `• <b>Người lập:</b> ${data.senderName}${data.roleTitle ? ` (${data.roleTitle})` : ''}\n` +
+      `• <b>Thời gian phát hành:</b> ${data.time}\n` +
+      `━━━━━━━━━━━━━━━━━━━━\n` +
+      `<b>Nội dung chi tiết:</b>\n` +
+      `${data.content}`
     ).trim();
   },
 
   /**
-   * 7. MẪU LÊN LỊCH HỌP MỚI
+   * 8. MẪU CHÀO MỪNG THÀNH VIÊN MỚI (TỐI GIẢN)
    */
-  meetingCreated(data: {
-    title: string;
-    creatorName: string;
-    startTime: string;
-    endTime: string;
-    link?: string | null;
-    location?: string | null;
-    description?: string | null;
+  welcomeNewMember(data: {
+    name: string;
+    email: string;
+    role: string;
+    approverName?: string;
   }): string {
-    const linkText = data.link ? `Link: <a href="${data.link}">${data.link}</a>\n` : '';
-    const locText = data.location ? `Địa điểm: ${data.location}\n` : '';
-    const descText = data.description ? `Nội dung: <i>${data.description}</i>\n` : '';
-
     return (
-      `<b>LỊCH HỌP MỚI</b>\n` +
+      `<b>CHÀO MỪNG THÀNH VIÊN MỚI</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Meeting: <b>${data.title}</b>\n` +
-      `By: ${data.creatorName}\n` +
-      `Bắt đầu: ${data.startTime}\n` +
-      `Kết thúc: ${data.endTime}\n` +
-      linkText +
-      locText +
-      descText
-    ).trim();
-  },
-
-  /**
-   * 8. MẪU HỦY LỊCH HỌP
-   */
-  meetingDeleted(data: { title: string; cancellerName: string }): string {
-    return (
-      `<b>HỦY LỊCH HỌP</b>\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Meeting: <b>${data.title}</b>\n` +
-      `Hủy bởi: ${data.cancellerName}`
+      `• <b>Thành viên:</b> ${data.name}\n` +
+      `• <b>Email:</b> <code>${data.email}</code>\n` +
+      `• <b>Vai trò:</b> ${data.role}`
     );
   },
 
   /**
-   * 9. MẪU PHẢN HỒI THAM GIA HỌP (RSVP)
-   */
-  meetingRSVP(data: {
-    title: string;
-    userName: string;
-    status: 'ACCEPTED' | 'DECLINED';
-  }): string {
-    const statusText = data.status === 'ACCEPTED' ? 'Tham gia' : 'Vắng mặt';
-    return (
-      `<b>PHẢN HỒI LỊCH HỌP</b>\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Meeting: <b>${data.title}</b>\n` +
-      `By: ${data.userName}\n` +
-      `Phản hồi: ${statusText}`
-    );
-  },
-
-  /**
-   * 10. MẪU YÊU CẦU XIN GIA NHẬP CÔNG TY
+   * 9. MẪU YÊU CẦU XIN GIA NHẬP CÔNG TY
    */
   userJoinRequest(data: {
     name: string;
@@ -239,8 +210,27 @@ export const TelegramTemplates = {
     return (
       `<b>YÊU CẦU GIA NHẬP</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Thành viên: <b>${data.name}</b> - <code>${data.email}</code>\n` +
-      `Mã phòng: <code>${data.roomCode}</code>`
+      `• <b>Thành viên:</b> ${data.name}\n` +
+      `• <b>Email:</b> <code>${data.email}</code>\n` +
+      `• <b>Mã phòng:</b> <code>${data.roomCode}</code>`
     );
+  },
+
+  /**
+   * 10. MẪU PHẢN HỒI THAM GIA HỌP (VÔ HIỆU HÓA ĐỂ TRÁNH SPAM)
+   */
+  meetingRSVP(_data: {
+    title: string;
+    userName: string;
+    status: 'ACCEPTED' | 'DECLINED';
+  }): string {
+    return '';
+  },
+
+  /**
+   * 11. MẪU TIẾP NHẬN VIỆC (VÔ HIỆU HÓA ĐỂ TRÁNH SPAM)
+   */
+  taskAccepted(_data: { title: string; userName: string }): string {
+    return '';
   },
 };

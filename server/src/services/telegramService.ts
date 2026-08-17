@@ -2,7 +2,7 @@ import { TelegramTemplates } from '../templates/telegramTemplates';
 
 /**
  * Telegram Notification Service
- * Tự động gửi thông báo từ Web lên Nhóm/Kênh Telegram thông qua TelegramTemplates
+ * Tự động gửi thông báo từ Web lên Nhóm/Kênh Telegram thông qua TelegramTemplates (Tối giản)
  */
 export class TelegramService {
   private static getCredentials() {
@@ -26,7 +26,7 @@ export class TelegramService {
   /**
    * Helper format ngày giờ ngắn gọn (HH:mm DD/MM/YYYY)
    */
-  private static formatDateTime(date?: Date | string | null): string {
+  public static formatDateTime(date?: Date | string | null): string {
     if (!date) return 'Không thời hạn';
     try {
       const d = new Date(date);
@@ -75,6 +75,10 @@ export class TelegramService {
    * Gửi tin nhắn HTML tới tất cả các Nhóm & Kênh Telegram đã cấu hình
    */
   public static async sendMessage(htmlMessage: string): Promise<boolean> {
+    if (!htmlMessage || !htmlMessage.trim()) {
+      return false;
+    }
+
     const { token, chatIds, isEnabled } = this.getCredentials();
 
     if (!isEnabled) {
@@ -100,7 +104,7 @@ export class TelegramService {
               chat_id: chatId,
               text: htmlMessage,
               parse_mode: 'HTML',
-              disable_web_page_preview: false,
+              disable_web_page_preview: true,
             }),
           });
 
@@ -129,7 +133,7 @@ export class TelegramService {
   public static async notifyTaskCreated(data: {
     title: string;
     description?: string | null;
-    priority: string;
+    priority?: string;
     dueDate?: Date | string | null;
     creatorName: string;
     assignees: string[];
@@ -150,13 +154,32 @@ export class TelegramService {
   }
 
   /**
-   * 1.2 Lên lịch họp mới (Tạo Meeting)
+   * 1.2 Cảnh báo đến hạn / quá hạn công việc chưa xong
+   */
+  public static async notifyTaskOverdueDeadline(data: {
+    title: string;
+    assignees: string[];
+    dueDate?: Date | string | null;
+    telegramTag?: string | null;
+  }) {
+    const msg = TelegramTemplates.taskOverdueDeadline({
+      title: this.escapeHtml(data.title),
+      assignees: this.escapeHtml(data.assignees.length > 0 ? data.assignees.join(', ') : 'Nhân sự phụ trách'),
+      dueDate: this.formatDateTime(data.dueDate),
+      telegramTag: this.formatTelegramTag(data.telegramTag),
+    });
+
+    return this.sendMessage(msg);
+  }
+
+  /**
+   * 1.3 Lên lịch họp mới (Tạo Meeting) - Không link, chỉ thời gian bắt đầu
    */
   public static async notifyMeetingCreated(data: {
     title: string;
     description?: string | null;
     startTime: Date | string;
-    endTime: Date | string;
+    endTime?: Date | string;
     meetingLink?: string | null;
     location?: string | null;
     creatorName: string;
@@ -166,8 +189,6 @@ export class TelegramService {
       title: this.escapeHtml(data.title),
       creatorName: this.escapeHtml(data.creatorName),
       startTime: this.formatDateTime(data.startTime),
-      endTime: this.formatDateTime(data.endTime),
-      link: data.meetingLink,
       location: this.escapeHtml(data.location),
       description: this.escapeHtml(data.description),
     });
@@ -176,7 +197,7 @@ export class TelegramService {
   }
 
   /**
-   * 1.3 Phát Thông Báo Chung Toàn Công Ty (Announcement Broadcast)
+   * 1.4 Phát Thông Báo Kế Hoạch Chung (Announcement Broadcast)
    */
   public static async notifyAnnouncementBroadcast(data: {
     title: string;
@@ -190,7 +211,7 @@ export class TelegramService {
       title: this.escapeHtml(data.title),
       content: this.escapeHtml(data.content),
       senderName: this.escapeHtml(data.senderName),
-      roleTitle: this.escapeHtml(data.roleTitle || 'Boss'),
+      roleTitle: this.escapeHtml(data.roleTitle || 'Ban Quản Trị'),
       time: this.formatDateTime(new Date()),
       telegramTag: this.formatTelegramTag(data.telegramTag),
     });
@@ -199,7 +220,7 @@ export class TelegramService {
   }
 
   /**
-   * 1.4 Chào mừng thành viên mới
+   * 1.5 Chào mừng thành viên mới
    */
   public static async notifyUserApproved(data: {
     userName: string;
@@ -227,7 +248,7 @@ export class TelegramService {
   }
 
   /**
-   * 1.5 Sếp duyệt nghiệm thu hoặc Yêu cầu làm lại task
+   * 1.6 Sếp duyệt nghiệm thu hoặc Yêu cầu làm lại task
    */
   public static async notifyTaskReviewed(data: {
     title: string;
@@ -248,7 +269,7 @@ export class TelegramService {
   }
 
   /**
-   * 1.6 Hủy cuộc họp
+   * 1.7 Hủy cuộc họp
    */
   public static async notifyMeetingDeleted(data: {
     title: string;
@@ -267,22 +288,18 @@ export class TelegramService {
   // =========================================================================
 
   /**
-   * 2.1 Nhân viên bấm "Tiếp nhận" công việc
+   * 2.1 Nhân viên bấm "Tiếp nhận" công việc (Đã tắt để tránh loãng nhóm)
    */
-  public static async notifyTaskAccepted(data: {
+  public static async notifyTaskAccepted(_data: {
     title: string;
     userName: string;
   }) {
-    const msg = TelegramTemplates.taskAccepted({
-      title: this.escapeHtml(data.title),
-      userName: this.escapeHtml(data.userName),
-    });
-
-    return this.sendMessage(msg);
+    // Tối giản: Không bắn tin nhắn nhận việc trung gian lên Telegram
+    return false;
   }
 
   /**
-   * 2.2 Nhân viên nộp báo cáo nghiệm thu
+   * 2.2 Nhân viên nộp báo cáo hoàn thành công việc
    */
   public static async notifyTaskSubmitted(data: {
     title: string;
@@ -294,6 +311,7 @@ export class TelegramService {
     const msg = TelegramTemplates.taskSubmitted({
       title: this.escapeHtml(data.title),
       userName: this.escapeHtml(data.userName),
+      completionTime: this.formatDateTime(new Date()),
       completedSubtasks: data.completedSubtasks,
       totalSubtasks: data.totalSubtasks,
       report: this.escapeHtml(data.completionReport),
@@ -303,20 +321,15 @@ export class TelegramService {
   }
 
   /**
-   * 2.3 Nhân viên phản hồi tham gia cuộc họp (RSVP)
+   * 2.3 Nhân viên phản hồi tham gia cuộc họp (RSVP) - Đã tắt để tránh spam
    */
-  public static async notifyMeetingRSVP(data: {
+  public static async notifyMeetingRSVP(_data: {
     title: string;
     userName: string;
     status: 'ACCEPTED' | 'DECLINED';
   }) {
-    const msg = TelegramTemplates.meetingRSVP({
-      title: this.escapeHtml(data.title),
-      userName: this.escapeHtml(data.userName),
-      status: data.status,
-    });
-
-    return this.sendMessage(msg);
+    // Tối giản: Không bắn tin nhắn điểm danh/báo vắng lên Telegram
+    return false;
   }
 
   /**

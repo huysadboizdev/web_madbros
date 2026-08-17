@@ -11,8 +11,19 @@
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: #060913;
     color: #f1f5f9;
-    overflow-x: clip;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
     transition: background-color 0.25s ease, color 0.25s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Chống iOS tự động phóng to màn hình khi click vào ô nhập liệu nếu font < 16px */
+  @media screen and (max-width: 768px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
   }
 }
 
@@ -199,4 +210,25 @@ html.light ::-webkit-scrollbar-thumb:hover {
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
+}
+
+/* ===================================================
+   MOBILE WEB-APP & PWA RESPONSIVE ENHANCEMENTS
+=================================================== */
+@supports (padding: max(0px)) {
+  .safe-area-bottom {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+  .safe-area-top {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+}
+
+/* Ẩn scrollbar khi cần nhưng vẫn cuộn được */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

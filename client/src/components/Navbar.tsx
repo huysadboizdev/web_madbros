@@ -78,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
 
   return (
     <header
-      className={`w-full relative z-30 backdrop-blur-2xl border-b transition-all duration-300 ${
+      className={`w-full fixed top-0 left-0 right-0 z-40 backdrop-blur-2xl border-b transition-all duration-300 ${
         isLight
           ? 'bg-white/95 border-slate-200 shadow-sm'
           : 'bg-slate-950/90 border-white/[0.08] shadow-md shadow-black/25'
@@ -378,6 +378,53 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
             ))}
           </div>
         )}
+      </div>
+
+      {/* Mobile Bottom Navigation Bar (Dock) */}
+      <div
+        className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t backdrop-blur-2xl px-2 py-1.5 transition-all duration-300 ${
+          isLight
+            ? 'bg-white/95 border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]'
+            : 'bg-slate-950/95 border-slate-800/90 shadow-[0_-4px_20px_rgba(0,0,0,0.4)]'
+        }`}
+      >
+        <div className="flex items-center justify-around max-w-lg mx-auto">
+          {navItems.map((item) => {
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setShowMobileNav(false);
+                }}
+                className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all duration-150 relative ${
+                  isActive
+                    ? isLight
+                      ? 'text-blue-600 font-bold'
+                      : 'text-blue-400 font-bold'
+                    : isLight
+                    ? 'text-slate-500 hover:text-slate-800'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <div
+                  className={`p-1 rounded-lg transition-transform ${
+                    isActive ? (isLight ? 'bg-blue-50 scale-110' : 'bg-blue-500/20 scale-110') : ''
+                  }`}
+                >
+                  {item.icon}
+                </div>
+                <span className="text-[10px] leading-tight tracking-tight mt-0.5 whitespace-nowrap">
+                  {item.label}
+                </span>
+                {isActive && (
+                  <span className="absolute -bottom-0.5 w-4 h-0.5 rounded-full bg-blue-500" />
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </header>
   );

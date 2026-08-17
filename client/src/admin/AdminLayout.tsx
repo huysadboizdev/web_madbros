@@ -62,7 +62,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
 
   return (
     <div
-      className={`min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950 relative overflow-x-clip transition-colors duration-300 ${
+      className={`min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950 relative transition-colors duration-300 ${
         isLight ? 'bg-[#f4f7fb] text-slate-800' : 'bg-[#050811] text-slate-100'
       }`}
     >
@@ -71,9 +71,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
       <div className="ambient-glow-blue" />
       <div className="ambient-glow-emerald" />
 
-      {/* Admin Executive Top Navbar (Không dính / cuộn tự nhiên cùng trang) */}
+      {/* Admin Executive Top Navbar (Cố định 100% trên đỉnh màn hình, không bao giờ trôi) */}
       <header
-        className={`w-full relative z-30 backdrop-blur-2xl border-b transition-all duration-300 ${
+        className={`w-full fixed top-0 left-0 right-0 z-40 backdrop-blur-2xl border-b transition-all duration-300 ${
           isLight
             ? 'bg-white/95 border-slate-200 shadow-sm'
             : 'bg-slate-950/90 border-amber-500/20 shadow-lg shadow-black/40'
@@ -227,7 +227,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
       </header>
 
       {/* Main Admin Page Content */}
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-7 z-10">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 pt-28 lg:pt-24 pb-24 lg:pb-8 z-10">
         {activeAdminTab === 'dashboard' && (
           <AdminDashboard setActiveAdminTab={handleAdminTabChange} />
         )}
@@ -237,6 +237,50 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
         {activeAdminTab === 'meetings' && <AdminMeetingsPage />}
         {activeAdminTab === 'settings' && <WorkspacePage />}
       </main>
+
+      {/* Admin Mobile Bottom Navigation Dock */}
+      <div
+        className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t backdrop-blur-2xl px-2 py-1.5 transition-all duration-300 ${
+          isLight
+            ? 'bg-white/95 border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]'
+            : 'bg-slate-950/95 border-amber-500/20 shadow-[0_-4px_20px_rgba(0,0,0,0.4)]'
+        }`}
+      >
+        <div className="flex items-center justify-around max-w-lg mx-auto">
+          {navItems.map((item) => {
+            const isActive = activeAdminTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleAdminTabChange(item.id)}
+                className={`flex flex-col items-center justify-center py-1 px-1.5 rounded-xl transition-all duration-150 relative ${
+                  isActive
+                    ? isLight
+                      ? 'text-amber-700 font-bold'
+                      : 'text-amber-400 font-bold'
+                    : isLight
+                    ? 'text-slate-500 hover:text-slate-800'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <div
+                  className={`p-1 rounded-lg transition-transform ${
+                    isActive ? (isLight ? 'bg-amber-100 scale-110' : 'bg-amber-500/20 scale-110') : ''
+                  }`}
+                >
+                  {item.icon}
+                </div>
+                <span className="text-[10px] leading-tight tracking-tight mt-0.5 whitespace-nowrap">
+                  {item.label}
+                </span>
+                {isActive && (
+                  <span className="absolute -bottom-0.5 w-4 h-0.5 rounded-full bg-amber-500" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Admin Footer */}
       <footer

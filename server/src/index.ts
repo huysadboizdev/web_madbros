@@ -18,6 +18,7 @@ import adminRoutes from './routes/adminRoutes';
 import announcementRoutes from './routes/announcementRoutes';
 import { bootstrapAdminAccount } from './services/bootstrapService';
 import { SocketService } from './services/socketService';
+import { SchedulerService } from './services/schedulerService';
 
 const app = express();
 const server = http.createServer(app);
@@ -88,4 +89,7 @@ server.listen(PORT, async () => {
 
   // Tự động khởi tạo hoặc đồng bộ tài khoản Admin từ .env
   await bootstrapAdminAccount();
+
+  // Khởi động hệ thống tự động quét deadline thông báo Telegram
+  SchedulerService.init();
 });

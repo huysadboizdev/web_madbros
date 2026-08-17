@@ -267,41 +267,43 @@ export const WorkspacePage: React.FC = () => {
 
           {/* Invite Code Box (Only visible for Admin, masked by default) */}
           {isAdmin && (
-            <div className={`flex items-center gap-3 p-3 rounded-2xl border shadow-md ${
+            <div className={`flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-start gap-2 sm:gap-3 p-3 rounded-2xl border shadow-md ${
               isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-700/80'
             }`}>
-              <div className="px-3">
+              <div className="px-2 sm:px-3">
                 <p className={`text-[10px] uppercase font-bold tracking-wider ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Mã Mời Nhân Viên (Bảo Mật)</p>
-                <p className="font-mono text-lg font-extrabold text-blue-600 dark:text-blue-400 tracking-widest">
+                <p className="font-mono text-base sm:text-lg font-extrabold text-blue-600 dark:text-blue-400 tracking-widest">
                   {showCode ? workspace?.code : '••••••••'}
                 </p>
               </div>
-              <button
-                onClick={() => setShowCode(!showCode)}
-                className={`p-2 rounded-xl transition cursor-pointer ${
-                  isLight ? 'text-slate-600 hover:bg-slate-200' : 'text-slate-300 hover:bg-slate-800'
-                }`}
-                title={showCode ? 'Ẩn mã mời' : 'Hiện mã mời'}
-              >
-                {showCode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-              <button
-                onClick={handleCopyCode}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/30 transition hover:scale-105 cursor-pointer"
-                title="Sao chép mã mời"
-              >
-                {copied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
-                {copied ? 'Đã sao chép' : 'Sao chép'}
-              </button>
-              <button
-                onClick={handleRegenerateCode}
-                className={`p-2 rounded-xl transition cursor-pointer ${
-                  isLight ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-200' : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-                title="Tạo mã mời mới ngẫu nhiên"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <button
+                  onClick={() => setShowCode(!showCode)}
+                  className={`p-2 rounded-xl transition cursor-pointer ${
+                    isLight ? 'text-slate-600 hover:bg-slate-200' : 'text-slate-300 hover:bg-slate-800'
+                  }`}
+                  title={showCode ? 'Ẩn mã mời' : 'Hiện mã mời'}
+                >
+                  {showCode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={handleCopyCode}
+                  className="flex items-center gap-1.5 px-3 sm:px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/30 transition hover:scale-105 cursor-pointer"
+                  title="Sao chép mã mời"
+                >
+                  {copied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
+                  {copied ? 'Đã sao chép' : 'Sao chép'}
+                </button>
+                <button
+                  onClick={handleRegenerateCode}
+                  className={`p-2 rounded-xl transition cursor-pointer ${
+                    isLight ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-200' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  }`}
+                  title="Tạo mã mời mới ngẫu nhiên"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           )}
         </div>

@@ -117,34 +117,34 @@ export const StatCard: React.FC<StatCardProps> = ({
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-3xl p-5 sm:p-6 bg-gradient-to-br ${scheme.bg} border ${scheme.border} backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
-        isLight ? 'shadow-md shadow-slate-200/60' : 'shadow-2xl shadow-black/40'
+      className={`group relative overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 lg:p-6 bg-gradient-to-br ${scheme.bg} border ${scheme.border} backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+        isLight ? 'shadow-sm sm:shadow-md shadow-slate-200/60' : 'shadow-xl shadow-black/40'
       }`}
     >
       {/* Corner subtle glow gradient */}
       <div
-        className={`absolute -top-12 -right-12 w-28 h-28 bg-gradient-to-br ${scheme.glow} rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500`}
+        className={`absolute -top-10 -right-10 w-24 h-24 sm:w-28 sm:h-28 bg-gradient-to-br ${scheme.glow} rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500 pointer-events-none`}
       />
 
-      <div className="flex items-start justify-between relative z-10">
-        <div className="space-y-1.5 flex-1 pr-2">
-          <p className={`text-xs uppercase tracking-wider font-extrabold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+      <div className="flex items-start justify-between relative z-10 gap-2">
+        <div className="space-y-1 sm:space-y-1.5 flex-1 min-w-0 pr-1">
+          <p className={`text-[10px] sm:text-xs uppercase tracking-wider font-extrabold truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
             {title}
           </p>
-          <h4 className={`text-2xl xl:text-3xl font-extrabold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+          <h4 className={`text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>
             {value}
           </h4>
 
           {subtitle && (
-            <p className={`text-xs flex items-center gap-1.5 font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+            <p className={`text-[11px] sm:text-xs truncate font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
               {subtitle}
             </p>
           )}
 
           {trend && (
-            <div className="pt-1">
+            <div className="pt-0.5 sm:pt-1">
               <span
-                className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                className={`inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full truncate max-w-full ${
                   trendPositive
                     ? isLight
                       ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
@@ -160,7 +160,7 @@ export const StatCard: React.FC<StatCardProps> = ({
           )}
         </div>
 
-        <div className={`p-3.5 rounded-2xl ${scheme.iconBg} shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+        <div className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl ${scheme.iconBg} shrink-0 group-hover:scale-105 transition-transform duration-300 [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-5 sm:[&>svg]:h-5 lg:[&>svg]:w-6 lg:[&>svg]:h-6`}>
           {icon}
         </div>
       </div>

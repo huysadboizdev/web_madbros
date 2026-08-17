@@ -97,7 +97,7 @@ const AppContent: React.FC = () => {
   // 4. Mặc định: Phòng làm việc của công ty dành cho Nhân Viên / Thư Ký đã duyệt
   return (
     <div
-      className={`min-h-screen flex flex-col selection:bg-blue-600 selection:text-white relative overflow-x-clip transition-colors duration-300 ${
+      className={`min-h-screen flex flex-col selection:bg-blue-600 selection:text-white relative transition-colors duration-300 ${
         isLight ? 'bg-[#f4f7fb] text-slate-800' : 'bg-[#060913] text-slate-100'
       }`}
     >
@@ -114,7 +114,7 @@ const AppContent: React.FC = () => {
       />
 
       {/* Main Page Content - Compact & Responsive Widescreen Container */}
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-7 z-10">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 pt-28 lg:pt-24 pb-24 lg:pb-8 z-10">
         {(activeTab === 'dashboard' || (activeTab === 'secretary' && !canAccessSecretary)) && (
           <DashboardPage setActiveTab={handleTabChange} />
         )}

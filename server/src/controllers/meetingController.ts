@@ -140,16 +140,13 @@ export class MeetingController {
         }).catch((err) => console.error('[Async Email Error]', err));
       }
 
-      // 🤖 Tự động bắn thông báo Lịch họp mới lên Telegram
+      // 🤖 Tự động bắn thông báo Lịch họp mới lên Telegram (Tối giản: không link, chỉ giờ bắt đầu)
       TelegramService.notifyMeetingCreated({
         title: meeting.title,
         description: meeting.description,
         startTime: meeting.startTime,
-        endTime: meeting.endTime,
-        meetingLink: meeting.meetingLink,
         location: meeting.location,
         creatorName: creator?.name || 'Ban Quản Trị',
-        participantCount: targetUserIds.length,
       }).catch((err) => console.error('[Telegram Meeting Notify Error]', err));
 
       // ⚡ Real-Time WebSocket
@@ -264,16 +261,7 @@ export class MeetingController {
         },
       });
 
-      // 🤖 Bắn thông báo Telegram phản hồi tham gia họp (RSVP)
-      const user = await prisma.user.findUnique({ where: { id: userId } });
-      const meeting = await prisma.meeting.findUnique({ where: { id } });
-      if (meeting && user) {
-        TelegramService.notifyMeetingRSVP({
-          title: meeting.title,
-          userName: user.name,
-          status: status as 'ACCEPTED' | 'DECLINED',
-        }).catch((err) => console.error('[Telegram RSVP Error]', err));
-      }
+      // (Đã tắt bắn thông báo RSVP lên Telegram để tránh làm phiền nhóm)
 
       // ⚡ Real-Time WebSocket
       SocketService.emitToWorkspace(workspaceId, 'meeting:updated', { meetingId: id });
