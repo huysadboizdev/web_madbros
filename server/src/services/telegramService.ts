@@ -1,8 +1,9 @@
+import { TelegramTemplates } from '../templates/telegramTemplates';
+
 /**
  * Telegram Notification Service
- * Tự động gửi thông báo ngắn gọn, xúc tích, dễ theo dõi từ Web lên Nhóm/Kênh Telegram
+ * Tự động gửi thông báo từ Web lên Nhóm/Kênh Telegram thông qua TelegramTemplates
  */
-
 export class TelegramService {
   private static getCredentials() {
     const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
@@ -135,34 +136,17 @@ export class TelegramService {
     subtasks?: string[];
     telegramTag?: string | null;
   }) {
-    const assigneeList = data.assignees.length > 0 ? data.assignees.join(', ') : 'Chưa phân công';
-    const tagFormatted = this.formatTelegramTag(data.telegramTag);
-    const tagHeader = tagFormatted ? `${tagFormatted}\n` : '';
+    const msg = TelegramTemplates.taskCreated({
+      title: this.escapeHtml(data.title),
+      creatorName: this.escapeHtml(data.creatorName),
+      assignees: this.escapeHtml(data.assignees.length > 0 ? data.assignees.join(', ') : 'Chưa phân công'),
+      dueDate: this.formatDateTime(data.dueDate),
+      description: this.escapeHtml(data.description),
+      subtasks: data.subtasks?.map((s) => this.escapeHtml(s)),
+      telegramTag: this.formatTelegramTag(data.telegramTag),
+    });
 
-    const safeTitle = this.escapeHtml(data.title);
-    const safeCreator = this.escapeHtml(data.creatorName);
-    const safeAssignee = this.escapeHtml(assigneeList);
-    const safeDesc = this.escapeHtml(data.description);
-
-    const subtaskText =
-      data.subtasks && data.subtasks.length > 0
-        ? `Checklist (${data.subtasks.length}):\n` +
-          data.subtasks.map((s, idx) => `  ${idx + 1}. ${this.escapeHtml(s)}`).join('\n') +
-          '\n'
-        : '';
-
-    const msg =
-      `${tagHeader}<b>GIAO VIỆC MỚI</b>\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Task: <b>${safeTitle}</b>\n` +
-      `By: ${safeCreator}\n` +
-      `Phụ trách: ${safeAssignee}\n` +
-      `Tiến độ: Chưa làm\n` +
-      `Hạn: ${this.formatDateTime(data.dueDate)}\n` +
-      (safeDesc ? `Mô tả: ${safeDesc}\n` : '') +
-      subtaskText;
-
-    return this.sendMessage(msg.trim());
+    return this.sendMessage(msg);
   }
 
   /**
@@ -178,26 +162,17 @@ export class TelegramService {
     creatorName: string;
     participantCount?: number;
   }) {
-    const safeTitle = this.escapeHtml(data.title);
-    const safeCreator = this.escapeHtml(data.creatorName);
-    const linkText = data.meetingLink
-      ? `Link: <a href="${data.meetingLink}">${data.meetingLink}</a>\n`
-      : '';
-    const locText = data.location ? `Địa điểm: ${this.escapeHtml(data.location)}\n` : '';
-    const descText = data.description ? `Nội dung: ${this.escapeHtml(data.description)}\n` : '';
+    const msg = TelegramTemplates.meetingCreated({
+      title: this.escapeHtml(data.title),
+      creatorName: this.escapeHtml(data.creatorName),
+      startTime: this.formatDateTime(data.startTime),
+      endTime: this.formatDateTime(data.endTime),
+      link: data.meetingLink,
+      location: this.escapeHtml(data.location),
+      description: this.escapeHtml(data.description),
+    });
 
-    const msg =
-      `<b>LỊCH HỌP MỚI</b>\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Meeting: <b>${safeTitle}</b>\n` +
-      `By: ${safeCreator}\n` +
-      `Bắt đầu: ${this.formatDateTime(data.startTime)}\n` +
-      `Kết thúc: ${this.formatDateTime(data.endTime)}\n` +
-      linkText +
-      locText +
-      descText;
-
-    return this.sendMessage(msg.trim());
+    return this.sendMessage(msg);
   }
 
   /**
@@ -211,22 +186,16 @@ export class TelegramService {
     roleTitle?: string;
     telegramTag?: string | null;
   }) {
-    const tagFormatted = this.formatTelegramTag(data.telegramTag);
-    const tagHeader = tagFormatted ? `${tagFormatted}\n` : '';
+    const msg = TelegramTemplates.announcementBroadcast({
+      title: this.escapeHtml(data.title),
+      content: this.escapeHtml(data.content),
+      senderName: this.escapeHtml(data.senderName),
+      roleTitle: this.escapeHtml(data.roleTitle || 'Boss'),
+      time: this.formatDateTime(new Date()),
+      telegramTag: this.formatTelegramTag(data.telegramTag),
+    });
 
-    const safeTitle = this.escapeHtml(data.title);
-    const safeContent = this.escapeHtml(data.content);
-    const safeSender = this.escapeHtml(data.senderName);
-    const safeRole = this.escapeHtml(data.roleTitle || 'Boss');
-
-    const msg =
-      `${tagHeader}📌 <b>${safeTitle}</b>\n` +
-      `By: ${safeSender} - ${safeRole}\n` +
-      `Time: ${this.formatDateTime(new Date())}\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
-      `📝 ${safeContent}`;
-
-    return this.sendMessage(msg.trim());
+    return this.sendMessage(msg);
   }
 
   /**
@@ -247,15 +216,14 @@ export class TelegramService {
         ? 'Quản lý'
         : 'Thành viên';
 
-    const safeName = this.escapeHtml(data.userName);
-    const safeEmail = this.escapeHtml(data.userEmail);
+    const msg = TelegramTemplates.welcomeNewMember({
+      name: this.escapeHtml(data.userName),
+      email: this.escapeHtml(data.userEmail),
+      role: roleText,
+      approverName: this.escapeHtml(data.approverName || 'Quản Trị Viên'),
+    });
 
-    const msg =
-      `<b>CHÀO MỪNG THÀNH VIÊN MỚI</b>\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Thành viên mới: ${safeName} - ${safeEmail} - ${roleText}`;
-
-    return this.sendMessage(msg.trim());
+    return this.sendMessage(msg);
   }
 
   /**
@@ -268,33 +236,15 @@ export class TelegramService {
     action: 'APPROVE' | 'REJECT';
     feedback?: string | null;
   }) {
-    const assigneeStr = data.assigneeNames.join(', ') || 'Nhân viên';
-    const safeTitle = this.escapeHtml(data.title);
-    const safeAssignee = this.escapeHtml(assigneeStr);
-    const safeReviewer = this.escapeHtml(data.reviewerName);
-    const safeFeedback = this.escapeHtml(data.feedback);
+    const msg = TelegramTemplates.taskReviewed({
+      title: this.escapeHtml(data.title),
+      reviewerName: this.escapeHtml(data.reviewerName),
+      assigneeNames: this.escapeHtml(data.assigneeNames.join(', ') || 'Nhân viên'),
+      action: data.action,
+      feedback: this.escapeHtml(data.feedback),
+    });
 
-    if (data.action === 'APPROVE') {
-      const msg =
-        `<b>NGHIỆM THU THÀNH CÔNG</b>\n` +
-        `━━━━━━━━━━━━━━━━━━━━\n` +
-        `Task: <b>${safeTitle}</b>\n` +
-        `By: ${safeAssignee}\n` +
-        `Duyệt bởi: ${safeReviewer}\n` +
-        (safeFeedback ? `Đánh giá: ${safeFeedback}\n` : '') +
-        `Tiến độ: Hoàn thành`;
-      return this.sendMessage(msg.trim());
-    } else {
-      const msg =
-        `<b>YÊU CẦU LÀM LẠI CÔNG VIỆC</b>\n` +
-        `━━━━━━━━━━━━━━━━━━━━\n` +
-        `Task: <b>${safeTitle}</b>\n` +
-        `By: ${safeAssignee}\n` +
-        `Yêu cầu bởi: ${safeReviewer}\n` +
-        (safeFeedback ? `Lý do: ${safeFeedback}\n` : '') +
-        `Tiến độ: Đang làm`;
-      return this.sendMessage(msg.trim());
-    }
+    return this.sendMessage(msg);
   }
 
   /**
@@ -304,16 +254,12 @@ export class TelegramService {
     title: string;
     cancellerName: string;
   }) {
-    const safeTitle = this.escapeHtml(data.title);
-    const safeCanceller = this.escapeHtml(data.cancellerName);
+    const msg = TelegramTemplates.meetingDeleted({
+      title: this.escapeHtml(data.title),
+      cancellerName: this.escapeHtml(data.cancellerName),
+    });
 
-    const msg =
-      `<b>HỦY LỊCH HỌP</b>\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Meeting: <b>${safeTitle}</b>\n` +
-      `Hủy bởi: ${safeCanceller}`;
-
-    return this.sendMessage(msg.trim());
+    return this.sendMessage(msg);
   }
 
   // =========================================================================
@@ -327,17 +273,12 @@ export class TelegramService {
     title: string;
     userName: string;
   }) {
-    const safeTitle = this.escapeHtml(data.title);
-    const safeUser = this.escapeHtml(data.userName);
+    const msg = TelegramTemplates.taskAccepted({
+      title: this.escapeHtml(data.title),
+      userName: this.escapeHtml(data.userName),
+    });
 
-    const msg =
-      `<b>TIẾP NHẬN CÔNG VIỆC</b>\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Task: <b>${safeTitle}</b>\n` +
-      `By: ${safeUser}\n` +
-      `Tiến độ: Đang làm`;
-
-    return this.sendMessage(msg.trim());
+    return this.sendMessage(msg);
   }
 
   /**
@@ -350,25 +291,15 @@ export class TelegramService {
     totalSubtasks?: number;
     completionReport?: string | null;
   }) {
-    const safeTitle = this.escapeHtml(data.title);
-    const safeUser = this.escapeHtml(data.userName);
-    const safeReport = this.escapeHtml(data.completionReport);
+    const msg = TelegramTemplates.taskSubmitted({
+      title: this.escapeHtml(data.title),
+      userName: this.escapeHtml(data.userName),
+      completedSubtasks: data.completedSubtasks,
+      totalSubtasks: data.totalSubtasks,
+      report: this.escapeHtml(data.completionReport),
+    });
 
-    const subtaskText =
-      data.totalSubtasks && data.totalSubtasks > 0
-        ? `Checklist: ${data.completedSubtasks || 0}/${data.totalSubtasks}\n`
-        : '';
-
-    const msg =
-      `<b>NỘP BÁO CÁO NGHIỆM THU</b>\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Task: <b>${safeTitle}</b>\n` +
-      `By: ${safeUser}\n` +
-      `Tiến độ: Đang nộp duyệt\n` +
-      subtaskText +
-      (safeReport ? `Báo cáo: ${safeReport}` : '');
-
-    return this.sendMessage(msg.trim());
+    return this.sendMessage(msg);
   }
 
   /**
@@ -379,18 +310,13 @@ export class TelegramService {
     userName: string;
     status: 'ACCEPTED' | 'DECLINED';
   }) {
-    const safeTitle = this.escapeHtml(data.title);
-    const safeUser = this.escapeHtml(data.userName);
-    const statusText = data.status === 'ACCEPTED' ? 'Tham gia' : 'Vắng mặt';
+    const msg = TelegramTemplates.meetingRSVP({
+      title: this.escapeHtml(data.title),
+      userName: this.escapeHtml(data.userName),
+      status: data.status,
+    });
 
-    const msg =
-      `<b>PHẢN HỒI LỊCH HỌP</b>\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Meeting: <b>${safeTitle}</b>\n` +
-      `By: ${safeUser}\n` +
-      `Phản hồi: ${statusText}`;
-
-    return this.sendMessage(msg.trim());
+    return this.sendMessage(msg);
   }
 
   /**
@@ -401,16 +327,12 @@ export class TelegramService {
     userEmail: string;
     roomCode: string;
   }) {
-    const safeUser = this.escapeHtml(data.userName);
-    const safeEmail = this.escapeHtml(data.userEmail);
-    const safeCode = this.escapeHtml(data.roomCode);
+    const msg = TelegramTemplates.userJoinRequest({
+      name: this.escapeHtml(data.userName),
+      email: this.escapeHtml(data.userEmail),
+      roomCode: this.escapeHtml(data.roomCode),
+    });
 
-    const msg =
-      `<b>YÊU CẦU GIA NHẬP</b>\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
-      `Thành viên: ${safeUser} - ${safeEmail}\n` +
-      `Mã phòng: ${safeCode}`;
-
-    return this.sendMessage(msg.trim());
+    return this.sendMessage(msg);
   }
 }
