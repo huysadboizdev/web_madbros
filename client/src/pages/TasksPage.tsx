@@ -1584,7 +1584,7 @@ export const TasksPage: React.FC = () => {
       <Modal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        title="Giao Công Việc Mới (Gửi Email & Chuông Web)"
+        title="Giao Công Việc Mới (Thông Báo Telegram & Web)"
       >
         <form onSubmit={handleCreateTask} className="space-y-4">
           <div>
@@ -1655,7 +1655,7 @@ export const TasksPage: React.FC = () => {
           {/* Phân công thành viên */}
           <div>
             <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-              Phân Công Cho Thành Viên (Tự động nhận Email & Chuông Web)
+              Phân Công Cho Thành Viên
             </label>
             <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1">
               {members.map((m) => {

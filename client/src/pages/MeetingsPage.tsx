@@ -256,7 +256,7 @@ export const MeetingsPage: React.FC = () => {
             </span>
           </div>
           <p className={`text-xs sm:text-sm mt-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-            Đặt lịch họp, tự động gửi thư mời Email và thông báo tới toàn bộ thành viên công ty
+            Đặt lịch họp, tự động đồng bộ lịch và thông báo tới toàn bộ thành viên qua Telegram & Web
           </p>
         </div>
 
@@ -716,7 +716,7 @@ export const MeetingsPage: React.FC = () => {
               disabled={creating}
               className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5 disabled:opacity-50"
             >
-              {creating ? 'Đang tạo & gửi mail...' : 'Đặt Lịch & Gửi Thư Mời'}
+              {creating ? 'Đang tạo lịch họp...' : 'Đặt Lịch Họp Mới'}
             </button>
           </div>
         </form>
