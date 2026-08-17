@@ -7,11 +7,11 @@
     --bg-main: #060913;
   }
 
-  body {
+  html, body {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: #060913;
     color: #f1f5f9;
-    overflow-x: hidden;
+    overflow-x: clip;
     transition: background-color 0.25s ease, color 0.25s ease;
   }
 }

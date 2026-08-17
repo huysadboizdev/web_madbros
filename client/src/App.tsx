@@ -97,7 +97,7 @@ const AppContent: React.FC = () => {
   // 4. Mặc định: Phòng làm việc của công ty dành cho Nhân Viên / Thư Ký đã duyệt
   return (
     <div
-      className={`min-h-screen flex flex-col selection:bg-blue-600 selection:text-white relative overflow-x-hidden transition-colors duration-300 ${
+      className={`min-h-screen flex flex-col selection:bg-blue-600 selection:text-white relative overflow-x-clip transition-colors duration-300 ${
         isLight ? 'bg-[#f4f7fb] text-slate-800' : 'bg-[#060913] text-slate-100'
       }`}
     >

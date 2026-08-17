@@ -62,7 +62,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
 
   return (
     <div
-      className={`min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950 relative overflow-x-hidden transition-colors duration-300 ${
+      className={`min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950 relative overflow-x-clip transition-colors duration-300 ${
         isLight ? 'bg-[#f4f7fb] text-slate-800' : 'bg-[#050811] text-slate-100'
       }`}
     >
@@ -71,12 +71,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
       <div className="ambient-glow-blue" />
       <div className="ambient-glow-emerald" />
 
-      {/* Admin Executive Top Navbar */}
+      {/* Admin Executive Top Navbar (Sticky Floating) */}
       <header
-        className={`sticky top-0 z-40 w-full backdrop-blur-2xl border-b transition-colors duration-300 ${
+        className={`sticky top-0 z-50 w-full backdrop-blur-2xl border-b transition-all duration-300 ${
           isLight
-            ? 'bg-white/90 border-slate-200 shadow-md shadow-slate-200/50'
-            : 'bg-slate-950/85 border-amber-500/20 shadow-xl shadow-black/40'
+            ? 'bg-white/95 border-slate-200 shadow-md shadow-slate-200/60'
+            : 'bg-slate-950/90 border-amber-500/20 shadow-xl shadow-black/50'
         }`}
       >
         <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">

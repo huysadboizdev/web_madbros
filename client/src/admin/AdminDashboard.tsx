@@ -166,7 +166,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
                 Bảng Tổng Quan Quản Trị Cấp Cao
               </h1>
               <p className={`text-xs sm:text-sm ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
-                Giám sát {overview?.totalUsers || 0} nhân sự, tài sản ({formatCurrency(overview?.totalAssetsValue)}), công việc và lịch họp theo thời gian thực.
+                Giám sát {overview?.totalUsers || 0} nhân sự, tiến độ công việc và lịch họp toàn công ty theo thời gian thực.
               </p>
             </div>
           </div>
@@ -185,10 +185,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
               <UserPlus className="w-4 h-4" /> Thêm Nhân Viên
             </button>
             <button
-              onClick={() => setActiveAdminTab('assets')}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-2xl text-xs font-bold shadow-md shadow-amber-600/25 transition hover:scale-105 cursor-pointer"
+              onClick={() => setActiveAdminTab('tasks')}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 rounded-2xl text-xs font-extrabold shadow-md shadow-amber-500/25 transition hover:scale-105 cursor-pointer"
             >
-              <Package className="w-4 h-4" /> Nhập Tài Sản
+              <CheckSquare className="w-4 h-4" /> Giao Công Việc
             </button>
           </div>
         </div>
