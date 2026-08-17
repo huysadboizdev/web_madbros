@@ -1,0 +1,3 @@
+nrovegeta.online, www.nrovegeta.online {
+    reverse_proxy localhost:3000
+}
