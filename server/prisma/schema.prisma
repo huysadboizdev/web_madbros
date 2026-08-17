@@ -18,28 +18,33 @@ model Workspace {
   tasks        Task[]
   meetings     Meeting[]
   transactions Transaction[]
+  assets       Asset[]
   settings     SystemSetting?
 }
 
 model User {
-  id             String               @id @default(uuid())
-  email          String               @unique
-  name           String
-  password       String
-  role           String               @default("MEMBER") // ADMIN, MANAGER, MEMBER
-  avatar         String?
-  workspaceId    String
-  workspace      Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
+  id              String               @id @default(uuid())
+  email           String               @unique
+  name            String
+  password        String
+  role            String               @default("MEMBER") // ADMIN, MANAGER, MEMBER
+  status          String               @default("ACTIVE") // ACTIVE, PENDING_APPROVAL, BLOCKED
+  joinCodeUsed    String?              // Mã phòng Workspace mà người dùng nhập để xin vào
+  requestedAt     DateTime?            // Thời gian gửi yêu cầu xin gia nhập
+  avatar          String?
+  workspaceId     String
+  workspace       Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
 
-  createdTasks   Task[]               @relation("TaskCreator")
-  assignedTasks  TaskAssignee[]
-  subtasks       Subtask[]            @relation("SubtaskAssignee")
-  createdMeetings Meeting[]           @relation("MeetingCreator")
-  meetings       MeetingParticipant[]
-  transactions   Transaction[]
-  notifications  Notification[]
+  createdTasks    Task[]               @relation("TaskCreator")
+  assignedTasks   TaskAssignee[]
+  subtasks        Subtask[]            @relation("SubtaskAssignee")
+  createdMeetings Meeting[]            @relation("MeetingCreator")
+  meetings        MeetingParticipant[]
+  transactions    Transaction[]
+  notifications   Notification[]
+  assignedAssets  Asset[]              @relation("AssetAssignee")
 }
 
 model Task {
@@ -132,6 +137,24 @@ model Transaction {
   createdBy   User      @relation(fields: [createdById], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+model Asset {
+  id           String    @id @default(uuid())
+  code         String    // Mã tài sản: TS-001, LAP-002, PC-003...
+  name         String    // Tên tài sản: MacBook Pro M2, Bàn làm việc, Máy in Canon...
+  category     String    // Thiết bị IT, Nội thất văn phòng, Phương tiện, Bản quyền, Khác
+  value        Float     @default(0) // Giá trị tài sản (VND)
+  status       String    @default("IN_USE") // IN_USE, AVAILABLE, MAINTENANCE, BROKEN, LIQUIDATED
+  assignedToId String?
+  assignedTo   User?     @relation("AssetAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  assignedDate DateTime?
+  location     String?   // Vị trí: Phòng Kỹ Thuật, Kho Tầng 2...
+  note         String?   // Ghi chú cấu hình, số serial
+  workspaceId  String
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model Notification {

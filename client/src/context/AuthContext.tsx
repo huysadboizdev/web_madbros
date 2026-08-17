@@ -6,6 +6,8 @@ export interface User {
   email: string;
   name: string;
   role: string;
+  status: 'ACTIVE' | 'PENDING_APPROVAL' | 'BLOCKED';
+  joinCodeUsed?: string | null;
   avatar?: string;
   workspaceId: string;
   workspaceName: string;
@@ -17,8 +19,8 @@ interface AuthContextType {
   token: string | null;
   loading: boolean;
   login: (credentials: { email: string; password: string }) => Promise<void>;
-  registerAdmin: (data: { email: string; password: string; name: string; workspaceName: string }) => Promise<void>;
-  joinWorkspace: (data: { email: string; password: string; name: string; inviteCode: string }) => Promise<void>;
+  googleLogin: (data: { credential?: string; email?: string; name?: string; avatar?: string }) => Promise<void>;
+  requestJoinWorkspace: (code: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -57,39 +59,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (credentials: { email: string; password: string }) => {
     const res = await api.post('/auth/login', credentials);
     const { token: newToken, user: newUser } = res.data;
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
     setToken(newToken);
     setUser(newUser);
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('user', JSON.stringify(newUser));
   };
 
-  const registerAdmin = async (data: { email: string; password: string; name: string; workspaceName: string }) => {
-    const res = await api.post('/auth/register', data);
+  const googleLogin = async (data: { credential?: string; email?: string; name?: string; avatar?: string }) => {
+    const res = await api.post('/auth/google', data);
     const { token: newToken, user: newUser } = res.data;
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
     setToken(newToken);
     setUser(newUser);
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('user', JSON.stringify(newUser));
   };
 
-  const joinWorkspace = async (data: { email: string; password: string; name: string; inviteCode: string }) => {
-    const res = await api.post('/auth/join', data);
-    const { token: newToken, user: newUser } = res.data;
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
-    setToken(newToken);
-    setUser(newUser);
+  const requestJoinWorkspace = async (code: string) => {
+    const res = await api.post('/workspaces/request-join', { code });
+    const { user: updatedUser } = res.data;
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setToken(null);
     setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, registerAdmin, joinWorkspace, logout, refreshUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        googleLogin,
+        requestJoinWorkspace,
+        logout,
+        refreshUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

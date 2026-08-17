@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import { useAuth } from './AuthContext';
+import { useSocket } from './SocketContext';
 
 export interface NotificationItem {
   id: string;
@@ -24,6 +25,7 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
+  const { subscribe } = useSocket();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -41,14 +43,23 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     if (user) {
       fetchNotifications();
-      // Tự động kiểm tra thông báo mới mỗi 30s
-      const interval = setInterval(fetchNotifications, 30000);
-      return () => clearInterval(interval);
+      
+      // ⚡ Real-Time WebSocket: Nhận thông báo mới đẩy về tức thì
+      const unsubscribe = subscribe('notification:new', () => {
+        fetchNotifications();
+      });
+
+      // Tự động kiểm tra thông báo mới mỗi 60s như fallback
+      const interval = setInterval(fetchNotifications, 60000);
+      return () => {
+        unsubscribe();
+        clearInterval(interval);
+      };
     } else {
       setNotifications([]);
       setUnreadCount(0);
     }
-  }, [user, fetchNotifications]);
+  }, [user, fetchNotifications, subscribe]);
 
   const markAsRead = async (id: string) => {
     try {

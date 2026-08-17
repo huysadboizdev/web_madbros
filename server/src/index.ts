@@ -1,4 +1,5 @@
 import express from 'express';
+import http from 'http';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
@@ -13,10 +14,16 @@ import financeRoutes from './routes/financeRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import workspaceRoutes from './routes/workspaceRoutes';
 import statsRoutes from './routes/statsRoutes';
+import adminRoutes from './routes/adminRoutes';
 import { bootstrapAdminAccount } from './services/bootstrapService';
+import { SocketService } from './services/socketService';
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 80;
+
+// Initialize Real-time Socket.IO Engine
+SocketService.init(server);
 
 app.use(cors());
 app.use(express.json());
@@ -30,6 +37,7 @@ app.use('/api/finance', financeRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -60,26 +68,22 @@ if (clientDistPath) {
     }
     res.sendFile(path.join(clientDistPath!, 'index.html'));
   });
-} else {
-  console.log('[Dev Mode] Chưa tìm thấy client/dist. Chạy client riêng bằng Vite ở chế độ dev.');
-  app.get('/', (req, res) => {
-    res.send('<h1>MadBros Enterprise API Server Đang Chạy</h1><p>Vui lòng build client (<code>npm run build</code>) để hiển thị giao diện web trên cổng này.</p>');
-  });
 }
 
-// Error handling middleware
+// Global error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('[Server Error]', err);
-  res.status(500).json({ message: 'Internal Server Error', error: err.message });
+  res.status(500).json({ message: 'Lỗi máy chủ nội bộ', error: err.message });
 });
 
-app.listen(PORT, async () => {
+server.listen(PORT, async () => {
   console.log(`====================================================`);
   console.log(`🚀 Hệ Thống Quản Lý MadBros Đang Chạy Thành Công!`);
   console.log(`🌐 Cổng: http://localhost:${PORT}`);
   console.log(`📌 Môi trường: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`⚡ WebSocket: Sẵn sàng kết nối Real-time`);
   console.log(`====================================================`);
 
-  // Tự động kiểm tra và khởi tạo tài khoản Admin từ .env
+  // Tự động khởi tạo hoặc đồng bộ tài khoản Admin từ .env
   await bootstrapAdminAccount();
 });

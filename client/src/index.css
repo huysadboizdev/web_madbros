@@ -3,45 +3,200 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg-main: #060913;
+  }
+
   body {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: #0f172a;
-    color: #f8fafc;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #060913;
+    color: #f1f5f9;
+    overflow-x: hidden;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 }
 
-/* Custom scrollbars */
+/* ===================================================
+   LIGHT MODE RULES (ĐỒNG BỘ 100% GIAO DIỆN SÁNG)
+=================================================== */
+html.light body {
+  background-color: #f4f7fb;
+  color: #1e293b;
+}
+
+html.light h1,
+html.light h2,
+html.light h3,
+html.light h4,
+html.light h5,
+html.light h6 {
+  color: #0f172a !important;
+}
+
+html.light .glass-panel {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03) !important;
+  color: #1e293b;
+}
+
+html.light .glass-panel:hover {
+  border-color: #cbd5e1 !important;
+}
+
+html.light .glass-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 2px 10px -1px rgba(0, 0, 0, 0.04) !important;
+  color: #1e293b;
+}
+
+html.light table thead {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light table tbody {
+  border-color: #e2e8f0 !important;
+}
+
+html.light table tbody tr {
+  border-color: #f1f5f9 !important;
+  color: #334155 !important;
+}
+
+html.light table tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+
+html.light table tbody tr td span.font-bold,
+html.light table tbody tr td span.text-white,
+html.light table tbody tr td p.font-bold,
+html.light table tbody tr td p.text-white {
+  color: #0f172a !important;
+}
+
+html.light table tbody tr td span.text-slate-300,
+html.light table tbody tr td span.text-slate-400,
+html.light table tbody tr td p.text-slate-300,
+html.light table tbody tr td p.text-slate-400 {
+  color: #64748b !important;
+}
+
+html.light input:not([type='checkbox']):not([type='radio']),
+html.light select,
+html.light textarea {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light header {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light footer {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+}
+
+html.light .ambient-glow-blue,
+html.light .ambient-glow-purple,
+html.light .ambient-glow-emerald {
+  opacity: 0.15;
+}
+
+/* ===================================================
+   DARK MODE RULES
+=================================================== */
+html.dark body {
+  background-color: #060913;
+  color: #f1f5f9;
+}
+
+html.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.78);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+html.dark .glass-card {
+  background: rgba(30, 41, 59, 0.55);
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: rgba(15, 23, 42, 0.4);
 }
 ::-webkit-scrollbar-thumb {
   background: #334155;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
 
-.glass-panel {
-  background: rgba(30, 41, 59, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+html.light ::-webkit-scrollbar-track {
+  background: rgba(241, 245, 249, 0.8);
+}
+html.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
-.glass-card {
-  background: rgba(30, 41, 59, 0.5);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+/* Subtle glow background blobs */
+.ambient-glow-blue {
+  position: fixed;
+  top: 5%;
+  left: 15%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, rgba(37, 99, 235, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
 }
 
-.gradient-text {
-  background: linear-gradient(135deg, #60a5fa, #a855f7);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.ambient-glow-purple {
+  position: fixed;
+  top: 30%;
+  right: 10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.06) 0%, rgba(147, 51, 234, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ambient-glow-emerald {
+  position: fixed;
+  bottom: 10%;
+  left: 30%;
+  width: 550px;
+  height: 550px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.04) 0%, rgba(16, 185, 129, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
 }

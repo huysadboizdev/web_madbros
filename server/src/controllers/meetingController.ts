@@ -2,6 +2,8 @@ import { Response } from 'express';
 import { prisma } from '../config/db';
 import { AuthenticatedRequest } from '../middlewares/auth';
 import { EmailService } from '../services/emailService';
+import { SocketService } from '../services/socketService';
+import { TelegramService } from '../services/telegramService';
 
 export class MeetingController {
   // Lấy danh sách cuộc họp của Workspace
@@ -42,6 +44,10 @@ export class MeetingController {
   // Tạo cuộc họp mới & Tự động gửi Email thông báo toàn bộ thành viên
   static async createMeeting(req: AuthenticatedRequest, res: Response) {
     try {
+      if (req.user?.role === 'MEMBER') {
+        return res.status(403).json({ message: 'Nhân viên không có quyền đặt lịch họp. Chỉ Ban Giám Đốc, Thư Ký hoặc Quản Lý mới có quyền lên lịch họp.' });
+      }
+
       const workspaceId = req.user!.workspaceId;
       const createdById = req.user!.userId;
       const { title, description, meetingLink, location, startTime, endTime, notifyAll, participantIds, sendEmail } = req.body;
@@ -131,6 +137,25 @@ export class MeetingController {
         }).catch((err) => console.error('[Async Email Error]', err));
       }
 
+      // 🤖 Tự động bắn thông báo Lịch họp mới lên Telegram
+      TelegramService.notifyMeetingCreated({
+        title: meeting.title,
+        description: meeting.description,
+        startTime: meeting.startTime,
+        endTime: meeting.endTime,
+        meetingLink: meeting.meetingLink,
+        location: meeting.location,
+        creatorName: creator?.name || 'Ban Quản Trị',
+        participantCount: targetUserIds.length,
+      }).catch((err) => console.error('[Telegram Meeting Notify Error]', err));
+
+      // ⚡ Real-Time WebSocket
+      SocketService.emitToWorkspace(workspaceId, 'meeting:created', {
+        meetingId: meeting.id,
+        title: meeting.title,
+      });
+      SocketService.emitToWorkspace(workspaceId, 'notification:new', { type: 'MEETING' });
+
       return res.status(201).json({
         message: 'Tạo lịch họp thành công và đã gửi thông báo đến các thành viên',
         meeting,
@@ -168,6 +193,9 @@ export class MeetingController {
         },
       });
 
+      // ⚡ Real-Time WebSocket
+      SocketService.emitToWorkspace(workspaceId, 'meeting:updated', { meetingId: id });
+
       return res.json({ message: 'Cập nhật cuộc họp thành công', meeting: updated });
     } catch (error) {
       return res.status(500).json({ message: 'Lỗi khi cập nhật cuộc họp' });
@@ -189,6 +217,17 @@ export class MeetingController {
       }
 
       await prisma.meeting.delete({ where: { id } });
+
+      // 🤖 Bắn thông báo Telegram Hủy cuộc họp
+      const user = await prisma.user.findUnique({ where: { id: req.user!.userId } });
+      TelegramService.notifyMeetingDeleted({
+        title: meeting.title,
+        cancellerName: user?.name || 'Quản trị viên',
+      }).catch((err) => console.error('[Telegram Meeting Delete Error]', err));
+
+      // ⚡ Real-Time WebSocket
+      SocketService.emitToWorkspace(workspaceId, 'meeting:deleted', { meetingId: id });
+
       return res.json({ message: 'Đã xóa cuộc họp thành công' });
     } catch (error) {
       return res.status(500).json({ message: 'Lỗi khi xóa cuộc họp' });
@@ -200,6 +239,7 @@ export class MeetingController {
     try {
       const id = String(req.params.id);
       const userId = req.user!.userId;
+      const workspaceId = req.user!.workspaceId;
       const { status } = req.body;
 
       if (!['ACCEPTED', 'DECLINED'].includes(status)) {
@@ -221,9 +261,24 @@ export class MeetingController {
         },
       });
 
+      // 🤖 Bắn thông báo Telegram phản hồi tham gia họp (RSVP)
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      const meeting = await prisma.meeting.findUnique({ where: { id } });
+      if (meeting && user) {
+        TelegramService.notifyMeetingRSVP({
+          title: meeting.title,
+          userName: user.name,
+          status: status as 'ACCEPTED' | 'DECLINED',
+        }).catch((err) => console.error('[Telegram RSVP Error]', err));
+      }
+
+      // ⚡ Real-Time WebSocket
+      SocketService.emitToWorkspace(workspaceId, 'meeting:updated', { meetingId: id });
+
       return res.json({ message: 'Cập nhật trạng thái tham gia thành công', participant });
     } catch (error) {
       return res.status(500).json({ message: 'Lỗi cập nhật trạng thái' });
     }
   }
 }
+

@@ -1,0 +1,1358 @@
+import React, { useState, useEffect } from 'react';
+import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { useSocket } from '../context/SocketContext';
+import { StatCard } from '../components/StatCard';
+import { Modal } from '../components/Modal';
+import {
+  FileSignature,
+  Calendar,
+  CheckSquare,
+  Users,
+  Plus,
+  Search,
+  Clock,
+  Video,
+  AlertCircle,
+  CheckCircle2,
+  Send,
+  Sparkles,
+  Crown,
+  ChevronRight,
+  Filter,
+  ExternalLink,
+  MessageSquare,
+  Trash2,
+  RefreshCw,
+  Bell,
+  Check,
+  X,
+  Layers,
+  ArrowUpRight,
+  ListTodo,
+  TrendingUp,
+} from 'lucide-react';
+
+export const SecretaryPage: React.FC = () => {
+  const { user } = useAuth();
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+
+  // Data states
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [meetings, setMeetings] = useState<any[]>([]);
+  const [members, setMembers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeSubTab, setActiveSubTab] = useState<'TASKS' | 'MEETINGS' | 'BRIEFING'>('TASKS');
+
+  // Filter states
+  const [taskSearch, setTaskSearch] = useState('');
+  const [taskStatusFilter, setTaskStatusFilter] = useState('ALL');
+  const [taskPriorityFilter, setTaskPriorityFilter] = useState('ALL');
+  const [meetingSearch, setMeetingSearch] = useState('');
+
+  // Modals
+  const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
+  const [showCreateMeetingModal, setShowCreateMeetingModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [reviewFeedback, setReviewFeedback] = useState('');
+
+  // Form: Create Delegated Task
+  const [taskTitle, setTaskTitle] = useState('');
+  const [taskDescription, setTaskDescription] = useState('');
+  const [taskPriority, setTaskPriority] = useState('HIGH');
+  const [taskDueDate, setTaskDueDate] = useState('');
+  const [taskAssigneeIds, setTaskAssigneeIds] = useState<string[]>([]);
+  const [subtasks, setSubtasks] = useState<{ title: string; assignedToId?: string }[]>([]);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [taskSendEmail, setTaskSendEmail] = useState(true);
+  const [creatingTask, setCreatingTask] = useState(false);
+
+  // Form: Create Delegated Meeting
+  const [meetingTitle, setMeetingTitle] = useState('');
+  const [meetingDescription, setMeetingDescription] = useState('');
+  const [meetingStartTime, setMeetingStartTime] = useState('');
+  const [meetingDuration, setMeetingDuration] = useState('60');
+  const [meetingHostId, setMeetingHostId] = useState(user?.id || '');
+  const [meetingLink, setMeetingLink] = useState('');
+  const [meetingLocation, setMeetingLocation] = useState('');
+  const [meetingParticipantIds, setMeetingParticipantIds] = useState<string[]>([]);
+  const [meetingSendEmail, setMeetingSendEmail] = useState(true);
+  const [creatingMeeting, setCreatingMeeting] = useState(false);
+  const { subscribe } = useSocket();
+
+  // Toast / Status Message
+  const [message, setMessage] = useState<{ text: string; success: boolean } | null>(null);
+
+  useEffect(() => {
+    fetchInitialData();
+
+    // ⚡ Real-Time WebSocket: Đồng bộ công việc và lịch họp tức thì cho Ban Thư Ký
+    const unsubTaskCreated = subscribe('task:created', () => {
+      api.get('/tasks').then((res) => setTasks(res.data || []));
+    });
+    const unsubTaskUpdated = subscribe('task:updated', () => {
+      api.get('/tasks').then((res) => setTasks(res.data || []));
+    });
+    const unsubTaskDeleted = subscribe('task:deleted', () => {
+      api.get('/tasks').then((res) => setTasks(res.data || []));
+    });
+    const unsubMeetingCreated = subscribe('meeting:created', () => {
+      api.get('/meetings').then((res) => setMeetings(res.data || []));
+    });
+    const unsubMeetingUpdated = subscribe('meeting:updated', () => {
+      api.get('/meetings').then((res) => setMeetings(res.data || []));
+    });
+    const unsubMeetingDeleted = subscribe('meeting:deleted', () => {
+      api.get('/meetings').then((res) => setMeetings(res.data || []));
+    });
+
+    return () => {
+      unsubTaskCreated();
+      unsubTaskUpdated();
+      unsubTaskDeleted();
+      unsubMeetingCreated();
+      unsubMeetingUpdated();
+      unsubMeetingDeleted();
+    };
+  }, [subscribe]);
+
+  const fetchInitialData = async () => {
+    try {
+      setLoading(true);
+      const [tasksRes, meetingsRes, workspaceRes] = await Promise.all([
+        api.get('/tasks'),
+        api.get('/meetings'),
+        api.get('/workspaces'),
+      ]);
+      setTasks(tasksRes.data || []);
+      setMeetings(meetingsRes.data || []);
+      setMembers(workspaceRes.data?.users || []);
+      if (workspaceRes.data?.users?.length > 0 && !meetingHostId) {
+        // Set default host as first admin or current user
+        const firstAdmin = workspaceRes.data.users.find((u: any) => u.role === 'ADMIN');
+        setMeetingHostId(firstAdmin?.id || user?.id || '');
+      }
+    } catch (error) {
+      console.error('Lỗi tải dữ liệu thư ký', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showToast = (text: string, success = true) => {
+    setMessage({ text, success });
+    setTimeout(() => setMessage(null), 4000);
+  };
+
+  // ==========================================
+  // 1. TASK DELEGATION HANDLERS
+  // ==========================================
+  const handleAddSubtask = () => {
+    if (!newSubtaskTitle.trim()) return;
+    setSubtasks([...subtasks, { title: newSubtaskTitle.trim() }]);
+    setNewSubtaskTitle('');
+  };
+
+  const handleRemoveSubtask = (index: number) => {
+    setSubtasks(subtasks.filter((_, i) => i !== index));
+  };
+
+  const handleCreateDelegatedTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!taskTitle.trim()) return;
+
+    try {
+      setCreatingTask(true);
+      await api.post('/tasks', {
+        title: `[Chỉ Đạo BGD] ${taskTitle.trim()}`,
+        description: taskDescription ? `📋 Chỉ đạo từ Ban Giám Đốc:\n${taskDescription}` : '📋 Giao việc theo chỉ đạo của Ban Giám Đốc.',
+        priority: taskPriority,
+        dueDate: taskDueDate ? new Date(taskDueDate).toISOString() : null,
+        assigneeIds: taskAssigneeIds,
+        subtasks: subtasks.map((s) => ({ title: s.title })),
+        sendEmail: taskSendEmail,
+      });
+
+      showToast('Đã phân công và giao việc thay Ban Giám Đốc thành công!');
+      setShowCreateTaskModal(false);
+      // Reset form
+      setTaskTitle('');
+      setTaskDescription('');
+      setTaskPriority('HIGH');
+      setTaskDueDate('');
+      setTaskAssigneeIds([]);
+      setSubtasks([]);
+      const tasksRes = await api.get('/tasks');
+      setTasks(tasksRes.data || []);
+    } catch (error: any) {
+      showToast(error.response?.data?.message || 'Lỗi khi giao việc', false);
+    } finally {
+      setCreatingTask(false);
+    }
+  };
+
+  const handleApproveTask = async (taskId: string) => {
+    try {
+      await api.post(`/tasks/${taskId}/review`, {
+        approved: true,
+        feedback: 'Thư ký / Trợ lý đã đại diện Ban Giám Đốc nghiệm thu kết quả đạt chuẩn.',
+      });
+      showToast('Đã đại diện Ban Giám Đốc phê duyệt hoàn thành công việc!');
+      const tasksRes = await api.get('/tasks');
+      setTasks(tasksRes.data || []);
+    } catch (error: any) {
+      showToast(error.response?.data?.message || 'Lỗi duyệt task', false);
+    }
+  };
+
+  const handleRejectTaskWithFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTask || !reviewFeedback.trim()) return;
+
+    try {
+      await api.post(`/tasks/${selectedTask.id}/review`, {
+        approved: false,
+        feedback: reviewFeedback.trim(),
+      });
+      showToast('Đã gửi yêu cầu chỉnh sửa / làm lại cho nhân sự!');
+      setShowReviewModal(false);
+      setSelectedTask(null);
+      setReviewFeedback('');
+      const tasksRes = await api.get('/tasks');
+      setTasks(tasksRes.data || []);
+    } catch (error: any) {
+      showToast(error.response?.data?.message || 'Lỗi gửi phản hồi', false);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string, title: string) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn hủy / xóa công việc "${title}"?`)) return;
+    try {
+      await api.delete(`/tasks/${taskId}`);
+      showToast('Đã xóa công việc thành công!');
+      setTasks(tasks.filter((t) => t.id !== taskId));
+    } catch (error: any) {
+      showToast(error.response?.data?.message || 'Lỗi khi xóa task', false);
+    }
+  };
+
+  // ==========================================
+  // 2. MEETING SCHEDULER HANDLERS
+  // ==========================================
+  const handleCreateDelegatedMeeting = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!meetingTitle.trim() || !meetingStartTime) {
+      alert('Vui lòng nhập tên cuộc họp và thời gian bắt đầu');
+      return;
+    }
+
+    try {
+      setCreatingMeeting(true);
+      const start = new Date(meetingStartTime);
+      const end = new Date(start.getTime() + Number(meetingDuration) * 60000);
+
+      await api.post('/meetings', {
+        title: `[Lịch Họp BGD] ${meetingTitle.trim()}`,
+        description: meetingDescription ? `📋 Lịch họp do Thư ký sắp xếp theo chỉ đạo của BGD:\n${meetingDescription}` : '📋 Cuộc họp do Thư ký sắp xếp theo chỉ đạo của Ban Giám Đốc.',
+        startTime: start.toISOString(),
+        endTime: end.toISOString(),
+        link: meetingLink.trim() || null,
+        location: meetingLocation.trim() || 'Phòng Họp Trực Tuyến',
+        hostId: meetingHostId || user?.id,
+        participantIds: meetingParticipantIds,
+        sendEmail: meetingSendEmail,
+      });
+
+      showToast('Đã lên lịch họp thay Ban Giám Đốc thành công!');
+      setShowCreateMeetingModal(false);
+      // Reset form
+      setMeetingTitle('');
+      setMeetingDescription('');
+      setMeetingStartTime('');
+      setMeetingLink('');
+      setMeetingLocation('');
+      setMeetingParticipantIds([]);
+      const meetingsRes = await api.get('/meetings');
+      setMeetings(meetingsRes.data || []);
+    } catch (error: any) {
+      showToast(error.response?.data?.message || 'Lỗi khi tạo lịch họp', false);
+    } finally {
+      setCreatingMeeting(false);
+    }
+  };
+
+  const handleDeleteMeeting = async (meetingId: string, title: string) => {
+    if (!window.confirm(`Hủy lịch họp "${title}"? Thông báo hủy sẽ được cập nhật cho các thành viên.`)) return;
+    try {
+      await api.delete(`/meetings/${meetingId}`);
+      showToast('Đã hủy cuộc họp thành công!');
+      setMeetings(meetings.filter((m) => m.id !== meetingId));
+    } catch (error: any) {
+      showToast(error.response?.data?.message || 'Lỗi khi hủy cuộc họp', false);
+    }
+  };
+
+  // Filtered Tasks
+  const filteredTasks = tasks.filter((t) => {
+    const matchSearch =
+      !taskSearch ||
+      t.title.toLowerCase().includes(taskSearch.toLowerCase()) ||
+      t.assignees?.some((a: any) => a.name.toLowerCase().includes(taskSearch.toLowerCase()));
+
+    const matchStatus = taskStatusFilter === 'ALL' || t.status === taskStatusFilter;
+    const matchPriority = taskPriorityFilter === 'ALL' || t.priority === taskPriorityFilter;
+
+    return matchSearch && matchStatus && matchPriority;
+  });
+
+  // Filtered Meetings
+  const filteredMeetings = meetings.filter((m) => {
+    return !meetingSearch || m.title.toLowerCase().includes(meetingSearch.toLowerCase()) || m.location?.toLowerCase().includes(meetingSearch.toLowerCase());
+  });
+
+  // Stat metrics
+  const pendingAcceptTasksCount = tasks.filter((t) => t.status === 'PENDING_ACCEPT').length;
+  const inProgressTasksCount = tasks.filter((t) => t.status === 'IN_PROGRESS').length;
+  const reviewTasksCount = tasks.filter((t) => t.status === 'REVIEW').length;
+  const doneTasksCount = tasks.filter((t) => t.status === 'DONE').length;
+  const upcomingMeetingsCount = meetings.filter((m) => new Date(m.startTime) >= new Date()).length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-rose-500 border-t-transparent rounded-full animate-spin" />
+          <p className={`text-xs font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+            Đang tải dữ liệu Ban Thư Ký & Trợ Lý Điều Hành...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-300">
+      {/* Toast Notification */}
+      {message && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 px-5 py-3.5 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2.5 transition-all animate-in slide-in-from-bottom-5 border ${
+            message.success
+              ? 'bg-emerald-600 text-white border-emerald-400/50 shadow-emerald-500/20'
+              : 'bg-rose-600 text-white border-rose-400/50 shadow-rose-500/20'
+          }`}
+        >
+          {message.success ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+          {message.text}
+        </div>
+      )}
+
+      {/* 1. Executive Secretary Top Banner */}
+      <div
+        className={`relative overflow-hidden rounded-3xl p-6 sm:p-8 border shadow-xl backdrop-blur-xl transition-all duration-300 ${
+          isLight
+            ? 'bg-gradient-to-r from-rose-100/80 via-pink-50 to-white border-rose-200 shadow-rose-500/5'
+            : 'bg-gradient-to-r from-rose-950/40 via-purple-950/30 to-indigo-950/40 border-rose-500/30 shadow-2xl'
+        }`}
+      >
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-extrabold flex items-center gap-1.5 border shadow-sm ${
+                  isLight
+                    ? 'bg-rose-100 border-rose-300 text-rose-800'
+                    : 'bg-rose-500/20 border-rose-500/40 text-rose-300'
+                }`}
+              >
+                <FileSignature className="w-3.5 h-3.5" /> BAN THƯ KÝ & TRỢ LÝ ĐIỀU HÀNH
+              </span>
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1 border ${
+                  isLight ? 'bg-purple-100 border-purple-200 text-purple-800' : 'bg-purple-500/15 border-purple-500/30 text-purple-300'
+                }`}
+              >
+                <Crown className="w-3 h-3 text-amber-500" /> Đại Diện Ban Giám Đốc
+              </span>
+            </div>
+
+            <h1 className={`text-2xl sm:text-3xl xl:text-4xl font-extrabold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              Trung Tâm Điều Phối & Lên Lịch Thay Sếp
+            </h1>
+            <p className={`text-xs sm:text-sm max-w-3xl leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
+              Thực hiện quyền ủy thác của Ban Giám Đốc: Phân công công việc cho các phòng ban, lên lịch họp doanh nghiệp, đôn đốc tiến độ và tổng hợp báo cáo kết quả.
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={() => setShowCreateTaskModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-rose-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> Giao Việc Thay Sếp
+            </button>
+            <button
+              onClick={() => setShowCreateMeetingModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-purple-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+            >
+              <Calendar className="w-4 h-4" /> Lên Lịch Họp Thay Sếp
+            </button>
+            <button
+              onClick={fetchInitialData}
+              title="Làm mới dữ liệu"
+              className={`p-2.5 rounded-2xl border transition cursor-pointer ${
+                isLight ? 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50' : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white'
+              }`}
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="absolute top-0 right-0 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
+      </div>
+
+      {/* 2. Key Metrics Summary Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+        <StatCard
+          title="Tổng Việc Đã Giao Thay Sếp"
+          value={tasks.length}
+          subtitle={`${doneTasksCount} việc đã hoàn thành`}
+          icon={<CheckSquare className="w-6 h-6" />}
+          trend={`${inProgressTasksCount} việc đang chạy`}
+          trendPositive={true}
+          color="rose"
+        />
+
+        <StatCard
+          title="Chờ Nhân Sự Tiếp Nhận"
+          value={pendingAcceptTasksCount}
+          subtitle="Công việc mới được giao"
+          icon={<ListTodo className="w-6 h-6" />}
+          trend={pendingAcceptTasksCount > 0 ? 'Cần đôn đốc nhận' : 'Đã nhận đủ'}
+          trendPositive={pendingAcceptTasksCount === 0}
+          color="amber"
+        />
+
+        <StatCard
+          title="Lịch Họp Do Thư Ký Sắp Xếp"
+          value={upcomingMeetingsCount}
+          subtitle={`Tổng số: ${meetings.length} cuộc họp`}
+          icon={<Calendar className="w-6 h-6" />}
+          trend="Họp trực tuyến & Trực tiếp"
+          trendPositive={true}
+          color="purple"
+        />
+
+        <StatCard
+          title="Báo Cáo Chờ Nghiệm Thu"
+          value={reviewTasksCount}
+          subtitle="Cần thư ký kiểm tra & duyệt"
+          icon={<Sparkles className="w-6 h-6" />}
+          trend={reviewTasksCount > 0 ? 'Có việc chờ duyệt' : 'Đã duyệt xong'}
+          trendPositive={reviewTasksCount === 0}
+          color="emerald"
+        />
+      </div>
+
+      {/* 3. Sub-navigation Tabs */}
+      <div className={`p-1.5 rounded-2xl border flex items-center gap-2 max-w-xl ${
+        isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-900/80 border-slate-800'
+      }`}>
+        <button
+          onClick={() => setActiveSubTab('TASKS')}
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            activeSubTab === 'TASKS'
+              ? isLight
+                ? 'bg-white text-rose-600 shadow-sm'
+                : 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
+              : isLight
+              ? 'text-slate-600 hover:text-slate-900'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <CheckSquare className="w-4 h-4" /> Điều Phối Công Việc ({tasks.length})
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('MEETINGS')}
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            activeSubTab === 'MEETINGS'
+              ? isLight
+                ? 'bg-white text-purple-600 shadow-sm'
+                : 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
+              : isLight
+              ? 'text-slate-600 hover:text-slate-900'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Calendar className="w-4 h-4" /> Lịch Họp Doanh Nghiệp ({meetings.length})
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('BRIEFING')}
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            activeSubTab === 'BRIEFING'
+              ? isLight
+                ? 'bg-white text-indigo-600 shadow-sm'
+                : 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+              : isLight
+              ? 'text-slate-600 hover:text-slate-900'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <TrendingUp className="w-4 h-4" /> Báo Cáo Trình Sếp
+        </button>
+      </div>
+
+      {/* ==========================================
+          TAB 1: ĐIỀU PHỐI CÔNG VIỆC THAY SẾP
+      ========================================== */}
+      {activeSubTab === 'TASKS' && (
+        <div className="space-y-5">
+          {/* Search & Filter Bar */}
+          <div className={`p-4 sm:p-5 rounded-3xl border shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+            isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'
+          }`}>
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <input
+                type="text"
+                placeholder="Tìm công việc theo tên hoặc người thực hiện..."
+                value={taskSearch}
+                onChange={(e) => setTaskSearch(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2 rounded-xl text-xs focus:outline-none focus:border-rose-500 transition border ${
+                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900/80 border-slate-700/80 text-white'
+                }`}
+              />
+            </div>
+
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <select
+                value={taskStatusFilter}
+                onChange={(e) => setTaskStatusFilter(e.target.value)}
+                className={`px-3 py-2 rounded-xl text-xs font-semibold focus:outline-none transition border ${
+                  isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-900/80 border-slate-700/80 text-slate-300'
+                }`}
+              >
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="PENDING_ACCEPT">⏳ Chờ nhân viên nhận việc</option>
+                <option value="IN_PROGRESS">⚡ Đang thực hiện</option>
+                <option value="REVIEW">🎯 Chờ duyệt nghiệm thu</option>
+                <option value="DONE">✅ Đã hoàn thành</option>
+              </select>
+
+              <select
+                value={taskPriorityFilter}
+                onChange={(e) => setTaskPriorityFilter(e.target.value)}
+                className={`px-3 py-2 rounded-xl text-xs font-semibold focus:outline-none transition border ${
+                  isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-900/80 border-slate-700/80 text-slate-300'
+                }`}
+              >
+                <option value="ALL">Mọi mức độ ưu tiên</option>
+                <option value="URGENT">🔴 Khẩn cấp (Ưu tiên số 1)</option>
+                <option value="HIGH">🟠 Cao</option>
+                <option value="MEDIUM">🔵 Bình thường</option>
+                <option value="LOW">⚪ Thấp</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Tasks Table */}
+          <div className={`rounded-3xl shadow-xl overflow-hidden border ${
+            isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'
+          }`}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead
+                  className={`font-semibold border-b uppercase tracking-wider text-[10px] ${
+                    isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-900/90 text-slate-400 border-slate-800'
+                  }`}
+                >
+                  <tr>
+                    <th className="py-3.5 px-4">Tên Công Việc & Chỉ Đạo Của Sếp</th>
+                    <th className="py-3.5 px-4">Người Thực Hiện</th>
+                    <th className="py-3.5 px-4">Độ Ưu Tiên</th>
+                    <th className="py-3.5 px-4">Hạn Chót & Tiến Độ</th>
+                    <th className="py-3.5 px-4">Trạng Thái</th>
+                    <th className="py-3.5 px-4 text-right">Thao Tác Thư Ký</th>
+                  </tr>
+                </thead>
+                <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-800/80'}`}>
+                  {filteredTasks.map((t) => (
+                    <tr
+                      key={t.id}
+                      className={`transition-colors ${
+                        isLight ? 'hover:bg-slate-50/80 text-slate-800' : 'hover:bg-slate-800/40 text-slate-200'
+                      }`}
+                    >
+                      <td className="py-4 px-4 max-w-xs">
+                        <div className="space-y-1">
+                          <p className={`font-bold text-xs leading-snug ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                            {t.title}
+                          </p>
+                          {t.description && (
+                            <p className={`text-[11px] line-clamp-2 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                              {t.description}
+                            </p>
+                          )}
+                          {t.completionNote && (
+                            <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-300 text-[11px]">
+                              <strong>Báo cáo kết quả:</strong> {t.completionNote}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          {t.assignees?.map((a: any) => (
+                            <div key={a.id} className="flex items-center gap-1.5" title={`${a.name} (${a.email})`}>
+                              <div className="w-6 h-6 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-[10px] flex items-center justify-center border border-rose-500/30">
+                                {a.name?.slice(0, 1)?.toUpperCase()}
+                              </div>
+                              <span className="font-semibold text-xs">{a.name}</span>
+                            </div>
+                          ))}
+                          {(!t.assignees || t.assignees.length === 0) && (
+                            <span className="text-slate-400 italic">Chưa gán</span>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="py-4 px-4">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${
+                            t.priority === 'URGENT'
+                              ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                              : t.priority === 'HIGH'
+                              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                              : t.priority === 'MEDIUM'
+                              ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30'
+                              : 'bg-slate-500/15 text-slate-500 border-slate-500/30'
+                          }`}
+                        >
+                          {t.priority === 'URGENT' ? '🔴 Khẩn Cấp' : t.priority === 'HIGH' ? '🟠 Cao' : t.priority === 'MEDIUM' ? '🔵 Bình Thường' : '⚪ Thấp'}
+                        </span>
+                      </td>
+
+                      <td className="py-4 px-4">
+                        <div className="space-y-1">
+                          <p className={`text-[11px] font-semibold flex items-center gap-1 ${
+                            t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'DONE'
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : isLight ? 'text-slate-600' : 'text-slate-400'
+                          }`}>
+                            <Clock className="w-3 h-3" />
+                            {t.dueDate ? new Date(t.dueDate).toLocaleDateString('vi-VN') : 'Không giới hạn'}
+                          </p>
+                          <div className="w-24 bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className="bg-rose-500 h-1.5 rounded-full transition-all"
+                              style={{ width: `${t.progress || 0}%` }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-4 px-4">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-extrabold border ${
+                            t.status === 'DONE'
+                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                              : t.status === 'REVIEW'
+                              ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30 animate-pulse'
+                              : t.status === 'IN_PROGRESS'
+                              ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30'
+                              : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                          }`}
+                        >
+                          {t.status === 'DONE'
+                            ? '✅ Đã Hoàn Thành'
+                            : t.status === 'REVIEW'
+                            ? '🎯 Chờ Nghiệm Thu'
+                            : t.status === 'IN_PROGRESS'
+                            ? '⚡ Đang Làm'
+                            : '⏳ Chờ Nhận Việc'}
+                        </span>
+                      </td>
+
+                      <td className="py-4 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {t.status === 'REVIEW' && (
+                            <button
+                              onClick={() => handleApproveTask(t.id)}
+                              className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-bold shadow transition cursor-pointer flex items-center gap-1"
+                              title="Duyệt kết quả thay Ban Giám Đốc"
+                            >
+                              <Check className="w-3 h-3" /> Duyệt
+                            </button>
+                          )}
+
+                          {t.status === 'REVIEW' && (
+                            <button
+                              onClick={() => {
+                                setSelectedTask(t);
+                                setShowReviewModal(true);
+                              }}
+                              className="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-[11px] font-bold shadow transition cursor-pointer flex items-center gap-1"
+                              title="Góp ý / Yêu cầu làm lại"
+                            >
+                              <MessageSquare className="w-3 h-3" /> Góp ý
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => handleDeleteTask(t.id, t.title)}
+                            className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded-lg transition cursor-pointer"
+                            title="Xóa công việc"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {filteredTasks.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="text-center py-12 text-slate-400">
+                        Chưa có công việc nào phù hợp với bộ lọc
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================
+          TAB 2: LỊCH HỌP DOANH NGHIỆP THAY SẾP
+      ========================================== */}
+      {activeSubTab === 'MEETINGS' && (
+        <div className="space-y-5">
+          {/* Meeting Search & Action */}
+          <div className={`p-4 sm:p-5 rounded-3xl border shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 ${
+            isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'
+          }`}>
+            <div className="relative w-full sm:w-80">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <input
+                type="text"
+                placeholder="Tìm cuộc họp theo tiêu đề hoặc địa điểm..."
+                value={meetingSearch}
+                onChange={(e) => setMeetingSearch(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2 rounded-xl text-xs focus:outline-none focus:border-purple-500 transition border ${
+                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900/80 border-slate-700/80 text-white'
+                }`}
+              />
+            </div>
+
+            <button
+              onClick={() => setShowCreateMeetingModal(true)}
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-600/30 transition flex items-center gap-1.5 cursor-pointer self-end sm:self-auto"
+            >
+              <Plus className="w-4 h-4" /> Lên Lịch Họp Mới
+            </button>
+          </div>
+
+          {/* Meetings Grid / List */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filteredMeetings.map((m) => {
+              const isPast = new Date(m.endTime) < new Date();
+              const acceptedCount = m.participants?.filter((p: any) => p.status === 'ACCEPTED').length || 0;
+
+              return (
+                <div
+                  key={m.id}
+                  className={`p-5 rounded-3xl border shadow-lg transition-all duration-300 hover:-translate-y-1 space-y-4 ${
+                    isLight
+                      ? 'bg-white border-slate-200 shadow-slate-200/50'
+                      : 'glass-panel border-white/[0.08]'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <span
+                        className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${
+                          isPast
+                            ? 'bg-slate-500/15 text-slate-500 border-slate-500/30'
+                            : 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30'
+                        }`}
+                      >
+                        {isPast ? 'Đã diễn ra' : 'Sắp diễn ra'}
+                      </span>
+                      <h3 className={`font-bold text-sm leading-snug ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                        {m.title}
+                      </h3>
+                    </div>
+
+                    <button
+                      onClick={() => handleDeleteMeeting(m.id, m.title)}
+                      className="text-slate-400 hover:text-rose-500 p-1 rounded-lg transition cursor-pointer"
+                      title="Hủy cuộc họp"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {m.description && (
+                    <p className={`text-xs line-clamp-2 leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      {m.description}
+                    </p>
+                  )}
+
+                  <div className={`p-3 rounded-2xl border space-y-2 text-xs ${
+                    isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400 flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-purple-500" /> Bắt đầu:
+                      </span>
+                      <span className="font-semibold">{new Date(m.startTime).toLocaleString('vi-VN')}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400 flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-blue-500" /> Chủ trì:
+                      </span>
+                      <span className="font-semibold text-rose-600 dark:text-rose-400">
+                        {m.host?.name || 'Ban Giám Đốc'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Điểm danh (RSVP):
+                      </span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                        {acceptedCount}/{m.participants?.length || 0} tham dự
+                      </span>
+                    </div>
+                  </div>
+
+                  {m.link && (
+                    <a
+                      href={m.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center gap-2 transition"
+                    >
+                      <Video className="w-3.5 h-3.5" /> Vào Phòng Họp Trực Tuyến <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+
+            {filteredMeetings.length === 0 && (
+              <div className="col-span-full text-center py-12 text-slate-400">
+                Chưa có cuộc họp nào được lên lịch
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================
+          TAB 3: BÁO CÁO TỔNG HỢP TRÌNH SẾP
+      ========================================== */}
+      {activeSubTab === 'BRIEFING' && (
+        <div className="space-y-6">
+          <div className={`p-6 sm:p-7 rounded-3xl border shadow-xl space-y-6 ${
+            isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'
+          }`}>
+            <div className={`pb-4 border-b flex items-center justify-between ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div>
+                <h3 className={`text-base sm:text-lg font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  📋 Tóm Tắt Tình Hình Vận Hành Doanh Nghiệp (1-Phút Trình Sếp)
+                </h3>
+                <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  Bản tổng hợp tự động các chỉ số công việc, lịch họp và các đầu việc cần Ban Giám Đốc lưu ý.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className={`p-4 rounded-2xl border space-y-2 ${
+                isLight ? 'bg-blue-50/60 border-blue-200' : 'bg-blue-950/20 border-blue-500/20'
+              }`}>
+                <p className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                  ⚡ Tiến Độ Thực Thi
+                </p>
+                <h4 className="text-2xl font-extrabold">{tasks.length > 0 ? Math.round((doneTasksCount / tasks.length) * 100) : 100}%</h4>
+                <p className={`text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                  {doneTasksCount}/{tasks.length} hạng mục đã hoàn thành nghiệm thu.
+                </p>
+              </div>
+
+              <div className={`p-4 rounded-2xl border space-y-2 ${
+                isLight ? 'bg-purple-50/60 border-purple-200' : 'bg-purple-950/20 border-purple-500/20'
+              }`}>
+                <p className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                  📅 Lịch Họp Tuần Này
+                </p>
+                <h4 className="text-2xl font-extrabold">{upcomingMeetingsCount} cuộc họp</h4>
+                <p className={`text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                  Tất cả nhân sự liên quan đã nhận thông báo và xác nhận lịch.
+                </p>
+              </div>
+
+              <div className={`p-4 rounded-2xl border space-y-2 ${
+                isLight ? 'bg-amber-50/60 border-amber-200' : 'bg-amber-950/20 border-amber-500/20'
+              }`}>
+                <p className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                  ⚠️ Việc Cần Lưu Ý
+                </p>
+                <h4 className="text-2xl font-extrabold">{pendingAcceptTasksCount + reviewTasksCount} đầu việc</h4>
+                <p className={`text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                  Gồm {pendingAcceptTasksCount} việc chờ nhân sự nhận và {reviewTasksCount} việc chờ duyệt.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================
+          MODAL: GIAO VIỆC THAY SẾP
+      ========================================== */}
+      <Modal
+        isOpen={showCreateTaskModal}
+        onClose={() => setShowCreateTaskModal(false)}
+        title="⚡ Phân Công & Giao Việc Thay Ban Giám Đốc"
+      >
+        <form onSubmit={handleCreateDelegatedTask} className="space-y-4">
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Tiêu Đề Công Việc <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="VD: Triển khai chiến dịch Marketing Quý 3"
+              value={taskTitle}
+              onChange={(e) => setTaskTitle(e.target.value)}
+              className={`w-full px-3.5 py-2.5 rounded-xl text-xs focus:outline-none focus:border-rose-500 transition border ${
+                isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+              }`}
+            />
+          </div>
+
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Chỉ Đạo Chi Tiết Từ Ban Giám Đốc
+            </label>
+            <textarea
+              rows={3}
+              placeholder="Ghi rõ yêu cầu, tiêu chuẩn chất lượng và chỉ đạo cụ thể của Sếp..."
+              value={taskDescription}
+              onChange={(e) => setTaskDescription(e.target.value)}
+              className={`w-full px-3.5 py-2.5 rounded-xl text-xs focus:outline-none focus:border-rose-500 transition border ${
+                isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+              }`}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                Mức Độ Ưu Tiên
+              </label>
+              <select
+                value={taskPriority}
+                onChange={(e) => setTaskPriority(e.target.value)}
+                className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold border focus:outline-none ${
+                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+                }`}
+              >
+                <option value="URGENT">🔴 Khẩn Cấp (Ưu tiên hàng đầu)</option>
+                <option value="HIGH">🟠 Cao</option>
+                <option value="MEDIUM">🔵 Bình Thường</option>
+                <option value="LOW">⚪ Thấp</option>
+              </select>
+            </div>
+
+            <div>
+              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                Hạn Chót Hoàn Thành
+              </label>
+              <input
+                type="date"
+                value={taskDueDate}
+                onChange={(e) => setTaskDueDate(e.target.value)}
+                className={`w-full px-3 py-2.5 rounded-xl text-xs border focus:outline-none ${
+                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+                }`}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Phân Công Cho Nhân Sự Chịu Trách Nhiệm
+            </label>
+            <div className={`p-3 rounded-2xl border max-h-36 overflow-y-auto space-y-1.5 ${
+              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'
+            }`}>
+              {members.map((m) => {
+                const isSelected = taskAssigneeIds.includes(m.id);
+                return (
+                  <label
+                    key={m.id}
+                    className={`flex items-center justify-between p-2 rounded-xl text-xs cursor-pointer transition ${
+                      isSelected
+                        ? isLight ? 'bg-rose-100 text-rose-900' : 'bg-rose-600/20 text-rose-300 border border-rose-500/30'
+                        : isLight ? 'hover:bg-slate-200/60' : 'hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setTaskAssigneeIds([...taskAssigneeIds, m.id]);
+                          } else {
+                            setTaskAssigneeIds(taskAssigneeIds.filter((id) => id !== m.id));
+                          }
+                        }}
+                        className="rounded border-slate-400 text-rose-600 focus:ring-rose-500"
+                      />
+                      <span className="font-bold">{m.name}</span>
+                      <span className="text-[10px] text-slate-400">({m.role})</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">{m.email}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Subtasks checklist */}
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Checklist Việc Con
+            </label>
+            <div className="flex items-center gap-2 mb-2">
+              <input
+                type="text"
+                placeholder="Thêm hạng mục con cần làm..."
+                value={newSubtaskTitle}
+                onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddSubtask();
+                  }
+                }}
+                className={`flex-1 px-3 py-2 rounded-xl text-xs border focus:outline-none ${
+                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+                }`}
+              />
+              <button
+                type="button"
+                onClick={handleAddSubtask}
+                className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold cursor-pointer"
+              >
+                + Thêm
+              </button>
+            </div>
+
+            {subtasks.map((s, idx) => (
+              <div key={idx} className="flex items-center justify-between p-2 rounded-xl bg-slate-500/10 text-xs mb-1">
+                <span>• {s.title}</span>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveSubtask(idx)}
+                  className="text-rose-500 hover:text-rose-400 p-1 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <label className="flex items-center gap-2 cursor-pointer pt-2">
+            <input
+              type="checkbox"
+              checked={taskSendEmail}
+              onChange={(e) => setTaskSendEmail(e.target.checked)}
+              className="rounded border-slate-400 text-rose-600 focus:ring-rose-500"
+            />
+            <span className={`text-xs font-medium ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Gửi email thông báo chỉ đạo trực tiếp cho nhân viên
+            </span>
+          </label>
+
+          <div className={`pt-4 border-t flex justify-end gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <button
+              type="button"
+              onClick={() => setShowCreateTaskModal(false)}
+              className={`px-4 py-2 text-xs font-semibold cursor-pointer ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              disabled={creatingTask}
+              className="px-5 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-rose-600/30 transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> {creatingTask ? 'Đang giao việc...' : 'Xác Nhận Giao Việc Thay Sếp'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ==========================================
+          MODAL: LÊN LỊCH HỌP THAY SẾP
+      ========================================== */}
+      <Modal
+        isOpen={showCreateMeetingModal}
+        onClose={() => setShowCreateMeetingModal(false)}
+        title="📅 Lên Lịch Họp Doanh Nghiệp Thay Ban Giám Đốc"
+      >
+        <form onSubmit={handleCreateDelegatedMeeting} className="space-y-4">
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Tiêu Đề Cuộc Họp <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="VD: Họp giao ban đầu tuần Ban Giám Đốc & Trưởng Phòng"
+              value={meetingTitle}
+              onChange={(e) => setMeetingTitle(e.target.value)}
+              className={`w-full px-3.5 py-2.5 rounded-xl text-xs focus:outline-none focus:border-purple-500 transition border ${
+                isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+              }`}
+            />
+          </div>
+
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Nội Dung & Mục Đích Cuộc Họp
+            </label>
+            <textarea
+              rows={3}
+              placeholder="Mô tả chương trình họp, tài liệu cần chuẩn bị..."
+              value={meetingDescription}
+              onChange={(e) => setMeetingDescription(e.target.value)}
+              className={`w-full px-3.5 py-2.5 rounded-xl text-xs focus:outline-none focus:border-purple-500 transition border ${
+                isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+              }`}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                Thời Gian Bắt Đầu <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="datetime-local"
+                required
+                value={meetingStartTime}
+                onChange={(e) => setMeetingStartTime(e.target.value)}
+                className={`w-full px-3 py-2.5 rounded-xl text-xs border focus:outline-none ${
+                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+                }`}
+              />
+            </div>
+
+            <div>
+              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                Thời Lượng (Phút)
+              </label>
+              <select
+                value={meetingDuration}
+                onChange={(e) => setMeetingDuration(e.target.value)}
+                className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold border focus:outline-none ${
+                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+                }`}
+              >
+                <option value="30">30 Phút</option>
+                <option value="45">45 Phút</option>
+                <option value="60">60 Phút (1 Tiếng)</option>
+                <option value="90">90 Phút (1.5 Tiếng)</option>
+                <option value="120">120 Phút (2 Tiếng)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                Người Chủ Trì Cuộc Họp (Host)
+              </label>
+              <select
+                value={meetingHostId}
+                onChange={(e) => setMeetingHostId(e.target.value)}
+                className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold border focus:outline-none ${
+                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+                }`}
+              >
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} ({m.role})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                Địa Điểm / Phòng Họp Trực Tiếp
+              </label>
+              <input
+                type="text"
+                placeholder="VD: Phòng Họp VIP Tầng 5"
+                value={meetingLocation}
+                onChange={(e) => setMeetingLocation(e.target.value)}
+                className={`w-full px-3 py-2.5 rounded-xl text-xs border focus:outline-none ${
+                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+                }`}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Link Phòng Họp Online (Google Meet / Zoom / Teams)
+            </label>
+            <input
+              type="url"
+              placeholder="https://meet.google.com/abc-defg-hij"
+              value={meetingLink}
+              onChange={(e) => setMeetingLink(e.target.value)}
+              className={`w-full px-3.5 py-2.5 rounded-xl text-xs border focus:outline-none ${
+                isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+              }`}
+            />
+          </div>
+
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Thành Viên Tham Dự Cuộc Họp
+            </label>
+            <div className={`p-3 rounded-2xl border max-h-36 overflow-y-auto space-y-1.5 ${
+              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'
+            }`}>
+              {members.map((m) => {
+                const isSelected = meetingParticipantIds.includes(m.id);
+                return (
+                  <label
+                    key={m.id}
+                    className={`flex items-center justify-between p-2 rounded-xl text-xs cursor-pointer transition ${
+                      isSelected
+                        ? isLight ? 'bg-purple-100 text-purple-900' : 'bg-purple-600/20 text-purple-300 border border-purple-500/30'
+                        : isLight ? 'hover:bg-slate-200/60' : 'hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setMeetingParticipantIds([...meetingParticipantIds, m.id]);
+                          } else {
+                            setMeetingParticipantIds(meetingParticipantIds.filter((id) => id !== m.id));
+                          }
+                        }}
+                        className="rounded border-slate-400 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="font-bold">{m.name}</span>
+                      <span className="text-[10px] text-slate-400">({m.role})</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">{m.email}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          <label className="flex items-center gap-2 cursor-pointer pt-2">
+            <input
+              type="checkbox"
+              checked={meetingSendEmail}
+              onChange={(e) => setMeetingSendEmail(e.target.checked)}
+              className="rounded border-slate-400 text-purple-600 focus:ring-purple-500"
+            />
+            <span className={`text-xs font-medium ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Gửi email thư mời lịch họp tới tất cả người tham gia
+            </span>
+          </label>
+
+          <div className={`pt-4 border-t flex justify-end gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <button
+              type="button"
+              onClick={() => setShowCreateMeetingModal(false)}
+              className={`px-4 py-2 text-xs font-semibold cursor-pointer ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              disabled={creatingMeeting}
+              className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-purple-600/30 transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Calendar className="w-4 h-4" /> {creatingMeeting ? 'Đang lên lịch...' : 'Xác Nhận Lên Lịch Họp'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ==========================================
+          MODAL: GÓP Ý / YÊU CẦU LÀM LẠI
+      ========================================== */}
+      <Modal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        title="💬 Nhận Xét & Yêu Cầu Chỉnh Sửa Thay Sếp"
+      >
+        <form onSubmit={handleRejectTaskWithFeedback} className="space-y-4">
+          <div>
+            <p className={`text-xs mb-2 font-medium ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
+              Công việc: <strong className="text-rose-500">{selectedTask?.title}</strong>
+            </p>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Nhận Xét / Nội Dung Cần Làm Lại <span className="text-rose-500">*</span>
+            </label>
+            <textarea
+              required
+              rows={4}
+              placeholder="Ghi rõ điểm chưa đạt và chỉ đạo chỉnh sửa chi tiết..."
+              value={reviewFeedback}
+              onChange={(e) => setReviewFeedback(e.target.value)}
+              className={`w-full px-3.5 py-2.5 rounded-xl text-xs focus:outline-none focus:border-purple-500 transition border ${
+                isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+              }`}
+            />
+          </div>
+
+          <div className={`pt-4 border-t flex justify-end gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <button
+              type="button"
+              onClick={() => setShowReviewModal(false)}
+              className={`px-4 py-2 text-xs font-semibold cursor-pointer ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-purple-600/30 transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Send className="w-4 h-4" /> Gửi Yêu Cầu Chỉnh Sửa
+            </button>
+          </div>
+        </form>
+      </Modal>
+    </div>
+  );
+};

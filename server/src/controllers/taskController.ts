@@ -2,6 +2,8 @@ import { Response } from 'express';
 import { prisma } from '../config/db';
 import { AuthenticatedRequest } from '../middlewares/auth';
 import { EmailService } from '../services/emailService';
+import { SocketService } from '../services/socketService';
+import { TelegramService } from '../services/telegramService';
 
 export class TaskController {
   // Lấy danh sách công việc của Workspace
@@ -72,6 +74,10 @@ export class TaskController {
   // Tạo công việc cha mới & Gửi Email + Thông báo Web cho nhân viên được giao
   static async createTask(req: AuthenticatedRequest, res: Response) {
     try {
+      if (req.user?.role === 'MEMBER') {
+        return res.status(403).json({ message: 'Nhân viên không có quyền giao việc. Chỉ Ban Giám Đốc, Thư Ký hoặc Quản Lý mới có quyền phân công việc.' });
+      }
+
       const workspaceId = req.user!.workspaceId;
       const createdById = req.user!.userId;
       const { title, description, priority, dueDate, assigneeIds, subtasks, sendEmail } = req.body;
@@ -161,6 +167,30 @@ export class TaskController {
         }
       }
 
+      // 🤖 Tự động bắn thông báo Telegram lên Nhóm/Kênh công ty
+      const targetUsers = workspace?.users.filter((u) => assigneeIds && assigneeIds.includes(u.id)) || [];
+      const assigneeNames = targetUsers.map((u) => u.name);
+      const subtaskTitles = subtasks && Array.isArray(subtasks) ? subtasks.map((s: any) => s.title) : [];
+
+      TelegramService.notifyTaskCreated({
+        title: task.title,
+        description: task.description,
+        priority: task.priority,
+        dueDate: task.dueDate,
+        creatorName: creator?.name || 'Quản lý',
+        assignees: assigneeNames,
+        subtasks: subtaskTitles,
+      }).catch((err) => console.error('[Telegram Task Create Error]', err));
+
+      // ⚡ Real-Time WebSocket: Phát sự kiện tạo task mới đến toàn Workspace & chuông thông báo
+      SocketService.emitToWorkspace(workspaceId, 'task:created', {
+        taskId: task.id,
+        title: task.title,
+        createdById,
+        assigneeIds: assigneeIds || [],
+      });
+      SocketService.emitToWorkspace(workspaceId, 'notification:new', { type: 'TASK' });
+
       return res.status(201).json({ message: 'Tạo công việc và gửi thông báo thành công', task });
     } catch (error) {
       console.error('[Create Task Error]', error);
@@ -237,6 +267,21 @@ export class TaskController {
         }).catch((err) => console.error('[Email Notify Error]', err));
       }
 
+      // 🤖 Bắn thông báo Telegram khi nhân viên tiếp nhận task
+      TelegramService.notifyTaskAccepted({
+        title: task.title,
+        userName: currentUser?.name || 'Nhân viên',
+      }).catch((err) => console.error('[Telegram Accept Notify Error]', err));
+
+      // ⚡ Real-Time WebSocket: Thông báo trạng thái task đã đổi sang IN_PROGRESS
+      SocketService.emitToWorkspace(workspaceId, 'task:updated', {
+        taskId,
+        status: 'IN_PROGRESS',
+        action: 'ACCEPTED',
+        userId,
+      });
+      SocketService.emitToUser(task.createdById, 'notification:new', { type: 'TASK' });
+
       return res.json({ message: 'Bạn đã tiếp nhận công việc thành công! Hãy bắt đầu thực hiện các việc con.' });
     } catch (error) {
       console.error('[Accept Task Error]', error);
@@ -281,6 +326,14 @@ export class TaskController {
           link: `/tasks?id=${task.id}`,
         },
       });
+
+      // ⚡ Real-Time WebSocket
+      SocketService.emitToWorkspace(workspaceId, 'task:updated', {
+        taskId,
+        action: 'DECLINED',
+        userId,
+      });
+      SocketService.emitToUser(task.createdById, 'notification:new', { type: 'TASK' });
 
       return res.json({ message: 'Đã gửi phản hồi từ chối tới người giao việc' });
     } catch (error) {
@@ -335,6 +388,27 @@ export class TaskController {
         workspaceName: 'MadBros',
       }).catch((err) => console.error('[Email Notify Error]', err));
 
+      // 🤖 Bắn thông báo Telegram nộp báo cáo nghiệm thu
+      const subtasks = await prisma.subtask.findMany({ where: { taskId } });
+      const completedSubtasks = subtasks.filter((s) => s.isCompleted).length;
+
+      TelegramService.notifyTaskSubmitted({
+        title: task.title,
+        userName: currentUser?.name || 'Nhân viên',
+        completedSubtasks,
+        totalSubtasks: subtasks.length,
+        completionReport: completionNote,
+      }).catch((err) => console.error('[Telegram Submit Notify Error]', err));
+
+      // ⚡ Real-Time WebSocket: Nhảy trạng thái REVIEW tức thì
+      SocketService.emitToWorkspace(workspaceId, 'task:updated', {
+        taskId,
+        status: 'REVIEW',
+        action: 'SUBMIT_REVIEW',
+        userId,
+      });
+      SocketService.emitToUser(task.createdById, 'notification:new', { type: 'TASK' });
+
       return res.json({ message: 'Đã gửi yêu cầu nghiệm thu thành công', task: updated });
     } catch (error) {
       return res.status(500).json({ message: 'Lỗi khi gửi duyệt công việc' });
@@ -360,9 +434,9 @@ export class TaskController {
         return res.status(404).json({ message: 'Không tìm thấy công việc' });
       }
 
-      const isCreatorOrAdmin = task.createdById === userId || req.user!.role === 'ADMIN';
+      const isCreatorOrAdmin = task.createdById === userId || req.user!.role === 'ADMIN' || req.user!.role === 'SECRETARY';
       if (!isCreatorOrAdmin) {
-        return res.status(403).json({ message: 'Chỉ Người giao việc hoặc Admin mới có quyền duyệt task này' });
+        return res.status(403).json({ message: 'Chỉ Người giao việc, Thư Ký hoặc Admin mới có quyền duyệt task này' });
       }
 
       const isApprove = action === 'APPROVE';
@@ -400,7 +474,30 @@ export class TaskController {
           taskTitle: task.title,
           workspaceName: 'MadBros',
         }).catch((err) => console.error('[Email Notify Error]', err));
+
+        // ⚡ Gửi chuông thông báo Real-time cho từng nhân sự
+        SocketService.emitToUser(a.userId, 'notification:new', { type: 'TASK' });
       }
+
+      // 🤖 Bắn thông báo Telegram khi Sếp duyệt hoặc yêu cầu sửa đổi
+      const reviewerUser = await prisma.user.findUnique({ where: { id: userId } });
+      const assigneeNames = task.assignees.map((a) => a.user.name);
+
+      TelegramService.notifyTaskReviewed({
+        title: task.title,
+        reviewerName: reviewerUser?.name || 'Quản lý',
+        assigneeNames,
+        action: isApprove ? 'APPROVE' : 'REJECT',
+        feedback,
+      }).catch((err) => console.error('[Telegram Review Notify Error]', err));
+
+      // ⚡ Real-Time WebSocket: Cập nhật trạng thái DONE / IN_PROGRESS tức thì
+      SocketService.emitToWorkspace(workspaceId, 'task:updated', {
+        taskId,
+        status: newStatus,
+        action: isApprove ? 'APPROVED' : 'REJECTED',
+        reviewFeedback: feedback,
+      });
 
       return res.json({
         message: isApprove ? 'Đã duyệt hoàn thành công việc!' : 'Đã gửi yêu cầu chỉnh sửa cho nhân viên',
@@ -452,6 +549,9 @@ export class TaskController {
         }
       });
 
+      // ⚡ Real-Time WebSocket
+      SocketService.emitToWorkspace(workspaceId, 'task:updated', { taskId: id, action: 'EDITED' });
+
       return res.json({ message: 'Cập nhật công việc thành công' });
     } catch (error) {
       console.error('[Update Task Error]', error);
@@ -471,6 +571,10 @@ export class TaskController {
       }
 
       await prisma.task.delete({ where: { id } });
+
+      // ⚡ Real-Time WebSocket
+      SocketService.emitToWorkspace(workspaceId, 'task:deleted', { taskId: id });
+
       return res.json({ message: 'Đã xóa công việc thành công' });
     } catch (error) {
       return res.status(500).json({ message: 'Lỗi khi xóa công việc' });
@@ -505,6 +609,9 @@ export class TaskController {
         },
       });
 
+      // ⚡ Real-Time WebSocket
+      SocketService.emitToWorkspace(workspaceId, 'task:updated', { taskId, action: 'SUBTASK_ADDED', subtask });
+
       return res.status(201).json({ message: 'Đã thêm việc con', subtask });
     } catch (error) {
       return res.status(500).json({ message: 'Lỗi khi thêm việc con' });
@@ -531,6 +638,14 @@ export class TaskController {
         data: { isCompleted: isCompleted ?? !subtask.isCompleted },
       });
 
+      // ⚡ Real-Time WebSocket
+      SocketService.emitToWorkspace(subtask.task.workspaceId, 'task:updated', {
+        taskId: subtask.taskId,
+        action: 'SUBTASK_TOGGLED',
+        subtaskId,
+        isCompleted: updatedSubtask.isCompleted,
+      });
+
       return res.json({ message: 'Cập nhật việc con thành công', subtask: updatedSubtask });
     } catch (error) {
       return res.status(500).json({ message: 'Lỗi khi cập nhật việc con' });
@@ -551,6 +666,14 @@ export class TaskController {
       }
 
       await prisma.subtask.delete({ where: { id: subtaskId } });
+
+      // ⚡ Real-Time WebSocket
+      SocketService.emitToWorkspace(subtask.task.workspaceId, 'task:updated', {
+        taskId: subtask.taskId,
+        action: 'SUBTASK_DELETED',
+        subtaskId,
+      });
+
       return res.json({ message: 'Đã xóa việc con thành công' });
     } catch (error) {
       return res.status(500).json({ message: 'Lỗi khi xóa việc con' });

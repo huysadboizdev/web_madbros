@@ -2,9 +2,97 @@ import { Response } from 'express';
 import { prisma } from '../config/db';
 import { AuthenticatedRequest } from '../middlewares/auth';
 import { EmailService } from '../services/emailService';
+import { SocketService } from '../services/socketService';
+import { TelegramService } from '../services/telegramService';
 
 export class WorkspaceController {
-  // Lấy thông tin Workspace & Danh sách thành viên
+  // Người dùng mới gửi yêu cầu gia nhập Workspace bằng mã phòng
+  static async requestJoin(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { code } = req.body;
+      const userId = req.user!.userId;
+
+      if (!code || !String(code).trim()) {
+        return res.status(400).json({ message: 'Vui lòng nhập mã phòng công ty' });
+      }
+
+      const formattedCode = String(code).trim().toUpperCase();
+      const workspace = await prisma.workspace.findUnique({
+        where: { code: formattedCode },
+      });
+
+      if (!workspace) {
+        return res.status(404).json({ message: 'Mã phòng công ty không chính xác hoặc không tồn tại' });
+      }
+
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          workspaceId: workspace.id,
+          joinCodeUsed: formattedCode,
+          status: 'PENDING_APPROVAL',
+          requestedAt: new Date(),
+        },
+        include: { workspace: true },
+      });
+
+      // Tạo thông báo cho các Admin trong workspace
+      const admins = await prisma.user.findMany({
+        where: { workspaceId: workspace.id, role: 'ADMIN' },
+        select: { id: true },
+      });
+
+      for (const admin of admins) {
+        await prisma.notification.create({
+          data: {
+            userId: admin.id,
+            title: 'Yêu cầu gia nhập phòng mới ⚡',
+            content: `Nhân viên "${updatedUser.name}" (${updatedUser.email}) vừa nhập mã phòng "${formattedCode}" và đang chờ bạn phê duyệt vào công ty.`,
+            type: 'SYSTEM',
+          },
+        });
+      }
+
+      // 🤖 Tự động bắn thông báo Telegram khi có người mới xin vào công ty
+      TelegramService.notifyUserJoinRequest({
+        userName: updatedUser.name,
+        userEmail: updatedUser.email,
+        roomCode: formattedCode,
+      }).catch((err) => console.error('[Telegram Join Notify Error]', err));
+
+      // ⚡ Real-Time WebSocket: Báo cho Admin biết có nhân viên mới xin vào phòng
+      SocketService.emitToWorkspace(workspace.id, 'user:pending_new', {
+        user: {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          requestedAt: updatedUser.requestedAt,
+          joinCodeUsed: formattedCode,
+        },
+      });
+      SocketService.emitToWorkspace(workspace.id, 'notification:new', { type: 'SYSTEM' });
+
+      return res.json({
+        message: `Đã gửi yêu cầu gia nhập vào "${workspace.name}". Vui lòng chờ Quản trị viên phê duyệt!`,
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          role: updatedUser.role,
+          status: updatedUser.status,
+          joinCodeUsed: updatedUser.joinCodeUsed,
+          workspaceId: updatedUser.workspaceId,
+          workspaceName: updatedUser.workspace.name,
+          workspaceCode: updatedUser.workspace.code,
+        },
+      });
+    } catch (error) {
+      console.error('[Request Join Error]', error);
+      return res.status(500).json({ message: 'Lỗi gửi yêu cầu gia nhập phòng' });
+    }
+  }
+
+  // Lấy thông tin Workspace & Danh sách thành viên chính thức
   static async getWorkspaceDetails(req: AuthenticatedRequest, res: Response) {
     try {
       const workspaceId = req.user!.workspaceId;
@@ -14,10 +102,11 @@ export class WorkspaceController {
         where: { id: workspaceId },
         include: {
           users: {
+            where: { status: 'ACTIVE' },
             select: { id: true, name: true, email: true, role: true, avatar: true, createdAt: true },
             orderBy: { role: 'asc' },
           },
-          settings: isAdmin, // Chỉ Admin mới thấy settings bảo mật
+          settings: isAdmin,
         },
       });
 
@@ -28,6 +117,21 @@ export class WorkspaceController {
       return res.json(workspace);
     } catch (error) {
       return res.status(500).json({ message: 'Lỗi khi tải thông tin workspace' });
+    }
+  }
+
+  // Lấy danh sách thành viên workspace (dùng cho mời họp, giao task, v.v.)
+  static async getMembers(req: AuthenticatedRequest, res: Response) {
+    try {
+      const workspaceId = req.user!.workspaceId;
+      const members = await prisma.user.findMany({
+        where: { workspaceId, status: 'ACTIVE' },
+        select: { id: true, name: true, email: true, role: true, avatar: true },
+        orderBy: { name: 'asc' },
+      });
+      return res.json(members);
+    } catch (error) {
+      return res.status(500).json({ message: 'Lỗi khi tải danh sách thành viên' });
     }
   }
 
@@ -52,7 +156,7 @@ export class WorkspaceController {
     }
   }
 
-  // Tạo lại mã mời (Regenerate Invite Code - Chỉ Admin)
+  // Tạo lại mã mời ngẫu nhiên
   static async regenerateCode(req: AuthenticatedRequest, res: Response) {
     try {
       const workspaceId = req.user!.workspaceId;
@@ -67,13 +171,13 @@ export class WorkspaceController {
         data: { code: newCode },
       });
 
-      return res.json({ message: 'Đã đổi mã mời mới thành công', code: updated.code });
+      return res.json({ message: 'Đã đổi mã phòng mới thành công', code: updated.code });
     } catch (error) {
-      return res.status(500).json({ message: 'Lỗi đổi mã mời' });
+      return res.status(500).json({ message: 'Lỗi đổi mã phòng' });
     }
   }
 
-  // Thay đổi quyền hạn thành viên (Phân quyền: ADMIN hoặc MEMBER)
+  // Thay đổi quyền hạn thành viên
   static async updateMemberRole(req: AuthenticatedRequest, res: Response) {
     try {
       const targetUserId = String(req.params.userId);
@@ -85,14 +189,13 @@ export class WorkspaceController {
         return res.status(403).json({ message: 'Chỉ Quản trị viên mới có quyền thay đổi vai trò' });
       }
 
-      if (!['ADMIN', 'MEMBER'].includes(role)) {
-        return res.status(400).json({ message: 'Vai trò không hợp lệ (Phải là ADMIN hoặc MEMBER)' });
+      if (!['ADMIN', 'SECRETARY', 'MANAGER', 'MEMBER'].includes(role)) {
+        return res.status(400).json({ message: 'Vai trò không hợp lệ' });
       }
 
-      // Tránh tự hạ quyền chính mình nếu là Admin duy nhất
       if (targetUserId === currentUserId && role !== 'ADMIN') {
         const adminCount = await prisma.user.count({
-          where: { workspaceId, role: 'ADMIN' },
+          where: { workspaceId, role: 'ADMIN', status: 'ACTIVE' },
         });
         if (adminCount <= 1) {
           return res.status(400).json({ message: 'Không thể tự hạ quyền vì bạn là Quản trị viên duy nhất trong tổ chức' });
@@ -104,23 +207,13 @@ export class WorkspaceController {
       });
 
       if (!targetUser) {
-        return res.status(404).json({ message: 'Không tìm thấy thành viên trong Workspace này' });
+        return res.status(404).json({ message: 'Không tìm thấy thành viên' });
       }
 
       const updated = await prisma.user.update({
         where: { id: targetUserId },
         data: { role },
         select: { id: true, name: true, email: true, role: true },
-      });
-
-      // Tạo thông báo cho thành viên được phân quyền
-      await prisma.notification.create({
-        data: {
-          userId: targetUserId,
-          title: 'Thay đổi quyền hạn tài khoản',
-          content: `Vai trò của bạn đã được cập nhật thành: ${role === 'ADMIN' ? 'Quản Trị Viên (ADMIN)' : 'Thành Viên (MEMBER)'}`,
-          type: 'SYSTEM',
-        },
       });
 
       return res.json({ message: 'Đã cập nhật vai trò thành công', user: updated });
@@ -130,7 +223,7 @@ export class WorkspaceController {
     }
   }
 
-  // Xóa thành viên khỏi Workspace (Chỉ Admin)
+  // Xóa thành viên khỏi Workspace
   static async removeMember(req: AuthenticatedRequest, res: Response) {
     try {
       const targetUserId = String(req.params.userId);
@@ -160,7 +253,7 @@ export class WorkspaceController {
     }
   }
 
-  // Cập nhật cấu hình SMTP Email (Chỉ Admin)
+  // Cập nhật cấu hình SMTP Email
   static async updateSmtpSettings(req: AuthenticatedRequest, res: Response) {
     try {
       const workspaceId = req.user!.workspaceId;
@@ -198,7 +291,7 @@ export class WorkspaceController {
     }
   }
 
-  // Thử nghiệm gửi email test (Chỉ Admin)
+  // Thử nghiệm gửi email test
   static async testEmail(req: AuthenticatedRequest, res: Response) {
     try {
       const workspaceId = req.user!.workspaceId;
@@ -218,6 +311,39 @@ export class WorkspaceController {
       return res.json({ message: `Đã gửi email thử nghiệm thành công tới ${recipient}!` });
     } catch (error: any) {
       return res.status(500).json({ message: error.message || 'Lỗi kiểm tra email' });
+    }
+  }
+
+  // Thử nghiệm gửi tin nhắn Telegram test
+  static async testTelegram(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (req.user!.role !== 'ADMIN') {
+        return res.status(403).json({ message: 'Chỉ Quản trị viên mới có quyền thử nghiệm gửi Telegram' });
+      }
+
+      const { customMessage } = req.body;
+      const user = await prisma.user.findUnique({ where: { id: req.user!.userId } });
+      const testMsg =
+        `🚀 <b>[TEST KẾT NỐI BOT TELEGRAM] ⚡</b>\n` +
+        `━━━━━━━━━━━━━━━━━━━━\n` +
+        `✅ Kết nối giữa Hệ Thống Quản Lý MadBros và Bot Telegram đang hoạt động hoàn hảo!\n` +
+        `👑 <b>Người gửi test:</b> ${user?.name || 'Quản trị viên'} (Admin)\n` +
+        `⏰ <b>Thời gian:</b> ${new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}\n` +
+        (customMessage ? `📝 <b>Ghi chú:</b> <i>${customMessage}</i>\n` : '') +
+        `━━━━━━━━━━━━━━━━━━━━\n` +
+        `🎉 <i>Từ bây giờ, mọi hoạt động giao việc, họp và duyệt nhân sự sẽ được tự động cập nhật tại đây.</i>`;
+
+      const success = await TelegramService.sendMessage(testMsg);
+
+      if (!success) {
+        return res.status(400).json({
+          message: 'Gửi tin nhắn Telegram thất bại. Vui lòng kiểm tra lại TELEGRAM_BOT_TOKEN và TELEGRAM_CHAT_ID trong file .env!',
+        });
+      }
+
+      return res.json({ message: 'Đã gửi tin nhắn thử nghiệm lên Telegram thành công!' });
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message || 'Lỗi khi test gửi tin nhắn Telegram' });
     }
   }
 }
