@@ -94,7 +94,7 @@ export class AdminController {
         return res.status(400).json({ message: 'Vui lòng nhập mã phòng hợp lệ' });
       }
 
-      const formatted = String(code).trim().toUpperCase();
+      const formatted = String(code).trim();
 
       const existing = await prisma.workspace.findFirst({
         where: { code: formatted, NOT: { id: workspaceId } },

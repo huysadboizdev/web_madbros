@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { copyTextToClipboard } from '../utils/clipboard';
 import {
   Building2,
   Users,
@@ -86,11 +87,13 @@ export const WorkspacePage: React.FC = () => {
     }
   };
 
-  const handleCopyCode = () => {
+  const handleCopyCode = async () => {
     if (workspace?.code) {
-      navigator.clipboard.writeText(workspace.code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      const ok = await copyTextToClipboard(workspace.code);
+      if (ok) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
     }
   };
 

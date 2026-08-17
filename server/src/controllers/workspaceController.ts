@@ -16,9 +16,15 @@ export class WorkspaceController {
         return res.status(400).json({ message: 'Vui lòng nhập mã phòng công ty' });
       }
 
-      const formattedCode = String(code).trim().toUpperCase();
-      const workspace = await prisma.workspace.findUnique({
-        where: { code: formattedCode },
+      const trimmedCode = String(code).trim();
+      const workspace = await prisma.workspace.findFirst({
+        where: {
+          OR: [
+            { code: trimmedCode },
+            { code: trimmedCode.toUpperCase() },
+            { code: trimmedCode.toLowerCase() },
+          ],
+        },
       });
 
       if (!workspace) {
@@ -29,7 +35,7 @@ export class WorkspaceController {
         where: { id: userId },
         data: {
           workspaceId: workspace.id,
-          joinCodeUsed: formattedCode,
+          joinCodeUsed: trimmedCode,
           status: 'PENDING_APPROVAL',
           requestedAt: new Date(),
         },
@@ -47,7 +53,7 @@ export class WorkspaceController {
           data: {
             userId: admin.id,
             title: 'Yêu cầu gia nhập phòng mới ⚡',
-            content: `Nhân viên "${updatedUser.name}" (${updatedUser.email}) vừa nhập mã phòng "${formattedCode}" và đang chờ bạn phê duyệt vào công ty.`,
+            content: `Nhân viên "${updatedUser.name}" (${updatedUser.email}) vừa nhập mã phòng "${trimmedCode}" và đang chờ bạn phê duyệt vào công ty.`,
             type: 'SYSTEM',
           },
         });
@@ -57,7 +63,7 @@ export class WorkspaceController {
       TelegramService.notifyUserJoinRequest({
         userName: updatedUser.name,
         userEmail: updatedUser.email,
-        roomCode: formattedCode,
+        roomCode: trimmedCode,
       }).catch((err) => console.error('[Telegram Join Notify Error]', err));
 
       // ⚡ Real-Time WebSocket: Báo cho Admin biết có nhân viên mới xin vào phòng
@@ -67,7 +73,7 @@ export class WorkspaceController {
           name: updatedUser.name,
           email: updatedUser.email,
           requestedAt: updatedUser.requestedAt,
-          joinCodeUsed: formattedCode,
+          joinCodeUsed: trimmedCode,
         },
       });
       SocketService.emitToWorkspace(workspace.id, 'notification:new', { type: 'SYSTEM' });

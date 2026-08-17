@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeToggle } from './ThemeToggle';
+import { copyTextToClipboard } from '../utils/clipboard';
 import {
   LayoutDashboard,
   CheckSquare,
@@ -55,11 +56,13 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleCopyCode = () => {
+  const handleCopyCode = async () => {
     if (user?.workspaceCode) {
-      navigator.clipboard.writeText(user.workspaceCode);
-      setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
+      const ok = await copyTextToClipboard(user.workspaceCode);
+      if (ok) {
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
+      }
     }
   };
 

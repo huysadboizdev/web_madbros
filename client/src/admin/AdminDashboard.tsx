@@ -3,6 +3,7 @@ import api from '../services/api';
 import { StatCard } from '../components/StatCard';
 import { useTheme } from '../context/ThemeContext';
 import { useSocket } from '../context/SocketContext';
+import { copyTextToClipboard } from '../utils/clipboard';
 import {
   Users,
   CheckSquare,
@@ -72,11 +73,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
     }
   };
 
-  const handleCopyCode = () => {
+  const handleCopyCode = async () => {
     if (overview?.workspaceCode) {
-      navigator.clipboard.writeText(overview.workspaceCode);
-      setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
+      const ok = await copyTextToClipboard(overview.workspaceCode);
+      if (ok) {
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
+      }
     }
   };
 
@@ -314,10 +317,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
                 <input
                   type={showRoomCode ? 'text' : 'password'}
                   required
-                  placeholder="VD: MADBROS2026"
+                  placeholder="VD: MadBros2026, devteam..."
                   value={customRoomCode}
                   onChange={(e) => setCustomRoomCode(e.target.value)}
-                  className={`w-full pl-9 pr-10 py-2 rounded-xl text-xs sm:text-sm font-mono font-extrabold uppercase tracking-widest focus:outline-none transition border ${
+                  className={`w-full pl-9 pr-10 py-2 rounded-xl text-xs sm:text-sm font-mono font-extrabold tracking-widest focus:outline-none transition border ${
                     isLight
                       ? 'bg-white border-slate-300 text-amber-700 focus:border-amber-500'
                       : 'bg-slate-900 border-slate-700 text-amber-400 focus:border-amber-500'

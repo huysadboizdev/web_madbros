@@ -137,10 +137,10 @@ export const PendingApprovalPage: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="VD: MADBROS2026, DEVTEAM..."
+                    placeholder="VD: MadBros2026, devteam..."
                     value={code}
-                    onChange={(e) => setCode(e.target.value.toUpperCase())}
-                    className={`w-full pl-10 pr-4 py-3 rounded-2xl text-xs sm:text-sm font-mono font-extrabold uppercase tracking-widest focus:outline-none transition shadow-inner border ${
+                    onChange={(e) => setCode(e.target.value)}
+                    className={`w-full pl-10 pr-4 py-3 rounded-2xl text-xs sm:text-sm font-mono font-extrabold tracking-widest focus:outline-none transition shadow-inner border ${
                       isLight
                         ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-500'
                         : 'bg-slate-950/80 border-slate-700 text-amber-400 focus:border-blue-500'
@@ -180,7 +180,7 @@ export const PendingApprovalPage: React.FC = () => {
                 </div>
                 <p className="text-xs leading-relaxed opacity-90">
                   Tài khoản của bạn đã gửi yêu cầu gia nhập vào phòng mã{' '}
-                  <span className="font-mono font-extrabold uppercase bg-amber-500/20 px-1.5 py-0.5 rounded text-amber-700 dark:text-amber-300">
+                  <span className="font-mono font-extrabold bg-amber-500/20 px-1.5 py-0.5 rounded text-amber-700 dark:text-amber-300">
                     {user?.joinCodeUsed}
                   </span>
                   . Admin công ty sẽ duyệt yêu cầu này để bạn có thể vào làm việc.
