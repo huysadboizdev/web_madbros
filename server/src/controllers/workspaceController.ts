@@ -19,16 +19,20 @@ export class WorkspaceController {
       const trimmedCode = String(code).trim();
       const workspace = await prisma.workspace.findFirst({
         where: {
-          OR: [
-            { code: trimmedCode },
-            { code: trimmedCode.toUpperCase() },
-            { code: trimmedCode.toLowerCase() },
-          ],
+          code: trimmedCode,
         },
       });
 
       if (!workspace) {
         return res.status(404).json({ message: 'Mã phòng công ty không chính xác hoặc không tồn tại' });
+      }
+
+      // Kiểm tra thời hạn hiệu lực 15 phút
+      const now = new Date();
+      if (!workspace.codeExpiresAt || new Date(workspace.codeExpiresAt) < now) {
+        return res.status(400).json({
+          message: 'Mã phòng đã hết hạn (Mỗi mã chỉ có hiệu lực 15 phút kể từ khi Admin tạo). Vui lòng liên hệ Admin để lấy mã mới!',
+        });
       }
 
       const updatedUser = await prisma.user.update({
@@ -171,13 +175,21 @@ export class WorkspaceController {
         return res.status(403).json({ message: 'Chỉ Quản trị viên mới có quyền đổi mã mời' });
       }
 
-      const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const newCode = Math.random().toString(36).substring(2, 8);
+      const codeExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
       const updated = await prisma.workspace.update({
         where: { id: workspaceId },
-        data: { code: newCode },
+        data: {
+          code: newCode,
+          codeExpiresAt,
+        },
       });
 
-      return res.json({ message: 'Đã đổi mã phòng mới thành công', code: updated.code });
+      return res.json({
+        message: 'Đã đổi mã phòng mới thành công! Mã này có hiệu lực trong 15 phút.',
+        code: updated.code,
+        codeExpiresAt: updated.codeExpiresAt,
+      });
     } catch (error) {
       return res.status(500).json({ message: 'Lỗi đổi mã phòng' });
     }

@@ -22,6 +22,9 @@ import {
   Eye,
   EyeOff,
   FileSignature,
+  AlertCircle,
+  Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -40,6 +43,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
   const [customRoomCode, setCustomRoomCode] = useState('');
   const [updatingCode, setUpdatingCode] = useState(false);
   const [codeSuccessMsg, setCodeSuccessMsg] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState<string>('');
+  const [isExpired, setIsExpired] = useState<boolean>(false);
+
+  // Đếm ngược 15 phút thời hạn hiệu lực của mã phòng
+  useEffect(() => {
+    if (!overview?.codeExpiresAt) {
+      setIsExpired(true);
+      setTimeLeft('Chưa kích hoạt / Đã hết hạn');
+      return;
+    }
+
+    const checkTime = () => {
+      const expiry = new Date(overview.codeExpiresAt).getTime();
+      const now = Date.now();
+      const diff = expiry - now;
+
+      if (diff <= 0) {
+        setIsExpired(true);
+        setTimeLeft('Đã hết hạn');
+      } else {
+        setIsExpired(false);
+        const minutes = Math.floor(diff / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        setTimeLeft(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+      }
+    };
+
+    checkTime();
+    const interval = setInterval(checkTime, 1000);
+    return () => clearInterval(interval);
+  }, [overview?.codeExpiresAt]);
 
   useEffect(() => {
     fetchAdminOverview();
@@ -66,6 +100,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
       const res = await api.get('/admin/overview');
       setOverview(res.data);
       setCustomRoomCode(res.data.workspaceCode || '');
+      setIsExpired(Boolean(res.data.isCodeExpired));
     } catch (error) {
       console.error('Lỗi tải overview admin', error);
     } finally {
@@ -89,12 +124,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
 
     try {
       setUpdatingCode(true);
+      // Giữ nguyên định dạng chữ hoa/chữ thường như người gõ
       const res = await api.put('/admin/workspace-code', { code: customRoomCode.trim() });
       setCodeSuccessMsg(res.data.message);
-      setOverview((prev: any) => ({ ...prev, workspaceCode: res.data.code }));
+      setOverview((prev: any) => ({
+        ...prev,
+        workspaceCode: res.data.code,
+        codeExpiresAt: res.data.codeExpiresAt,
+        isCodeExpired: false,
+      }));
       setTimeout(() => setCodeSuccessMsg(null), 3000);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Lỗi đổi mã phòng');
+    } finally {
+      setUpdatingCode(false);
+    }
+  };
+
+  const handleGenerateRandomCode = async () => {
+    const randomCode = 'mb' + Math.random().toString(36).substring(2, 7);
+    setCustomRoomCode(randomCode);
+    try {
+      setUpdatingCode(true);
+      const res = await api.put('/admin/workspace-code', { code: randomCode });
+      setCodeSuccessMsg(res.data.message);
+      setOverview((prev: any) => ({
+        ...prev,
+        workspaceCode: res.data.code,
+        codeExpiresAt: res.data.codeExpiresAt,
+        isCodeExpired: false,
+      }));
+      setTimeout(() => setCodeSuccessMsg(null), 3000);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Lỗi tạo mã mới');
     } finally {
       setUpdatingCode(false);
     }
@@ -283,7 +345,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
         <div className="lg:col-span-7 space-y-6">
           {/* Room Code Card */}
           <div className="glass-panel p-5 sm:p-6 rounded-3xl space-y-4">
-            <div className={`flex items-center justify-between pb-3 border-b ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-2 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
               <div className="flex items-center gap-2.5">
                 <div
                   className={`p-2 rounded-xl border ${
@@ -296,12 +358,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
                 </div>
                 <div>
                   <h3 className={`text-sm sm:text-base font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    Mã Phòng Công Ty (Room Code)
+                    Mã Phòng Công Ty (Room Code - 15 Phút)
                   </h3>
                   <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                    Admin có thể tự đặt hoặc sửa mã phòng để gửi cho nhân viên
+                    Mã có hiệu lực 15 phút kể từ lúc tạo, giữ nguyên chữ hoa/thường để tránh lộ
                   </p>
                 </div>
+              </div>
+
+              {/* Countdown Status Badge */}
+              <div className="shrink-0">
+                {!isExpired ? (
+                  <span className="px-3 py-1 rounded-xl text-xs font-extrabold bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 shadow-sm">
+                    <Clock className="w-3.5 h-3.5 animate-pulse" /> Còn hiệu lực: {timeLeft}
+                  </span>
+                ) : (
+                  <span className="px-3 py-1 rounded-xl text-xs font-extrabold bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 flex items-center gap-1.5 shadow-sm">
+                    <AlertCircle className="w-3.5 h-3.5" /> Đã hết hạn sau 15p
+                  </span>
+                )}
               </div>
             </div>
 
@@ -311,61 +386,82 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
               </div>
             )}
 
-            <form onSubmit={handleUpdateRoomCode} className="flex flex-col sm:flex-row items-center gap-2.5">
-              <div className="relative w-full flex-1">
-                <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type={showRoomCode ? 'text' : 'password'}
-                  required
-                  placeholder="VD: MadBros2026, devteam..."
-                  value={customRoomCode}
-                  onChange={(e) => setCustomRoomCode(e.target.value)}
-                  className={`w-full pl-9 pr-10 py-2 rounded-xl text-xs sm:text-sm font-mono font-extrabold tracking-widest focus:outline-none transition border ${
-                    isLight
-                      ? 'bg-white border-slate-300 text-amber-700 focus:border-amber-500'
-                      : 'bg-slate-900 border-slate-700 text-amber-400 focus:border-amber-500'
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowRoomCode(!showRoomCode)}
-                  className="absolute right-3 top-2.5 text-slate-400 hover:text-amber-500 transition cursor-pointer"
-                  title={showRoomCode ? 'Ẩn mã phòng' : 'Hiện mã phòng'}
-                >
-                  {showRoomCode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
+            <form onSubmit={handleUpdateRoomCode} className="space-y-3">
+              <div className="flex flex-col sm:flex-row items-center gap-2.5">
+                <div className="relative w-full flex-1">
+                  <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type={showRoomCode ? 'text' : 'password'}
+                    required
+                    placeholder="Nhập mã phòng (chữ thường hoặc hoa tuỳ ý)..."
+                    value={customRoomCode}
+                    onChange={(e) => setCustomRoomCode(e.target.value)}
+                    className={`w-full pl-9 pr-10 py-2 rounded-xl text-xs sm:text-sm font-mono font-bold tracking-wider focus:outline-none transition border ${
+                      isExpired
+                        ? isLight
+                          ? 'bg-rose-50 border-rose-300 text-rose-700 focus:border-rose-500'
+                          : 'bg-rose-950/20 border-rose-500/40 text-rose-300 focus:border-rose-500'
+                        : isLight
+                        ? 'bg-white border-slate-300 text-amber-800 focus:border-amber-500'
+                        : 'bg-slate-900 border-slate-700 text-amber-400 focus:border-amber-500'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRoomCode(!showRoomCode)}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-amber-500 transition cursor-pointer"
+                    title={showRoomCode ? 'Ẩn mã phòng' : 'Hiện mã phòng'}
+                  >
+                    {showRoomCode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <button
-                  type="submit"
-                  disabled={updatingCode}
-                  className="w-full sm:w-auto px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 text-slate-950 rounded-xl text-xs font-extrabold shadow-md shadow-amber-500/20 transition whitespace-nowrap cursor-pointer"
-                >
-                  {updatingCode ? 'Đang lưu...' : 'Lưu Mã Phòng'}
-                </button>
+                <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+                  <button
+                    type="submit"
+                    disabled={updatingCode}
+                    className="w-full sm:w-auto px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 text-slate-950 rounded-xl text-xs font-extrabold shadow-md shadow-amber-500/20 transition whitespace-nowrap cursor-pointer disabled:opacity-50"
+                  >
+                    {updatingCode ? 'Đang lưu...' : 'Lưu Mã (15 Phút)'}
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={handleCopyCode}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap border cursor-pointer ${
-                    isLight
-                      ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
-                      : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300 hover:text-white'
-                  }`}
-                >
-                  {copiedCode ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-500" />
-                      <span className="text-emerald-500 font-bold">Đã chép</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Sao chép</span>
-                    </>
-                  )}
-                </button>
+                  <button
+                    type="button"
+                    onClick={handleGenerateRandomCode}
+                    disabled={updatingCode}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap border cursor-pointer ${
+                      isLight
+                        ? 'bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700'
+                        : 'bg-blue-900/30 hover:bg-blue-800/40 border-blue-500/30 text-blue-300'
+                    }`}
+                    title="Tạo mã ngẫu nhiên mới và kích hoạt 15 phút"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+                    <span>Tạo Mã Mới</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyCode}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap border cursor-pointer ${
+                      isLight
+                        ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
+                        : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    {copiedCode ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-500" />
+                        <span className="text-emerald-500 font-bold">Đã chép</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Sao chép</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

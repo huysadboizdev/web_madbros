@@ -8,18 +8,19 @@ generator client {
 }
 
 model Workspace {
-  id           String        @id @default(uuid())
-  name         String
-  code         String        @unique // Invite code for members to join
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id            String        @id @default(uuid())
+  name          String
+  code          String        @unique // Invite code for members to join
+  codeExpiresAt DateTime?     // Thời hạn hiệu lực 15 phút của mã phòng
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
-  users        User[]
-  tasks        Task[]
-  meetings     Meeting[]
-  transactions Transaction[]
-  assets       Asset[]
-  settings     SystemSetting?
+  users         User[]
+  tasks         Task[]
+  meetings      Meeting[]
+  transactions  Transaction[]
+  assets        Asset[]
+  settings      SystemSetting?
 }
 
 model User {

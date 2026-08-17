@@ -53,7 +53,7 @@ export class AdminController {
         }),
         prisma.workspace.findUnique({
           where: { id: workspaceId },
-          select: { id: true, name: true, code: true },
+          select: { id: true, name: true, code: true, codeExpiresAt: true },
         }),
       ]);
 
@@ -61,6 +61,9 @@ export class AdminController {
       const expense = financeExpense._sum.amount || 0;
       const balance = income - expense;
       const totalAssetsValue = assetsSummary._sum.value || 0;
+
+      const now = new Date();
+      const isCodeExpired = !workspace?.codeExpiresAt || new Date(workspace.codeExpiresAt) < now;
 
       return res.json({
         totalUsers,
@@ -75,6 +78,8 @@ export class AdminController {
         balance,
         recentUsers,
         workspaceCode: workspace?.code,
+        codeExpiresAt: workspace?.codeExpiresAt,
+        isCodeExpired,
       });
     } catch (error) {
       console.error('[Admin Overview Error]', error);
@@ -83,7 +88,7 @@ export class AdminController {
   }
 
   // ==========================================
-  // 2. QUẢN LÝ MÃ PHÒNG (WORKSPACE CODE)
+  // 2. QUẢN LÝ MÃ PHÒNG (WORKSPACE CODE - HIỆU LỰC 15 PHÚT)
   // ==========================================
   static async updateWorkspaceCode(req: AuthenticatedRequest, res: Response) {
     try {
@@ -94,6 +99,7 @@ export class AdminController {
         return res.status(400).json({ message: 'Vui lòng nhập mã phòng hợp lệ' });
       }
 
+      // Giữ nguyên định dạng chữ hoa/thường theo đúng người gõ
       const formatted = String(code).trim();
 
       const existing = await prisma.workspace.findFirst({
@@ -103,12 +109,22 @@ export class AdminController {
         return res.status(400).json({ message: 'Mã phòng này đã có doanh nghiệp khác sử dụng, vui lòng chọn mã khác' });
       }
 
+      // Thiết lập hiệu lực chính xác 15 phút (15 * 60 * 1000 ms)
+      const codeExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
       const updated = await prisma.workspace.update({
         where: { id: workspaceId },
-        data: { code: formatted },
+        data: {
+          code: formatted,
+          codeExpiresAt,
+        },
       });
 
-      return res.json({ message: 'Cập nhật mã phòng công ty thành công!', code: updated.code });
+      return res.json({
+        message: 'Cập nhật mã phòng thành công! Mã này có hiệu lực trong 15 phút.',
+        code: updated.code,
+        codeExpiresAt: updated.codeExpiresAt,
+      });
     } catch (error) {
       console.error('[Update Code Error]', error);
       return res.status(500).json({ message: 'Lỗi cập nhật mã phòng' });

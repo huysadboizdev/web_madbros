@@ -619,7 +619,7 @@ export const AdminUsersPage: React.FC = () => {
                       <td className="py-3.5 px-4 font-mono text-slate-600 dark:text-slate-400">{u.email}</td>
 
                       <td className="py-3.5 px-4">
-                        <span className="font-mono font-extrabold uppercase px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs">
+                        <span className="font-mono font-extrabold px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs">
                           {u.joinCodeUsed || 'N/A'}
                         </span>
                       </td>
