@@ -180,14 +180,6 @@ export const DashboardPage: React.FC<DashboardProps> = ({ setActiveTab }) => {
             >
               <Calendar className="w-4 h-4" /> {isMember ? 'Lịch Họp Của Tôi' : user?.role === 'SECRETARY' ? 'Lịch Họp BGD' : 'Đặt Lịch Họp'}
             </button>
-            {isAdminOrManager && (
-              <button
-                onClick={() => setActiveTab('finance')}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
-              >
-                <DollarSign className="w-4 h-4" /> Ghi Thu / Chi
-              </button>
-            )}
           </div>
         </div>
 
@@ -284,23 +276,23 @@ export const DashboardPage: React.FC<DashboardProps> = ({ setActiveTab }) => {
         ) : (
           <>
             <StatCard
-              title="Tổng Thu Nhập"
-              value={formatCurrency(finance.totalIncome)}
-              subtitle="Doanh thu dự án & dịch vụ"
-              icon={<TrendingUp className="w-6 h-6" />}
-              trendPositive={true}
-              trend="Dòng tiền vào"
-              color="emerald"
+              title="Chờ Duyệt Nghiệm Thu"
+              value={tasks.review || 0}
+              subtitle="Nhân viên đã nộp báo cáo"
+              icon={<ListTodo className="w-6 h-6" />}
+              trend={tasks.review > 0 ? 'Cần duyệt nghiệm thu' : 'Đã duyệt hết'}
+              trendPositive={tasks.review === 0}
+              color="amber"
             />
 
             <StatCard
-              title="Số Dư Dòng Tiền"
-              value={formatCurrency(finance.balance)}
-              subtitle={`Tổng chi: ${formatCurrency(finance.totalExpense)}`}
-              icon={<DollarSign className="w-6 h-6" />}
-              trendPositive={finance.balance >= 0}
-              trend={finance.balance >= 0 ? '+ Dương quỹ' : '- Thâm hụt quỹ'}
-              color={finance.balance >= 0 ? 'indigo' : 'rose'}
+              title="Tỷ Lệ Hoàn Thành"
+              value={`${tasks.total > 0 ? Math.round(((tasks.done || 0) / tasks.total) * 100) : 100}%`}
+              subtitle="Năng suất toàn công ty"
+              icon={<FileCheck className="w-6 h-6" />}
+              trendPositive={true}
+              trend="Tiến độ tốt"
+              color="emerald"
             />
           </>
         )}

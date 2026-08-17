@@ -7,7 +7,6 @@ import { Navbar } from './components/Navbar';
 import { DashboardPage } from './pages/DashboardPage';
 import { TasksPage } from './pages/TasksPage';
 import { MeetingsPage } from './pages/MeetingsPage';
-import { FinancePage } from './pages/FinancePage';
 import { WorkspacePage } from './pages/WorkspacePage';
 import { SecretaryPage } from './pages/SecretaryPage';
 import { AdminLayout } from './admin/AdminLayout';
@@ -22,7 +21,7 @@ const AppContent: React.FC = () => {
   const getInitialTab = () => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
-    if (tab && ['dashboard', 'secretary', 'tasks', 'meetings', 'finance', 'settings'].includes(tab)) {
+    if (tab && ['dashboard', 'secretary', 'tasks', 'meetings', 'settings'].includes(tab)) {
       return tab;
     }
     return user?.role === 'SECRETARY' ? 'secretary' : 'dashboard';
@@ -59,8 +58,8 @@ const AppContent: React.FC = () => {
         if (user.role === 'SECRETARY') {
           setActiveTab((prev) => (prev === 'dashboard' ? 'secretary' : prev));
         } else if (user.role === 'MEMBER') {
-          // Nhân viên thường KHÔNG được ở tab secretary hoặc finance
-          setActiveTab((prev) => (prev === 'secretary' || prev === 'finance' ? 'dashboard' : prev));
+          // Nhân viên thường KHÔNG được ở tab secretary
+          setActiveTab((prev) => (prev === 'secretary' ? 'dashboard' : prev));
         }
       }
     }
@@ -94,7 +93,6 @@ const AppContent: React.FC = () => {
 
   // Quyền truy cập các tab
   const canAccessSecretary = user.role === 'SECRETARY' || user.role === 'ADMIN' || user.role === 'MANAGER';
-  const canAccessFinance = user.role === 'ADMIN' || user.role === 'MANAGER';
 
   // 4. Mặc định: Phòng làm việc của công ty dành cho Nhân Viên / Thư Ký đã duyệt
   return (
@@ -117,15 +115,12 @@ const AppContent: React.FC = () => {
 
       {/* Main Page Content - Compact & Responsive Widescreen Container */}
       <main className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-7 z-10">
-        {(activeTab === 'dashboard' ||
-          (activeTab === 'secretary' && !canAccessSecretary) ||
-          (activeTab === 'finance' && !canAccessFinance)) && (
+        {(activeTab === 'dashboard' || (activeTab === 'secretary' && !canAccessSecretary)) && (
           <DashboardPage setActiveTab={handleTabChange} />
         )}
         {activeTab === 'secretary' && canAccessSecretary && <SecretaryPage />}
         {activeTab === 'tasks' && <TasksPage />}
         {activeTab === 'meetings' && <MeetingsPage />}
-        {activeTab === 'finance' && canAccessFinance && <FinancePage />}
         {activeTab === 'settings' && <WorkspacePage />}
       </main>
 

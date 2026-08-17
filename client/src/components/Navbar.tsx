@@ -70,9 +70,6 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
       : []),
     { id: 'tasks', label: 'Công Việc', icon: <CheckSquare className="w-3.5 h-3.5" /> },
     { id: 'meetings', label: 'Lịch Họp', icon: <Calendar className="w-3.5 h-3.5" /> },
-    ...(isAdminOrManager
-      ? [{ id: 'finance', label: 'Dòng Tiền', icon: <DollarSign className="w-3.5 h-3.5" /> }]
-      : []),
     { id: 'settings', label: user?.role === 'ADMIN' ? 'Cài Đặt' : 'Workspace', icon: <Settings className="w-3.5 h-3.5" /> },
   ];
 

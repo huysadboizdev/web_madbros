@@ -264,13 +264,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
         />
 
         <StatCard
-          title="Số Dư Dòng Tiền"
-          value={formatCurrency(overview?.balance)}
-          subtitle={`Thu: ${formatCurrency(overview?.income)}`}
-          icon={<DollarSign className="w-5 h-5" />}
-          trendPositive={overview?.balance >= 0}
-          trend={overview?.balance >= 0 ? '+ Dương quỹ' : '- Thâm hụt'}
-          color={overview?.balance >= 0 ? 'emerald' : 'rose'}
+          title="Lịch Họp Doanh Nghiệp"
+          value={overview?.totalMeetings || 0}
+          subtitle="Cuộc họp nội bộ & trực tuyến"
+          icon={<Calendar className="w-5 h-5" />}
+          trend="Lịch công ty"
+          trendPositive={true}
+          color="purple"
         />
       </div>
 
