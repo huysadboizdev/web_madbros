@@ -1,6 +1,6 @@
 /**
  * Telegram Notification Service
- * Tự động gửi thông báo 2 chiều từ hệ thống Web MadBros lên Nhóm/Kênh Telegram
+ * Tự động gửi thông báo ngắn gọn, xúc tích, dễ theo dõi từ Web lên Nhóm/Kênh Telegram
  */
 
 export class TelegramService {
@@ -10,7 +10,6 @@ export class TelegramService {
     const rawChannelId = process.env.TELEGRAM_CHANNEL_ID || '';
     const isEnabled = process.env.TELEGRAM_ENABLED !== 'false';
 
-    // Gom toàn bộ Chat ID của Group và Channel (hỗ trợ cách nhau bằng dấu phẩy)
     const chatIds = Array.from(
       new Set(
         `${rawChatId},${rawChannelId}`
@@ -24,7 +23,7 @@ export class TelegramService {
   }
 
   /**
-   * Helper format ngày giờ theo múi giờ Việt Nam
+   * Helper format ngày giờ ngắn gọn (HH:mm DD/MM/YYYY)
    */
   private static formatDateTime(date?: Date | string | null): string {
     if (!date) return 'Không thời hạn';
@@ -82,10 +81,9 @@ export class TelegramService {
     }
 
     if (!token || chatIds.length === 0) {
-      console.log('\n[TelegramService Mock Log]');
-      console.log('----------------------------------------------------');
+      console.log('\n[Telegram Broadcast]');
       console.log(htmlMessage.replace(/<[^>]*>?/gm, ''));
-      console.log('----------------------------------------------------\n');
+      console.log('--------------------\n');
       return true;
     }
 
@@ -107,11 +105,11 @@ export class TelegramService {
 
           const data = (await response.json()) as any;
           if (!data.ok) {
-            console.error(`[TelegramService Error Chat ${chatId}]`, data.description || 'Lỗi gửi tin Telegram');
+            console.error(`[Telegram Error Chat ${chatId}]`, data.description || 'Lỗi gửi tin');
             allSuccess = false;
           }
         } catch (err: any) {
-          console.error(`[TelegramService Network Error Chat ${chatId}]`, err.message);
+          console.error(`[Telegram Network Error Chat ${chatId}]`, err.message);
           allSuccess = false;
         }
       })
@@ -139,7 +137,7 @@ export class TelegramService {
   }) {
     const assigneeList = data.assignees.length > 0 ? data.assignees.join(', ') : 'Chưa phân công';
     const tagFormatted = this.formatTelegramTag(data.telegramTag);
-    const tagHeader = tagFormatted ? `🔔 ${tagFormatted}\n` : '';
+    const tagHeader = tagFormatted ? `${tagFormatted}\n` : '';
 
     const safeTitle = this.escapeHtml(data.title);
     const safeCreator = this.escapeHtml(data.creatorName);
@@ -148,8 +146,9 @@ export class TelegramService {
 
     const subtaskText =
       data.subtasks && data.subtasks.length > 0
-        ? `\nChecklist (${data.subtasks.length}):\n` +
-          data.subtasks.map((s, idx) => `  ${idx + 1}. ${this.escapeHtml(s)}`).join('\n')
+        ? `Checklist (${data.subtasks.length}):\n` +
+          data.subtasks.map((s, idx) => `  ${idx + 1}. ${this.escapeHtml(s)}`).join('\n') +
+          '\n'
         : '';
 
     const msg =
@@ -157,10 +156,10 @@ export class TelegramService {
       `━━━━━━━━━━━━━━━━━━━━\n` +
       `Task: <b>${safeTitle}</b>\n` +
       `By: ${safeCreator}\n` +
-      `Phụ trách: <code>${safeAssignee}</code>\n` +
+      `Phụ trách: ${safeAssignee}\n` +
       `Tiến độ: Chưa làm\n` +
       `Hạn: ${this.formatDateTime(data.dueDate)}\n` +
-      (safeDesc ? `Mô tả: <i>${safeDesc}</i>\n` : '') +
+      (safeDesc ? `Mô tả: ${safeDesc}\n` : '') +
       subtaskText;
 
     return this.sendMessage(msg.trim());
@@ -185,7 +184,7 @@ export class TelegramService {
       ? `Link: <a href="${data.meetingLink}">${data.meetingLink}</a>\n`
       : '';
     const locText = data.location ? `Địa điểm: ${this.escapeHtml(data.location)}\n` : '';
-    const descText = data.description ? `Nội dung: <i>${this.escapeHtml(data.description)}</i>\n` : '';
+    const descText = data.description ? `Nội dung: ${this.escapeHtml(data.description)}\n` : '';
 
     const msg =
       `<b>LỊCH HỌP CÔNG TY MỚI</b>\n` +
@@ -203,12 +202,6 @@ export class TelegramService {
 
   /**
    * 1.3 Phát Thông Báo Chung Toàn Công Ty (Announcement Broadcast)
-   * Yêu cầu 5 & 6:
-   * 📌 Tiêu đề
-   * By: Người phát - Role
-   * Time: Thời gian
-   * ━━━━━━━━━━━━━━━━━━━━
-   * 📝 Nội dung
    */
   public static async notifyAnnouncementBroadcast(data: {
     title: string;
@@ -219,7 +212,7 @@ export class TelegramService {
     telegramTag?: string | null;
   }) {
     const tagFormatted = this.formatTelegramTag(data.telegramTag);
-    const tagHeader = tagFormatted ? `🔔 ${tagFormatted}\n` : '';
+    const tagHeader = tagFormatted ? `${tagFormatted}\n` : '';
 
     const safeTitle = this.escapeHtml(data.title);
     const safeContent = this.escapeHtml(data.content);
@@ -238,10 +231,6 @@ export class TelegramService {
 
   /**
    * 1.4 Chào mừng thành viên mới
-   * Yêu cầu 1, 3, 4:
-   * CHÀO MỪNG THÀNH VIÊN MỚI
-   * ━━━━━━━━━━━━━━━━━━━━
-   * Thành viên mới: Tên - Email - Vai trò
    */
   public static async notifyUserApproved(data: {
     userName: string;
@@ -271,10 +260,6 @@ export class TelegramService {
 
   /**
    * 1.5 Sếp duyệt nghiệm thu hoặc Yêu cầu làm lại task
-   * Yêu cầu 2 & 7:
-   * Task: ...
-   * By: ...
-   * Tiến độ: Hoàn thành / Đang làm
    */
   public static async notifyTaskReviewed(data: {
     title: string;
@@ -296,7 +281,7 @@ export class TelegramService {
         `Task: <b>${safeTitle}</b>\n` +
         `By: ${safeAssignee}\n` +
         `Duyệt bởi: ${safeReviewer}\n` +
-        (safeFeedback ? `Đánh giá: <i>${safeFeedback}</i>\n` : '') +
+        (safeFeedback ? `Đánh giá: ${safeFeedback}\n` : '') +
         `Tiến độ: Hoàn thành`;
       return this.sendMessage(msg.trim());
     } else {
@@ -306,7 +291,7 @@ export class TelegramService {
         `Task: <b>${safeTitle}</b>\n` +
         `By: ${safeAssignee}\n` +
         `Yêu cầu bởi: ${safeReviewer}\n` +
-        (safeFeedback ? `Lý do: <i>${safeFeedback}</i>\n` : '') +
+        (safeFeedback ? `Lý do: ${safeFeedback}\n` : '') +
         `Tiến độ: Đang làm`;
       return this.sendMessage(msg.trim());
     }
@@ -337,10 +322,6 @@ export class TelegramService {
 
   /**
    * 2.1 Nhân viên bấm "Tiếp nhận" công việc
-   * Yêu cầu 2 & 7:
-   * Task: ...
-   * By: ...
-   * Tiến độ: Đang làm
    */
   public static async notifyTaskAccepted(data: {
     title: string;
@@ -361,10 +342,6 @@ export class TelegramService {
 
   /**
    * 2.2 Nhân viên nộp báo cáo nghiệm thu
-   * Yêu cầu 2 & 7:
-   * Task: Kiểm tra lại trang login
-   * By: Huy Hà Quang
-   * Tiến độ: Đang nộp duyệt
    */
   public static async notifyTaskSubmitted(data: {
     title: string;
@@ -389,7 +366,7 @@ export class TelegramService {
       `By: ${safeUser}\n` +
       `Tiến độ: Đang nộp duyệt\n` +
       subtaskText +
-      (safeReport ? `Báo cáo: <i>${safeReport}</i>` : '');
+      (safeReport ? `Báo cáo: ${safeReport}` : '');
 
     return this.sendMessage(msg.trim());
   }
@@ -432,8 +409,8 @@ export class TelegramService {
       `<b>YÊU CẦU GIA NHẬP CÔNG TY</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
       `Người xin vào: <b>${safeUser}</b>\n` +
-      `Email: <code>${safeEmail}</code>\n` +
-      `Mã phòng: <code>${safeCode}</code>`;
+      `Email: ${safeEmail}\n` +
+      `Mã phòng: ${safeCode}`;
 
     return this.sendMessage(msg.trim());
   }
