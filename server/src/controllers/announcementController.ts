@@ -91,9 +91,10 @@ export class AnnouncementController {
 
       // 🤖 Gửi Thông Báo Qua Telegram (Cả Group và Kênh)
       const roleMap: Record<string, string> = {
-        ADMIN: 'Tổng Giám Đốc (Boss)',
-        SECRETARY: 'Ban Thư Ký',
-        MANAGER: 'Quản Lý Cấp Cao',
+        ADMIN: 'Boss',
+        SECRETARY: 'Thư Ký',
+        MANAGER: 'Quản Lý',
+        MEMBER: 'Thành Viên',
       };
 
       TelegramService.notifyAnnouncementBroadcast({
@@ -101,7 +102,7 @@ export class AnnouncementController {
         content: announcement.content,
         priority: announcement.priority,
         senderName: announcement.createdBy.name,
-        roleTitle: roleMap[announcement.createdBy.role] || 'Ban Điều Hành',
+        roleTitle: roleMap[announcement.createdBy.role] || 'Boss',
         telegramTag,
       }).catch((err) => console.error('[Telegram Announcement Broadcast Error]', err));
 
