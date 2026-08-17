@@ -124,6 +124,7 @@ export const TasksPage: React.FC = () => {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('MEDIUM');
   const [dueDate, setDueDate] = useState('');
+  const [telegramTag, setTelegramTag] = useState('');
   const [selectedAssigneeIds, setSelectedAssigneeIds] = useState<string[]>([]);
   const [initialSubtasks, setInitialSubtasks] = useState<{ title: string }[]>([]);
   const [newSubtaskInput, setNewSubtaskInput] = useState('');
@@ -199,6 +200,7 @@ export const TasksPage: React.FC = () => {
         description,
         priority,
         dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+        telegramTag: telegramTag.trim(),
         assigneeIds: selectedAssigneeIds,
         subtasks: initialSubtasks.filter((s) => s.title.trim().length > 0),
         sendEmail: true,
@@ -209,6 +211,7 @@ export const TasksPage: React.FC = () => {
       setDescription('');
       setPriority('MEDIUM');
       setDueDate('');
+      setTelegramTag('');
       setSelectedAssigneeIds([]);
       setInitialSubtasks([]);
       setShowCreateModal(false);
@@ -1545,6 +1548,27 @@ export const TasksPage: React.FC = () => {
                 );
               })}
             </div>
+          </div>
+
+          {/* Tag Telegram (@username) */}
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Tag Telegram (@username của người nhận)
+            </label>
+            <input
+              type="text"
+              placeholder="VD: @haquanghuy, @nam_dev (để bot tag trực tiếp vào nhóm & kênh)"
+              value={telegramTag}
+              onChange={(e) => setTelegramTag(e.target.value)}
+              className={`w-full px-4 py-2.5 rounded-xl text-xs font-mono border focus:outline-none focus:border-blue-500 transition ${
+                isLight
+                  ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-100'
+                  : 'bg-slate-800/60 border-slate-700 text-cyan-300 placeholder-slate-500'
+              }`}
+            />
+            <p className="text-[11px] text-slate-400 mt-1">
+              💡 Bot sẽ tag thẳng tên này trên Telegram để người nhận nhận được chuông thông báo ngay lập tức.
+            </p>
           </div>
 
           {/* Checklist việc con ban đầu */}

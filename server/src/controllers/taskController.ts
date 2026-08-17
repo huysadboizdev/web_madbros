@@ -80,7 +80,7 @@ export class TaskController {
 
       const workspaceId = req.user!.workspaceId;
       const createdById = req.user!.userId;
-      const { title, description, priority, dueDate, assigneeIds, subtasks, sendEmail } = req.body;
+      const { title, description, priority, dueDate, assigneeIds, subtasks, sendEmail, telegramTag } = req.body;
 
       if (!title || !title.trim()) {
         return res.status(400).json({ message: 'Tên công việc không được để trống' });
@@ -167,7 +167,7 @@ export class TaskController {
         }
       }
 
-      // 🤖 Tự động bắn thông báo Telegram lên Nhóm/Kênh công ty
+      // 🤖 Tự động bắn thông báo Telegram lên Nhóm/Kênh công ty (Kèm tag @username nếu có)
       const targetUsers = workspace?.users.filter((u) => assigneeIds && assigneeIds.includes(u.id)) || [];
       const assigneeNames = targetUsers.map((u) => u.name);
       const subtaskTitles = subtasks && Array.isArray(subtasks) ? subtasks.map((s: any) => s.title) : [];
@@ -180,6 +180,7 @@ export class TaskController {
         creatorName: creator?.name || 'Quản lý',
         assignees: assigneeNames,
         subtasks: subtaskTitles,
+        telegramTag: telegramTag?.trim() || null,
       }).catch((err) => console.error('[Telegram Task Create Error]', err));
 
       // ⚡ Real-Time WebSocket: Phát sự kiện tạo task mới đến toàn Workspace & chuông thông báo

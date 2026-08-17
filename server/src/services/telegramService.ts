@@ -6,10 +6,21 @@
 export class TelegramService {
   private static getCredentials() {
     const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
-    const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
+    const rawChatId = process.env.TELEGRAM_CHAT_ID || process.env.MAIN_GROUP_ID || '';
+    const rawChannelId = process.env.TELEGRAM_CHANNEL_ID || '';
     const isEnabled = process.env.TELEGRAM_ENABLED !== 'false';
 
-    return { token, chatId, isEnabled };
+    // Gom toàn bộ Chat ID của Group và Channel (hỗ trợ cách nhau bằng dấu phẩy)
+    const chatIds = Array.from(
+      new Set(
+        `${rawChatId},${rawChannelId}`
+          .split(',')
+          .map((id) => id.trim())
+          .filter(Boolean)
+      )
+    );
+
+    return { token, chatIds, isEnabled };
   }
 
   /**
@@ -52,16 +63,32 @@ export class TelegramService {
   }
 
   /**
-   * Gửi tin nhắn HTML tới Telegram API
+   * Chuẩn hóa chuỗi tag Telegram (@username)
+   */
+  public static formatTelegramTag(tag?: string | null): string {
+    if (!tag || !tag.trim()) return '';
+    return tag
+      .trim()
+      .split(/[\s,]+/)
+      .map((t) => {
+        const clean = t.replace(/^@+/, '').trim();
+        return clean ? `@${clean}` : '';
+      })
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  /**
+   * Gửi tin nhắn HTML tới tất cả các Nhóm & Kênh Telegram đã cấu hình
    */
   public static async sendMessage(htmlMessage: string): Promise<boolean> {
-    const { token, chatId, isEnabled } = this.getCredentials();
+    const { token, chatIds, isEnabled } = this.getCredentials();
 
     if (!isEnabled) {
       return false;
     }
 
-    if (!token || !chatId) {
+    if (!token || chatIds.length === 0) {
       console.log('\n[TelegramService Mock Log]');
       console.log('----------------------------------------------------');
       console.log(htmlMessage.replace(/<[^>]*>?/gm, '')); // In sạch text nếu chưa cấu hình token
@@ -69,29 +96,35 @@ export class TelegramService {
       return true;
     }
 
-    try {
-      const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: htmlMessage,
-          parse_mode: 'HTML',
-          disable_web_page_preview: false,
-        }),
-      });
+    let allSuccess = true;
 
-      const data = (await response.json()) as any;
-      if (!data.ok) {
-        console.error('[TelegramService Error]', data.description || 'Lỗi gửi tin Telegram');
-        return false;
-      }
+    await Promise.allSettled(
+      chatIds.map(async (chatId) => {
+        try {
+          const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: htmlMessage,
+              parse_mode: 'HTML',
+              disable_web_page_preview: false,
+            }),
+          });
 
-      return true;
-    } catch (err: any) {
-      console.error('[TelegramService Network Error]', err.message);
-      return false;
-    }
+          const data = (await response.json()) as any;
+          if (!data.ok) {
+            console.error(`[TelegramService Error Chat ${chatId}]`, data.description || 'Lỗi gửi tin Telegram');
+            allSuccess = false;
+          }
+        } catch (err: any) {
+          console.error(`[TelegramService Network Error Chat ${chatId}]`, err.message);
+          allSuccess = false;
+        }
+      })
+    );
+
+    return allSuccess;
   }
 
   // =========================================================================
@@ -99,7 +132,7 @@ export class TelegramService {
   // =========================================================================
 
   /**
-   * 1.1 Giao việc mới (Tạo Task)
+   * 1.1 Giao việc mới (Tạo Task) - Có Tag Telegram @username
    */
   public static async notifyTaskCreated(data: {
     title: string;
@@ -109,8 +142,13 @@ export class TelegramService {
     creatorName: string;
     assignees: string[];
     subtasks?: string[];
+    telegramTag?: string | null;
   }) {
     const assigneeList = data.assignees.length > 0 ? data.assignees.join(', ') : 'Chưa phân công';
+    const tagFormatted = this.formatTelegramTag(data.telegramTag);
+    const tagHeader = tagFormatted ? `🔔 ${tagFormatted} ` : '📋 ';
+    const tagAssigneeText = tagFormatted ? ` (${tagFormatted})` : '';
+
     const subtaskText =
       data.subtasks && data.subtasks.length > 0
         ? `\n📌 <b>Checklist (${data.subtasks.length} mục):</b>\n` +
@@ -118,12 +156,12 @@ export class TelegramService {
         : '';
 
     const msg =
-      `📋 <b>[GIAO VIỆC MỚI] ⚡</b>\n` +
+      `${tagHeader}<b>[GIAO VIỆC MỚI] ⚡</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
-      `📌 <b>Công việc:</b> ${data.title}\n` +
+      `📌 <b>Công việc:</b> <b>${data.title}</b>\n` +
       `🎯 <b>Mức độ:</b> ${this.getPriorityBadge(data.priority)}\n` +
       `👑 <b>Người giao:</b> ${data.creatorName}\n` +
-      `👤 <b>Phụ trách:</b> <code>${assigneeList}</code>\n` +
+      `👤 <b>Phụ trách:</b> <code>${assigneeList}</code>${tagAssigneeText}\n` +
       `⏰ <b>Hạn hoàn thành:</b> ${this.formatDateTime(data.dueDate)}\n` +
       (data.description ? `📝 <b>Mô tả:</b> <i>${data.description}</i>\n` : '') +
       subtaskText +
