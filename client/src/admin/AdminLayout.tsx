@@ -71,12 +71,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
       <div className="ambient-glow-blue" />
       <div className="ambient-glow-emerald" />
 
-      {/* Admin Executive Top Navbar (Sticky Floating) */}
+      {/* Admin Executive Top Navbar (Không dính / cuộn tự nhiên cùng trang) */}
       <header
-        className={`sticky top-0 z-50 w-full backdrop-blur-2xl border-b transition-all duration-300 ${
+        className={`w-full relative z-30 backdrop-blur-2xl border-b transition-all duration-300 ${
           isLight
-            ? 'bg-white/95 border-slate-200 shadow-md shadow-slate-200/60'
-            : 'bg-slate-950/90 border-amber-500/20 shadow-xl shadow-black/50'
+            ? 'bg-white/95 border-slate-200 shadow-sm'
+            : 'bg-slate-950/90 border-amber-500/20 shadow-lg shadow-black/40'
         }`}
       >
         <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">

@@ -78,10 +78,10 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full backdrop-blur-2xl border-b transition-all duration-300 ${
+      className={`w-full relative z-30 backdrop-blur-2xl border-b transition-all duration-300 ${
         isLight
-          ? 'bg-white/95 border-slate-200 shadow-md shadow-slate-200/60'
-          : 'bg-slate-950/90 border-white/[0.08] shadow-lg shadow-black/40'
+          ? 'bg-white/95 border-slate-200 shadow-sm'
+          : 'bg-slate-950/90 border-white/[0.08] shadow-md shadow-black/25'
       }`}
     >
       <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
