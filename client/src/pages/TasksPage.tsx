@@ -31,6 +31,8 @@ import {
   ListTodo,
   ShieldCheck,
   UserCheck,
+  Pencil,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface Subtask {
@@ -131,6 +133,20 @@ export const TasksPage: React.FC = () => {
 
   // Inline subtask input
   const [inlineSubtaskTitle, setInlineSubtaskTitle] = useState('');
+
+  // Edit Task modal states
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editPriority, setEditPriority] = useState('MEDIUM');
+  const [editDueDate, setEditDueDate] = useState('');
+  const [editAssigneeIds, setEditAssigneeIds] = useState<string[]>([]);
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  // Custom Delete Confirm modal
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTasks();
@@ -367,18 +383,69 @@ export const TasksPage: React.FC = () => {
     }
   };
 
-  // 7. Xóa task
-  const handleDeleteTask = async (taskId: string) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa công việc này không?')) return;
+  // 7. Mở Modal Chỉnh Sửa Công Việc
+  const openEditModal = (task: TaskItem) => {
+    setEditingTask(task);
+    setEditTitle(task.title);
+    setEditDescription(task.description || '');
+    setEditPriority(task.priority);
+    setEditDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
+    setEditAssigneeIds(task.assignees?.map((a) => a.id) || []);
+    setShowEditModal(true);
+  };
+
+  // 8. Lưu Thay Đổi Khi Sửa Công Việc
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTask || !editTitle.trim()) return;
     try {
-      await api.delete(`/tasks/${taskId}`);
+      setSavingEdit(true);
+      await api.put(`/tasks/${editingTask.id}`, {
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        priority: editPriority,
+        dueDate: editDueDate ? new Date(editDueDate).toISOString() : null,
+        assigneeIds: editAssigneeIds,
+      });
+      setShowEditModal(false);
+      setEditingTask(null);
       fetchTasks();
-      if (selectedTask?.id === taskId) {
+      if (selectedTask?.id === editingTask.id) {
+        const res = await api.get('/tasks');
+        const updated = res.data.find((t: any) => t.id === editingTask.id);
+        if (updated) setSelectedTask(updated);
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Lỗi cập nhật công việc');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  // 9. Mở Modal Xác Nhận Xóa
+  const openDeleteConfirm = (taskId: string) => {
+    setDeletingTaskId(taskId);
+    setShowDeleteConfirmModal(true);
+  };
+
+  // 10. Xác nhận xóa vĩnh viễn
+  const handleConfirmDelete = async () => {
+    if (!deletingTaskId) return;
+    try {
+      await api.delete(`/tasks/${deletingTaskId}`);
+      setShowDeleteConfirmModal(false);
+      if (selectedTask?.id === deletingTaskId) {
         setSelectedTask(null);
       }
+      setDeletingTaskId(null);
+      fetchTasks();
     } catch (error) {
       console.error('Lỗi xóa task', error);
     }
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    openDeleteConfirm(taskId);
   };
 
   // Filter logic
@@ -766,7 +833,7 @@ export const TasksPage: React.FC = () => {
                             : 'bg-slate-900/70 hover:bg-slate-800/80 border-slate-800/80 hover:border-blue-500/40'
                         }`}
                       >
-                        {/* Title & Priority */}
+                        {/* Title & Priority + Quick Actions */}
                         <div className="flex items-start justify-between gap-2">
                           <h4
                             className={`font-bold text-sm transition line-clamp-2 ${
@@ -775,7 +842,39 @@ export const TasksPage: React.FC = () => {
                           >
                             {t.title}
                           </h4>
-                          {getPriorityBadge(t.priority)}
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {getPriorityBadge(t.priority)}
+                            {(isAdminOrManager || user?.role === 'SECRETARY') && (
+                              <div className="flex items-center gap-0.5 opacity-80 group-hover:opacity-100 transition">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openEditModal(t);
+                                  }}
+                                  className={`p-1 rounded-lg transition cursor-pointer ${
+                                    isLight ? 'hover:bg-blue-100 text-blue-600' : 'hover:bg-blue-600/20 text-blue-400'
+                                  }`}
+                                  title="Chỉnh sửa công việc"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openDeleteConfirm(t.id);
+                                  }}
+                                  className={`p-1 rounded-lg transition cursor-pointer ${
+                                    isLight ? 'hover:bg-rose-100 text-rose-600' : 'hover:bg-rose-600/20 text-rose-400'
+                                  }`}
+                                  title="Xóa công việc"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {t.description && (
@@ -1002,6 +1101,34 @@ export const TasksPage: React.FC = () => {
                             >
                               <Check className="w-3 h-3" /> Nhận việc
                             </button>
+                          )}
+                          {(isAdminOrManager || user?.role === 'SECRETARY') && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditModal(t);
+                                }}
+                                className={`p-1.5 rounded-lg transition cursor-pointer ${
+                                  isLight ? 'text-blue-600 hover:bg-blue-50' : 'text-blue-400 hover:bg-blue-500/10'
+                                }`}
+                                title="Chỉnh sửa task"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openDeleteConfirm(t.id);
+                                }}
+                                className={`p-1.5 rounded-lg transition cursor-pointer ${
+                                  isLight ? 'text-rose-600 hover:bg-rose-50' : 'text-rose-400 hover:bg-rose-500/10'
+                                }`}
+                                title="Xóa task"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
                           )}
                           <button
                             onClick={() => setSelectedTask(t)}
@@ -1246,16 +1373,26 @@ export const TasksPage: React.FC = () => {
             {/* Action Bar */}
             <div className={`pt-4 border-t flex items-center justify-between flex-wrap gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
               {(isAdminOrManager || user?.role === 'SECRETARY') ? (
-                <button
-                  onClick={() => handleDeleteTask(selectedTask.id)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                    isLight
-                      ? 'bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 shadow-sm'
-                      : 'bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white'
-                  }`}
-                >
-                  <Trash2 className="w-4 h-4" /> Xóa Task
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openEditModal(selectedTask)}
+                    className="px-3.5 py-2 bg-blue-600/10 hover:bg-blue-600 text-blue-600 dark:text-blue-400 hover:text-white border border-blue-500/30 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Pencil className="w-4 h-4" /> Sửa Task
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openDeleteConfirm(selectedTask.id)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                      isLight
+                        ? 'bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 shadow-sm'
+                        : 'bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white'
+                    }`}
+                  >
+                    <Trash2 className="w-4 h-4" /> Xóa Task
+                  </button>
+                </div>
               ) : (
                 <div />
               )}
@@ -1644,6 +1781,174 @@ export const TasksPage: React.FC = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal Chỉnh Sửa Công Việc */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title={`Chỉnh Sửa Công Việc #${editingTask?.id || ''}`}
+      >
+        <form onSubmit={handleSaveEdit} className="space-y-4">
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Tên Công Việc <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="Nhập tên công việc..."
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className={`w-full px-4 py-2.5 rounded-xl text-sm border focus:outline-none focus:border-blue-500 transition ${
+                isLight ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-100' : 'bg-slate-800/60 border-slate-700 text-white placeholder-slate-500'
+              }`}
+            />
+          </div>
+
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Mô Tả Yêu Cầu Chi Tiết
+            </label>
+            <textarea
+              rows={3}
+              placeholder="Mô tả mục tiêu, yêu cầu nghiệm thu..."
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              className={`w-full px-4 py-2.5 rounded-xl text-xs border focus:outline-none focus:border-blue-500 transition ${
+                isLight ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-100' : 'bg-slate-800/60 border-slate-700 text-white placeholder-slate-500'
+              }`}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                Mức Độ Ưu Tiên
+              </label>
+              <select
+                value={editPriority}
+                onChange={(e) => setEditPriority(e.target.value)}
+                className={`w-full px-3 py-2.5 rounded-xl text-xs font-semibold border focus:outline-none focus:border-blue-500 transition cursor-pointer ${
+                  isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/80 border-slate-700 text-white'
+                }`}
+              >
+                <option value="LOW">🔵 Thấp</option>
+                <option value="MEDIUM">🟡 Trung bình</option>
+                <option value="HIGH">🟠 Cao</option>
+                <option value="URGENT">🔴 Khẩn cấp</option>
+              </select>
+            </div>
+
+            <div>
+              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                Hạn Chót (Deadline)
+              </label>
+              <input
+                type="date"
+                value={editDueDate}
+                onChange={(e) => setEditDueDate(e.target.value)}
+                className={`w-full px-3 py-2.5 rounded-xl text-xs border focus:outline-none focus:border-blue-500 transition ${
+                  isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/80 border-slate-700 text-white'
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Phân công thành viên */}
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Phân Công Cho Thành Viên
+            </label>
+            <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1">
+              {members.map((m) => {
+                const isSelected = editAssigneeIds.includes(m.id);
+                return (
+                  <button
+                    type="button"
+                    key={m.id}
+                    onClick={() => {
+                      if (isSelected) {
+                        setEditAssigneeIds(editAssigneeIds.filter((id) => id !== m.id));
+                      } else {
+                        setEditAssigneeIds([...editAssigneeIds, m.id]);
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer border ${
+                      isSelected
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/30'
+                        : isLight
+                        ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                        : 'bg-slate-800 text-slate-400 hover:text-white border-slate-700'
+                    }`}
+                  >
+                    <UserIcon className="w-3 h-3" />
+                    {m.name} ({m.email})
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className={`pt-4 border-t flex justify-end gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <button
+              type="button"
+              onClick={() => setShowEditModal(false)}
+              className={`px-4 py-2 text-xs font-semibold cursor-pointer ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              disabled={savingEdit}
+              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Check className="w-4 h-4" /> {savingEdit ? 'Đang lưu...' : 'Lưu Thay Đổi'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal Xác Nhận Xóa Công Việc Đẹp Mắt */}
+      <Modal
+        isOpen={showDeleteConfirmModal}
+        onClose={() => setShowDeleteConfirmModal(false)}
+        title="Xác Nhận Xóa Công Việc"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400">
+            <div className="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5 text-rose-500" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-sm text-rose-600 dark:text-rose-400">
+                Bạn có chắc chắn muốn xóa vĩnh viễn công việc này?
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Toàn bộ tiến độ, danh sách việc con và báo cáo nghiệm thu đính kèm sẽ bị xóa hoàn toàn khỏi hệ thống.
+              </p>
+            </div>
+          </div>
+
+          <div className={`pt-3 border-t flex justify-end gap-2.5 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirmModal(false)}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                isLight ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
+              }`}
+            >
+              Hủy Bỏ
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmDelete}
+              className="px-5 py-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-rose-600/30 transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Trash2 className="w-4 h-4" /> Xóa Vĩnh Viễn
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

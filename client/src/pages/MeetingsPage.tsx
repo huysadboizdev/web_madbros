@@ -23,6 +23,7 @@ import {
   ChevronRight,
   Search,
   User as UserIcon,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface MeetingItem {
@@ -164,10 +165,20 @@ export const MeetingsPage: React.FC = () => {
     setSendEmail(true);
   };
 
-  const handleDeleteMeeting = async (meetingId: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn hủy và xóa cuộc họp này?')) return;
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [deletingMeetingId, setDeletingMeetingId] = useState<string | null>(null);
+
+  const handleDeleteMeeting = (meetingId: string) => {
+    setDeletingMeetingId(meetingId);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const handleConfirmDeleteMeeting = async () => {
+    if (!deletingMeetingId) return;
     try {
-      await api.delete(`/meetings/${meetingId}`);
+      await api.delete(`/meetings/${deletingMeetingId}`);
+      setShowDeleteConfirmModal(false);
+      setDeletingMeetingId(null);
       fetchMeetings();
     } catch (error) {
       console.error('Lỗi xóa cuộc họp', error);
@@ -709,6 +720,48 @@ export const MeetingsPage: React.FC = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal Xác Nhận Hủy Cuộc Họp Đẹp Mắt */}
+      <Modal
+        isOpen={showDeleteConfirmModal}
+        onClose={() => setShowDeleteConfirmModal(false)}
+        title="Xác Nhận Hủy Cuộc Họp"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400">
+            <div className="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5 text-rose-500" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-sm text-rose-600 dark:text-rose-400">
+                Bạn có chắc chắn muốn hủy và xóa cuộc họp này?
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Lịch họp và danh sách điểm danh người tham gia sẽ bị xóa vĩnh viễn khỏi hệ thống.
+              </p>
+            </div>
+          </div>
+
+          <div className={`pt-3 border-t flex justify-end gap-2.5 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirmModal(false)}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                isLight ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
+              }`}
+            >
+              Quay Lại
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmDeleteMeeting}
+              className="px-5 py-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-rose-600/30 transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Trash2 className="w-4 h-4" /> Hủy Cuộc Họp
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
