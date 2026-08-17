@@ -13,8 +13,7 @@
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
     "start": "cd server && npm start",
     "db:push": "cd server && npx prisma db push",
-    "db:seed": "cd server && npx ts-node src/seed.ts",
-    "db:clean": "cd server && npx ts-node src/clean.ts"
+    "db:seed": "cd server && npx ts-node src/seed.ts"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
