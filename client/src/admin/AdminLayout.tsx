@@ -5,7 +5,6 @@ import { AdminDashboard } from './AdminDashboard';
 import { AdminUsersPage } from './AdminUsersPage';
 import { AdminTasksPage } from './AdminTasksPage';
 import { AdminMeetingsPage } from './AdminMeetingsPage';
-import { AdminAssetsPage } from './AdminAssetsPage';
 import { WorkspacePage } from '../pages/WorkspacePage';
 import { SecretaryPage } from '../pages/SecretaryPage';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -13,7 +12,6 @@ import {
   Users,
   CheckSquare,
   Calendar,
-  Package,
   Settings,
   LayoutDashboard,
   ArrowLeftRight,
@@ -34,7 +32,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
   const getInitialAdminTab = () => {
     const params = new URLSearchParams(window.location.search);
     const admin = params.get('admin');
-    if (admin && ['dashboard', 'secretary', 'users', 'tasks', 'meetings', 'assets', 'settings'].includes(admin)) {
+    if (admin && ['dashboard', 'secretary', 'users', 'tasks', 'meetings', 'settings'].includes(admin)) {
       return admin;
     }
     return 'dashboard';
@@ -59,7 +57,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
     { id: 'users', label: 'Nhân Sự', icon: <Users className="w-3.5 h-3.5" /> },
     { id: 'tasks', label: 'Công Việc', icon: <CheckSquare className="w-3.5 h-3.5" /> },
     { id: 'meetings', label: 'Lịch Họp', icon: <Calendar className="w-3.5 h-3.5" /> },
-    { id: 'assets', label: 'Tài Sản', icon: <Package className="w-3.5 h-3.5" /> },
     { id: 'settings', label: 'Cài Đặt', icon: <Settings className="w-3.5 h-3.5" /> },
   ];
 
@@ -238,7 +235,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onSwitchToMemberPortal
         {activeAdminTab === 'users' && <AdminUsersPage />}
         {activeAdminTab === 'tasks' && <AdminTasksPage />}
         {activeAdminTab === 'meetings' && <AdminMeetingsPage />}
-        {activeAdminTab === 'assets' && <AdminAssetsPage />}
         {activeAdminTab === 'settings' && <WorkspacePage />}
       </main>
 

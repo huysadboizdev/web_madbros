@@ -247,12 +247,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
         />
 
         <StatCard
-          title="Tổng Tài Sản Doanh Nghiệp"
-          value={formatCurrency(overview?.totalAssetsValue)}
-          subtitle={`${overview?.totalAssets || 0} thiết bị & tài sản`}
-          icon={<Laptop className="w-5 h-5" />}
-          trend="Được kiểm kê"
-          trendPositive={true}
+          title="Nghiệm Thu Chờ Duyệt"
+          value={overview?.pendingReviewTasks || 0}
+          subtitle="Công việc nhân viên đã nộp báo cáo"
+          icon={<CheckCircle2 className="w-5 h-5" />}
+          trend={overview?.pendingReviewTasks > 0 ? 'Cần duyệt ngay' : 'Đã duyệt hết'}
+          trendPositive={overview?.pendingReviewTasks === 0}
           color="amber"
         />
 
@@ -415,21 +415,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
               </div>
 
               <div
-                onClick={() => setActiveAdminTab('assets')}
+                onClick={() => setActiveAdminTab('secretary')}
                 className={`p-4 rounded-2xl border transition cursor-pointer space-y-1.5 group shadow-sm ${
                   isLight
-                    ? 'bg-slate-50 hover:bg-amber-50/70 border-slate-200 hover:border-amber-300'
-                    : 'bg-slate-900/70 hover:bg-slate-800/80 border-slate-800 hover:border-amber-500/40'
+                    ? 'bg-slate-50 hover:bg-purple-50/70 border-slate-200 hover:border-purple-300'
+                    : 'bg-slate-900/70 hover:bg-slate-800/80 border-slate-800 hover:border-purple-500/40'
                 }`}
               >
-                <div className="w-8 h-8 rounded-xl bg-amber-600/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
-                  <Package className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-xl bg-purple-600/20 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
+                  <FileSignature className="w-4 h-4" />
                 </div>
-                <h4 className={`font-bold text-xs sm:text-sm transition ${isLight ? 'text-slate-900 group-hover:text-amber-600' : 'text-white group-hover:text-amber-400'}`}>
-                  Quản Lý Tài Sản (Assets)
+                <h4 className={`font-bold text-xs sm:text-sm transition ${isLight ? 'text-slate-900 group-hover:text-purple-600' : 'text-white group-hover:text-purple-400'}`}>
+                  Ban Thư Ký & Chỉ Đạo
                 </h4>
                 <p className={`text-[11px] leading-relaxed ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                  Khai báo thiết bị máy móc, bàn giao cấp phát cho nhân viên.
+                  Giao việc trọng điểm, điều phối cuộc họp và lập biên bản kết luận.
                 </p>
               </div>
 
