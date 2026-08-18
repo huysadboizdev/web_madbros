@@ -342,6 +342,19 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
               )}
             </div>
 
+            {/* Quick Logout Button */}
+            <button
+              onClick={logout}
+              title="Đăng xuất khỏi tài khoản"
+              className={`hidden sm:flex p-1.5 sm:p-2 rounded-xl border transition cursor-pointer shrink-0 ${
+                isLight
+                  ? 'bg-slate-100 border-slate-300 text-slate-500 hover:text-rose-600 hover:bg-rose-50'
+                  : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10'
+              }`}
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+
             {/* Mobile Hamburger Menu Button */}
             <button
               onClick={() => setShowMobileNav(!showMobileNav)}
@@ -357,26 +370,65 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
 
         {/* Mobile Navigation Drawer */}
         {showMobileNav && (
-          <div className={`lg:hidden py-3 border-t space-y-1 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-            {navItems.map((item) => (
+          <div className={`lg:hidden py-3 border-t space-y-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className="space-y-1">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    setShowMobileNav(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                    activeTab === item.id
+                      ? 'bg-blue-600 text-white font-bold'
+                      : isLight
+                      ? 'text-slate-600 hover:bg-slate-100'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  }`}
+                >
+                  {item.icon}
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Mobile User Profile & Action Summary */}
+            <div className={`p-3 rounded-2xl border space-y-2.5 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'}`}>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shrink-0">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`font-bold text-xs truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>{user?.name}</p>
+                  <p className="text-[11px] text-slate-400 truncate">{user?.email}</p>
+                </div>
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30">
+                  {user?.role}
+                </span>
+              </div>
+
+              {isAdminOrManager && onSwitchToAdminPortal && (
+                <button
+                  onClick={() => {
+                    setShowMobileNav(false);
+                    onSwitchToAdminPortal();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-bold bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 rounded-xl transition cursor-pointer"
+                >
+                  <Crown className="w-3.5 h-3.5" />
+                  <span>Vào Cổng Quản Trị Boss</span>
+                </button>
+              )}
+
               <button
-                key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setShowMobileNav(false);
-                }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                  activeTab === item.id
-                    ? 'bg-blue-600 text-white font-bold'
-                    : isLight
-                    ? 'text-slate-600 hover:bg-slate-100'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                }`}
+                onClick={logout}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-3 text-xs font-bold bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25 rounded-xl transition cursor-pointer"
               >
-                {item.icon}
-                {item.label}
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Đăng Xuất Khỏi Tài Khoản</span>
               </button>
-            ))}
+            </div>
           </div>
         )}
       </div>

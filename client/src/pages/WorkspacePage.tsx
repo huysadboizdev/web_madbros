@@ -28,10 +28,11 @@ import {
   Eye,
   EyeOff,
   Bot,
+  LogOut,
 } from 'lucide-react';
 
 export const WorkspacePage: React.FC = () => {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, logout } = useAuth();
   const { theme } = useTheme();
   const isLight = theme === 'light';
   const [workspace, setWorkspace] = useState<any>(null);
@@ -608,6 +609,36 @@ export const WorkspacePage: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Account & Session Management Card */}
+          <div className={`p-4 min-[360px]:p-5 sm:p-7 rounded-2xl sm:rounded-3xl border shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+            isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'
+          }`}>
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-base shadow-md shadow-blue-600/25 shrink-0">
+                {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className={`text-sm sm:text-base font-bold truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                    {user?.name}
+                  </h4>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30">
+                    {user?.role}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 font-mono truncate">{user?.email}</p>
+              </div>
+            </div>
+
+            <button
+              onClick={logout}
+              className="w-full sm:w-auto px-5 py-2.5 bg-rose-500/15 border border-rose-500/30 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shrink-0"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Đăng Xuất Khỏi Tài Khoản</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

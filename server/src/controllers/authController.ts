@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../config/db';
-import { generateToken } from '../config/jwt';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../config/jwt';
 import { AuthenticatedRequest } from '../middlewares/auth';
 
 export class AuthController {
@@ -28,16 +28,21 @@ export class AuthController {
         return res.status(401).json({ message: 'Email hoặc mật khẩu không chính xác' });
       }
 
-      const token = generateToken({
+      const tokenPayload = {
         userId: user.id,
         email: user.email,
         role: user.role,
         workspaceId: user.workspaceId,
-      });
+      };
+
+      const accessToken = generateAccessToken(tokenPayload);
+      const refreshToken = generateRefreshToken(tokenPayload);
 
       return res.json({
         message: 'Đăng nhập thành công',
-        token,
+        accessToken,
+        refreshToken,
+        token: accessToken, // tương thích ngược
         user: {
           id: user.id,
           email: user.email,
@@ -142,16 +147,21 @@ export class AuthController {
         });
       }
 
-      const token = generateToken({
+      const tokenPayload = {
         userId: user.id,
         email: user.email,
         role: user.role,
         workspaceId: user.workspaceId,
-      });
+      };
+
+      const accessToken = generateAccessToken(tokenPayload);
+      const refreshToken = generateRefreshToken(tokenPayload);
 
       return res.json({
         message: 'Đăng nhập Google thành công',
-        token,
+        accessToken,
+        refreshToken,
+        token: accessToken, // tương thích ngược
         user: {
           id: user.id,
           email: user.email,
@@ -168,6 +178,65 @@ export class AuthController {
     } catch (error) {
       console.error('[Google Auth Error]', error);
       return res.status(500).json({ message: 'Đã có lỗi xảy ra khi xác thực Google' });
+    }
+  }
+
+  // Cấp mới Access Token bằng Refresh Token (Tự động gia hạn phiên đăng nhập)
+  static async refreshToken(req: Request, res: Response) {
+    try {
+      const refreshToken = req.body.refreshToken || (req.headers['x-refresh-token'] as string);
+
+      if (!refreshToken) {
+        return res.status(401).json({ message: 'Refresh token không được để trống' });
+      }
+
+      let decoded: { userId: string; email: string };
+      try {
+        decoded = verifyRefreshToken(refreshToken);
+      } catch (err) {
+        return res.status(401).json({ message: 'Refresh token đã hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại' });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        include: { workspace: true },
+      });
+
+      if (!user) {
+        return res.status(401).json({ message: 'Tài khoản người dùng không tồn tại' });
+      }
+
+      const tokenPayload = {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        workspaceId: user.workspaceId,
+      };
+
+      const newAccessToken = generateAccessToken(tokenPayload);
+      const newRefreshToken = generateRefreshToken(tokenPayload);
+
+      return res.json({
+        message: 'Làm mới token thành công',
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        token: newAccessToken, // tương thích ngược
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          status: user.status || 'ACTIVE',
+          joinCodeUsed: user.joinCodeUsed,
+          avatar: user.avatar,
+          workspaceId: user.workspaceId,
+          workspaceName: user.workspace.name,
+          workspaceCode: user.workspace.code,
+        },
+      });
+    } catch (error) {
+      console.error('[Refresh Token Error]', error);
+      return res.status(500).json({ message: 'Lỗi máy chủ khi làm mới token' });
     }
   }
 

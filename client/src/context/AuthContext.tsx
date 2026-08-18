@@ -17,6 +17,8 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   loading: boolean;
   login: (credentials: { email: string; password: string }) => Promise<void>;
   googleLogin: (data: { credential?: string; email?: string; name?: string; avatar?: string }) => Promise<void>;
@@ -32,12 +34,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
   });
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('accessToken') || localStorage.getItem('token'));
+  const [accessToken, setAccessToken] = useState<string | null>(() => localStorage.getItem('accessToken') || localStorage.getItem('token'));
+  const [refreshToken, setRefreshToken] = useState<string | null>(() => localStorage.getItem('refreshToken'));
   const [loading, setLoading] = useState(true);
 
   const refreshUser = async () => {
     try {
-      if (!token) {
+      const currentToken = localStorage.getItem('accessToken') || localStorage.getItem('token');
+      if (!currentToken) {
         setLoading(false);
         return;
       }
@@ -46,7 +51,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('user', JSON.stringify(res.data));
     } catch (error) {
       console.error('Lỗi lấy thông tin user', error);
-      logout();
+      // Nếu có refresh token, api interceptor sẽ tự refresh; nếu cả refresh token cũng hỏng thì mới logout
+      if (!localStorage.getItem('refreshToken')) {
+        logout();
+      }
     } finally {
       setLoading(false);
     }
@@ -54,23 +62,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     refreshUser();
-  }, [token]);
+
+    // Lắng nghe sự kiện logout tự động từ api interceptor khi refresh token hết hạn
+    const handleAutoLogout = () => {
+      logout();
+    };
+    window.addEventListener('auth:logout', handleAutoLogout);
+    return () => window.removeEventListener('auth:logout', handleAutoLogout);
+  }, []);
 
   const login = async (credentials: { email: string; password: string }) => {
     const res = await api.post('/auth/login', credentials);
-    const { token: newToken, user: newUser } = res.data;
-    setToken(newToken);
+    const { accessToken: newAccess, refreshToken: newRefresh, token: newToken, user: newUser } = res.data;
+    const finalAccess = newAccess || newToken;
+
+    setToken(finalAccess);
+    setAccessToken(finalAccess);
+    setRefreshToken(newRefresh || null);
     setUser(newUser);
-    localStorage.setItem('token', newToken);
+
+    localStorage.setItem('accessToken', finalAccess);
+    localStorage.setItem('token', finalAccess);
+    if (newRefresh) {
+      localStorage.setItem('refreshToken', newRefresh);
+    }
     localStorage.setItem('user', JSON.stringify(newUser));
   };
 
   const googleLogin = async (data: { credential?: string; email?: string; name?: string; avatar?: string }) => {
     const res = await api.post('/auth/google', data);
-    const { token: newToken, user: newUser } = res.data;
-    setToken(newToken);
+    const { accessToken: newAccess, refreshToken: newRefresh, token: newToken, user: newUser } = res.data;
+    const finalAccess = newAccess || newToken;
+
+    setToken(finalAccess);
+    setAccessToken(finalAccess);
+    setRefreshToken(newRefresh || null);
     setUser(newUser);
-    localStorage.setItem('token', newToken);
+
+    localStorage.setItem('accessToken', finalAccess);
+    localStorage.setItem('token', finalAccess);
+    if (newRefresh) {
+      localStorage.setItem('refreshToken', newRefresh);
+    }
     localStorage.setItem('user', JSON.stringify(newUser));
   };
 
@@ -83,8 +116,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setToken(null);
+    setAccessToken(null);
+    setRefreshToken(null);
     setUser(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
   };
 
@@ -93,6 +130,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         token,
+        accessToken,
+        refreshToken,
         loading,
         login,
         googleLogin,
