@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useSocket } from '../context/SocketContext';
 import { Modal } from './Modal';
+import { TelegramTagPicker } from './TelegramTagPicker';
 import {
   Megaphone,
   Pin,
@@ -377,39 +378,30 @@ export const AnnouncementsFeed: React.FC<{ compact?: boolean }> = ({ compact = f
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                Mức Độ Ưu Tiên
-              </label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as any)}
-                className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold border focus:outline-none focus:border-rose-500 transition cursor-pointer ${
-                  isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/80 border-slate-700 text-white'
-                }`}
-              >
-                <option value="NORMAL">📢 Bình Thường (Thông Báo Nội Bộ)</option>
-                <option value="IMPORTANT">🔥 Quan Trọng (Cần Chú Ý)</option>
-                <option value="URGENT">🚨 Khẩn Cấp (Yêu Cầu Đọc Ngay)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                Tag Telegram (@username / @all)
-              </label>
-              <input
-                type="text"
-                placeholder="@username hoặc để trống"
-                value={telegramTag}
-                onChange={(e) => setTelegramTag(e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-xl text-xs border focus:outline-none focus:border-rose-500 transition ${
-                  isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/80 border-slate-700 text-white'
-                }`}
-              />
-            </div>
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Mức Độ Ưu Tiên
+            </label>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as any)}
+              className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold border focus:outline-none focus:border-rose-500 transition cursor-pointer ${
+                isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/80 border-slate-700 text-white'
+              }`}
+            >
+              <option value="NORMAL">📢 Bình Thường (Thông Báo Nội Bộ)</option>
+              <option value="IMPORTANT">🔥 Quan Trọng (Cần Chú Ý)</option>
+              <option value="URGENT">🚨 Khẩn Cấp (Yêu Cầu Đọc Ngay)</option>
+            </select>
           </div>
+
+          {/* Telegram Multi-Tag Picker */}
+          <TelegramTagPicker
+            value={telegramTag}
+            onChange={setTelegramTag}
+            label="Tag Telegram Thành Viên (@username)"
+            helperText="Bot sẽ tự động tag các người được chọn trong tin nhắn Telegram để phát thông báo tức thì."
+          />
 
           <div>
             <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>

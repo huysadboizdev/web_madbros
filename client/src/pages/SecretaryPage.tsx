@@ -6,6 +6,7 @@ import { useSocket } from '../context/SocketContext';
 import { StatCard } from '../components/StatCard';
 import { Modal } from '../components/Modal';
 import { AnnouncementsFeed } from '../components/AnnouncementsFeed';
+import { TelegramTagPicker } from '../components/TelegramTagPicker';
 import {
   FileSignature,
   Calendar,
@@ -70,6 +71,7 @@ export const SecretaryPage: React.FC = () => {
   const [subtasks, setSubtasks] = useState<{ title: string; assignedToId?: string }[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [taskSendEmail, setTaskSendEmail] = useState(true);
+  const [taskTelegramTag, setTaskTelegramTag] = useState('');
   const [creatingTask, setCreatingTask] = useState(false);
 
   // Form: Create Delegated Meeting
@@ -176,6 +178,7 @@ export const SecretaryPage: React.FC = () => {
         assigneeIds: taskAssigneeIds,
         subtasks: subtasks.map((s) => ({ title: s.title })),
         sendEmail: taskSendEmail,
+        telegramTag: taskTelegramTag.trim() || null,
       });
 
       showToast('Đã phân công và giao việc thay Ban Giám Đốc thành công!');
@@ -187,6 +190,7 @@ export const SecretaryPage: React.FC = () => {
       setTaskDueDate('');
       setTaskAssigneeIds([]);
       setSubtasks([]);
+      setTaskTelegramTag('');
       const tasksRes = await api.get('/tasks');
       setTasks(tasksRes.data || []);
     } catch (error: any) {
@@ -1247,7 +1251,15 @@ export const SecretaryPage: React.FC = () => {
             ))}
           </div>
 
-          <label className="flex items-center gap-2 cursor-pointer pt-2">
+          {/* Tag Telegram (@username) */}
+          <TelegramTagPicker
+            value={taskTelegramTag}
+            onChange={setTaskTelegramTag}
+            label="Tag Telegram Người Nhận Chỉ Đạo (@username)"
+            helperText="Bot sẽ tag thẳng các người nhận trên Telegram để đôn đốc nhận việc tức thì."
+          />
+
+          <label className="flex items-center gap-2 cursor-pointer pt-1">
             <input
               type="checkbox"
               checked={taskSendEmail}

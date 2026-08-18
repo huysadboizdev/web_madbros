@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useSocket } from '../context/SocketContext';
 import { Modal } from '../components/Modal';
+import { TelegramTagPicker } from '../components/TelegramTagPicker';
 import {
   CheckSquare,
   Plus,
@@ -1781,25 +1782,12 @@ export const TasksPage: React.FC = () => {
           </div>
 
           {/* Tag Telegram (@username) */}
-          <div>
-            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-              Tag Telegram (@username của người nhận)
-            </label>
-            <input
-              type="text"
-              placeholder="VD: @haquanghuy, @nam_dev (để bot tag trực tiếp vào nhóm & kênh)"
-              value={telegramTag}
-              onChange={(e) => setTelegramTag(e.target.value)}
-              className={`w-full px-4 py-2.5 rounded-xl text-xs font-mono border focus:outline-none focus:border-blue-500 transition ${
-                isLight
-                  ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-100'
-                  : 'bg-slate-800/60 border-slate-700 text-cyan-300 placeholder-slate-500'
-              }`}
-            />
-            <p className="text-[11px] text-slate-400 mt-1">
-              💡 Bot sẽ tag thẳng tên này trên Telegram để người nhận nhận được chuông thông báo ngay lập tức.
-            </p>
-          </div>
+          <TelegramTagPicker
+            value={telegramTag}
+            onChange={setTelegramTag}
+            label="Tag Telegram Người Nhận (@username)"
+            helperText="Bot sẽ tag thẳng các người nhận trên Telegram để chuông thông báo reo ngay lập tức."
+          />
 
           {/* Checklist việc con ban đầu */}
           <div className={`pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
