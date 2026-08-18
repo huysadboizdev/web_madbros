@@ -242,20 +242,20 @@ export const MeetingsPage: React.FC = () => {
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h2 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+            <h2 className={`text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight break-words leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
               Lịch Họp & Kế Hoạch Đội Ngũ
             </h2>
             <span
-              className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+              className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold border shrink-0 ${
                 isLight ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
               }`}
             >
               {totalItems} Cuộc Họp
             </span>
           </div>
-          <p className={`text-xs sm:text-sm mt-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+          <p className={`text-xs sm:text-sm mt-1 leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
             Đặt lịch họp, tự động đồng bộ lịch và thông báo tới toàn bộ thành viên qua Telegram & Web
           </p>
         </div>
@@ -263,7 +263,7 @@ export const MeetingsPage: React.FC = () => {
         {canScheduleMeeting && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl text-xs sm:text-sm font-bold shadow-lg shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all self-start sm:self-auto cursor-pointer"
+            className="flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold shadow-md sm:shadow-lg shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer w-full sm:w-auto shrink-0"
           >
             <Plus className="w-4 h-4" /> Đặt Lịch Họp Mới
           </button>
@@ -271,11 +271,11 @@ export const MeetingsPage: React.FC = () => {
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="glass-panel p-4 sm:p-5 rounded-3xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none w-full sm:w-auto">
+      <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto min-w-0">
           <button
             onClick={() => setTimeframe('upcoming')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               timeframe === 'upcoming'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                 : isLight
@@ -287,7 +287,7 @@ export const MeetingsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setTimeframe('today')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               timeframe === 'today'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                 : isLight
@@ -299,7 +299,7 @@ export const MeetingsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setTimeframe('my')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               timeframe === 'my'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                 : isLight
@@ -311,7 +311,7 @@ export const MeetingsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setTimeframe('all')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               timeframe === 'all'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                 : isLight
@@ -323,7 +323,7 @@ export const MeetingsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setTimeframe('past')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               timeframe === 'past'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                 : isLight
@@ -335,8 +335,8 @@ export const MeetingsPage: React.FC = () => {
           </button>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative w-full sm:w-64">
+        <div className="flex flex-col min-[480px]:flex-row items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64 min-w-0">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
             <input
               type="text"
@@ -351,12 +351,12 @@ export const MeetingsPage: React.FC = () => {
             />
           </div>
 
-          <div className={`flex items-center gap-1.5 text-xs shrink-0 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+          <div className={`flex items-center gap-1.5 text-xs shrink-0 self-end min-[480px]:self-auto ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
             <span>Hiển thị:</span>
             <select
               value={pageSize}
               onChange={(e) => setPageSize(Number(e.target.value))}
-              className={`px-2 py-1.5 rounded-lg text-xs focus:outline-none border ${
+              className={`px-2 py-1.5 rounded-lg text-xs focus:outline-none border cursor-pointer ${
                 isLight
                   ? 'bg-slate-50 border-slate-300 text-slate-800'
                   : 'bg-slate-900/80 border-slate-700/80 text-slate-300'
@@ -376,17 +376,17 @@ export const MeetingsPage: React.FC = () => {
           <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : paginatedMeetings.length === 0 ? (
-        <div className={`rounded-3xl p-12 text-center border space-y-3 shadow-xl ${
+        <div className={`rounded-2xl sm:rounded-3xl p-8 sm:p-12 text-center border space-y-3 shadow-xl ${
           isLight ? 'bg-white border-slate-200 shadow-slate-200/60' : 'glass-panel border-white/[0.08]'
         }`}>
-          <Calendar className={`w-12 h-12 mx-auto ${isLight ? 'text-slate-400' : 'text-slate-600'}`} />
-          <h3 className={`text-base font-bold ${isLight ? 'text-slate-900' : 'text-slate-300'}`}>Không có cuộc họp nào phù hợp</h3>
+          <Calendar className={`w-10 h-10 sm:w-12 sm:h-12 mx-auto ${isLight ? 'text-slate-400' : 'text-slate-600'}`} />
+          <h3 className={`text-sm sm:text-base font-bold ${isLight ? 'text-slate-900' : 'text-slate-300'}`}>Không có cuộc họp nào phù hợp</h3>
           <p className={`text-xs max-w-sm mx-auto ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
             Hãy thử đổi bộ lọc hoặc bấm "Đặt Lịch Họp Mới" để lên kế hoạch làm việc với đội ngũ.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 items-start">
           {paginatedMeetings.map((m) => {
             const isCreator = m.createdBy.id === user?.id;
             const myParticipant = m.participants.find((p) => p.userId === user?.id);
@@ -394,21 +394,21 @@ export const MeetingsPage: React.FC = () => {
             return (
               <div
                 key={m.id}
-                className={`p-6 rounded-3xl border transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 space-y-4 relative flex flex-col justify-between ${
+                className={`p-4 min-[360px]:p-5 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 space-y-3.5 sm:space-y-4 relative flex flex-col justify-between ${
                   isLight
                     ? 'bg-white border-slate-200 hover:border-indigo-300 text-slate-800 shadow-slate-200/50'
                     : 'glass-panel border-white/[0.08] hover:border-indigo-500/40 text-slate-200'
                 }`}
               >
                 {/* Header info */}
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
+                <div className="space-y-2.5 sm:space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold border ${
                       isLight
                         ? 'bg-indigo-100 text-indigo-800 border-indigo-200'
                         : 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30'
                     }`}>
-                      <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                      <Clock className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                       {new Date(m.startTime).toLocaleTimeString('vi-VN', {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -423,7 +423,7 @@ export const MeetingsPage: React.FC = () => {
                     {(isCreator || user?.role === 'ADMIN') && (
                       <button
                         onClick={() => handleDeleteMeeting(m.id)}
-                        className={`p-1.5 rounded-lg transition ${
+                        className={`p-1.5 rounded-lg transition cursor-pointer ${
                           isLight
                             ? 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
                             : 'text-slate-500 hover:text-rose-400 hover:bg-rose-500/10'
@@ -436,8 +436,8 @@ export const MeetingsPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <h3 className={`text-base sm:text-lg font-bold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>{m.title}</h3>
-                    <p className={`text-xs font-medium mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <h3 className={`text-sm sm:text-base lg:text-lg font-bold tracking-tight line-clamp-2 break-words ${isLight ? 'text-slate-900' : 'text-white'}`}>{m.title}</h3>
+                    <p className={`text-[11px] sm:text-xs font-medium mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                       📅 {new Date(m.startTime).toLocaleDateString('vi-VN', {
                         weekday: 'long',
                         day: 'numeric',
@@ -448,7 +448,7 @@ export const MeetingsPage: React.FC = () => {
                   </div>
 
                   {m.description && (
-                    <p className={`text-xs p-3 rounded-2xl border whitespace-pre-wrap line-clamp-3 ${
+                    <p className={`text-xs p-3 rounded-xl sm:rounded-2xl border whitespace-pre-wrap line-clamp-3 break-words ${
                       isLight
                         ? 'bg-slate-50 border-slate-200 text-slate-700'
                         : 'bg-slate-900/60 border-slate-800 text-slate-300'
@@ -466,24 +466,24 @@ export const MeetingsPage: React.FC = () => {
                           : 'bg-slate-900/40 border-slate-800 text-slate-300'
                       }`}>
                         <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
-                        <span className="font-medium">{m.location}</span>
+                        <span className="font-medium truncate">{m.location}</span>
                       </div>
                     )}
 
                     {m.meetingLink && (
-                      <div className={`flex items-center justify-between p-2.5 sm:p-3 rounded-2xl border ${
+                      <div className={`flex flex-col min-[380px]:flex-row min-[380px]:items-center justify-between p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border gap-2 ${
                         isLight
                           ? 'bg-blue-50/80 border-blue-200 text-blue-950'
                           : 'bg-blue-950/40 border-blue-500/30 text-blue-200'
                       }`}>
-                        <div className="flex items-center gap-2 truncate mr-2">
+                        <div className="flex items-center gap-2 truncate min-w-0 flex-1">
                           <Video className="w-4 h-4 text-blue-500 shrink-0" />
                           <span className={`text-xs font-medium truncate ${isLight ? 'text-blue-900' : 'text-blue-200'}`}>{m.meetingLink}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0 self-end min-[380px]:self-auto">
                           <button
                             onClick={() => copyMeetingLink(m.meetingLink!)}
-                            className={`p-1.5 rounded-lg transition ${
+                            className={`p-1.5 rounded-lg transition cursor-pointer ${
                               isLight
                                 ? 'text-slate-500 hover:text-slate-800 hover:bg-slate-200'
                                 : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
@@ -512,28 +512,28 @@ export const MeetingsPage: React.FC = () => {
 
                 {/* Participants list & RSVP footer */}
                 <div className={`pt-3 border-t space-y-2.5 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
-                  <div className={`flex items-center justify-between text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                  <div className={`flex items-center justify-between text-[11px] sm:text-xs flex-wrap gap-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                     <span className={`font-semibold flex items-center gap-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                      <Users className="w-3.5 h-3.5 text-indigo-500" />
+                      <Users className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                       {m.participants.length} người tham gia
                     </span>
-                    <span className="text-[11px] text-slate-500">Tổ chức: {m.createdBy.name}</span>
+                    <span className="text-[10px] sm:text-[11px] text-slate-500 truncate">Tổ chức: {m.createdBy.name}</span>
                   </div>
 
                   {/* RSVP buttons if invited */}
                   {myParticipant && myParticipant.status === 'INVITED' && (
-                    <div className="flex items-center justify-between gap-2 pt-1 bg-indigo-950/20 p-2 rounded-xl border border-indigo-500/20">
+                    <div className="flex flex-col min-[360px]:flex-row min-[360px]:items-center justify-between gap-2 pt-1 bg-indigo-950/20 p-2.5 rounded-xl border border-indigo-500/20">
                       <span className="text-xs text-indigo-300 font-medium">Bạn tham gia chứ?</span>
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 self-end min-[360px]:self-auto">
                         <button
                           onClick={() => handleUpdateStatus(m.id, 'ACCEPTED')}
-                          className="px-2.5 py-1 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-bold hover:bg-emerald-600/30 flex items-center gap-1 transition"
+                          className="px-2.5 py-1 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-bold hover:bg-emerald-600/30 flex items-center gap-1 transition cursor-pointer"
                         >
                           <CheckCircle className="w-3.5 h-3.5" /> Có
                         </button>
                         <button
                           onClick={() => handleUpdateStatus(m.id, 'DECLINED')}
-                          className="px-2.5 py-1 bg-rose-600/20 text-rose-400 border border-rose-500/30 rounded-lg text-xs font-bold hover:bg-rose-600/30 flex items-center gap-1 transition"
+                          className="px-2.5 py-1 bg-rose-600/20 text-rose-400 border border-rose-500/30 rounded-lg text-xs font-bold hover:bg-rose-600/30 flex items-center gap-1 transition cursor-pointer"
                         >
                           <XCircle className="w-3.5 h-3.5" /> Không
                         </button>
@@ -548,16 +548,20 @@ export const MeetingsPage: React.FC = () => {
       )}
 
       {/* Pagination Footer */}
-      <div className="glass-panel p-4 rounded-2xl border border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 shadow-md">
-        <div>
-          Đang hiển thị <strong className="text-white">{startIndex + 1}</strong> - <strong className="text-white">{endIndex}</strong> trong tổng số <strong className="text-indigo-400">{totalItems}</strong> cuộc họp
+      <div className={`p-3.5 sm:p-4 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shadow-md ${
+        isLight ? 'bg-white border-slate-200 text-slate-600 shadow-slate-200/50' : 'glass-panel border-white/[0.08] text-slate-400'
+      }`}>
+        <div className="text-center sm:text-left">
+          Đang hiển thị <strong className={isLight ? 'text-slate-900' : 'text-white'}>{startIndex + 1}</strong> - <strong className={isLight ? 'text-slate-900' : 'text-white'}>{endIndex}</strong> trong tổng số <strong className="text-indigo-600 dark:text-indigo-400">{totalItems}</strong> cuộc họp
         </div>
 
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 disabled:opacity-40 disabled:pointer-events-none transition flex items-center gap-1"
+            className={`px-3 py-1.5 rounded-xl border disabled:opacity-40 disabled:pointer-events-none transition flex items-center gap-1 cursor-pointer ${
+              isLight ? 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50' : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+            }`}
           >
             <ChevronLeft className="w-3.5 h-3.5" /> Trước
           </button>
@@ -568,12 +572,14 @@ export const MeetingsPage: React.FC = () => {
               const showEllipsis = idx > 0 && p - arr[idx - 1] > 1;
               return (
                 <React.Fragment key={p}>
-                  {showEllipsis && <span className="px-1 text-slate-600">...</span>}
+                  {showEllipsis && <span className="px-1 text-slate-400">...</span>}
                   <button
                     onClick={() => setCurrentPage(p)}
-                    className={`w-8 h-8 rounded-xl font-bold transition ${
+                    className={`w-8 h-8 rounded-xl font-bold transition cursor-pointer ${
                       currentPage === p
                         ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                        : isLight
+                        ? 'bg-white border border-slate-300 hover:bg-slate-50 text-slate-700'
                         : 'bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300'
                     }`}
                   >
@@ -586,7 +592,9 @@ export const MeetingsPage: React.FC = () => {
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 disabled:opacity-40 disabled:pointer-events-none transition flex items-center gap-1"
+            className={`px-3 py-1.5 rounded-xl border disabled:opacity-40 disabled:pointer-events-none transition flex items-center gap-1 cursor-pointer ${
+              isLight ? 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50' : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+            }`}
           >
             Sau <ChevronRight className="w-3.5 h-3.5" />
           </button>
@@ -602,7 +610,7 @@ export const MeetingsPage: React.FC = () => {
       >
         <form onSubmit={handleCreateMeeting} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
               Chủ Đề Cuộc Họp <span className="text-rose-400">*</span>
             </label>
             <input
@@ -611,12 +619,14 @@ export const MeetingsPage: React.FC = () => {
               placeholder="VD: Họp giao ban đầu tuần & Triển khai kế hoạch"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate-800/60 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
+              className={`w-full px-4 py-2.5 rounded-xl text-sm border focus:outline-none focus:border-indigo-500 transition ${
+                isLight ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-100' : 'bg-slate-800/60 border-slate-700 text-white placeholder-slate-500'
+              }`}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
               Nội Dung & Mục Tiêu Cuộc Họp
             </label>
             <textarea
@@ -624,13 +634,15 @@ export const MeetingsPage: React.FC = () => {
               placeholder="Ghi chú nội dung thảo luận, tài liệu chuẩn bị trước..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2 bg-slate-800/60 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
+              className={`w-full px-4 py-2 rounded-xl text-xs border focus:outline-none focus:border-indigo-500 transition ${
+                isLight ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-100' : 'bg-slate-800/60 border-slate-700 text-white placeholder-slate-500'
+              }`}
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                 Thời Gian Bắt Đầu <span className="text-rose-400">*</span>
               </label>
               <input
@@ -638,12 +650,14 @@ export const MeetingsPage: React.FC = () => {
                 required
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
+                className={`w-full px-3 py-2 rounded-xl text-xs border focus:outline-none focus:border-indigo-500 transition ${
+                  isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/60 border-slate-700 text-white'
+                }`}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                 Địa Điểm Họp / Ghi Chú Phòng Họp
               </label>
               <input
@@ -651,30 +665,34 @@ export const MeetingsPage: React.FC = () => {
                 placeholder="VD: Phòng họp Tầng 3 / Trụ sở chính"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
+                className={`w-full px-3 py-2 rounded-xl text-xs border focus:outline-none focus:border-indigo-500 transition ${
+                  isLight ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400' : 'bg-slate-800/60 border-slate-700 text-white placeholder-slate-500'
+                }`}
               />
             </div>
           </div>
 
           {/* Người tham gia */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-semibold text-slate-300">
+            <div className="flex flex-col min-[380px]:flex-row min-[380px]:items-center justify-between gap-1.5 mb-2">
+              <label className={`text-xs font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                 Thành Viên Tham Gia
               </label>
-              <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+              <label className={`flex items-center gap-2 text-xs cursor-pointer ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
                 <input
                   type="checkbox"
                   checked={notifyAll}
                   onChange={(e) => setNotifyAll(e.target.checked)}
-                  className="rounded text-indigo-600 focus:ring-indigo-500"
+                  className="rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                 />
-                Mời toàn bộ thành viên ({members.length} người)
+                Mời toàn bộ ({members.length} người)
               </label>
             </div>
 
             {!notifyAll && (
-              <div className="flex flex-wrap gap-2 p-3 bg-slate-800/40 rounded-xl border border-slate-700/60 max-h-36 overflow-y-auto">
+              <div className={`flex flex-wrap gap-2 p-3 rounded-xl border max-h-36 overflow-y-auto ${
+                isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-800/40 border-slate-700/60'
+              }`}>
                 {members.map((m) => {
                   const isSelected = selectedParticipantIds.includes(m.id);
                   return (
@@ -688,10 +706,12 @@ export const MeetingsPage: React.FC = () => {
                           setSelectedParticipantIds([...selectedParticipantIds, m.id]);
                         }
                       }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer border ${
                         isSelected
-                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                          : 'bg-slate-800 text-slate-400 hover:text-white'
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/30'
+                          : isLight
+                          ? 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                          : 'bg-slate-800 text-slate-400 hover:text-white border-slate-700'
                       }`}
                     >
                       <UserIcon className="w-3 h-3" />
@@ -703,18 +723,18 @@ export const MeetingsPage: React.FC = () => {
             )}
           </div>
 
-          <div className="pt-4 border-t border-slate-800 flex justify-end gap-3">
+          <div className={`pt-4 border-t flex flex-col min-[380px]:flex-row justify-end gap-2 sm:gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
             <button
               type="button"
               onClick={() => setShowCreateModal(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white"
+              className={`px-4 py-2 text-xs font-semibold cursor-pointer rounded-xl border border-transparent hover:border-slate-300 dark:hover:border-slate-700 ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
             >
               Hủy
             </button>
             <button
               type="submit"
               disabled={creating}
-              className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5 disabled:opacity-50"
+              className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer text-center"
             >
               {creating ? 'Đang tạo lịch họp...' : 'Đặt Lịch Họp Mới'}
             </button>
@@ -743,11 +763,11 @@ export const MeetingsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className={`pt-3 border-t flex justify-end gap-2.5 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+          <div className={`pt-3 border-t flex flex-col min-[380px]:flex-row justify-end gap-2 sm:gap-2.5 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
             <button
               type="button"
               onClick={() => setShowDeleteConfirmModal(false)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer text-center ${
                 isLight ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
               }`}
             >
@@ -756,7 +776,7 @@ export const MeetingsPage: React.FC = () => {
             <button
               type="button"
               onClick={handleConfirmDeleteMeeting}
-              className="px-5 py-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-rose-600/30 transition flex items-center gap-1.5 cursor-pointer"
+              className="px-5 py-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-rose-600/30 transition flex items-center justify-center gap-1.5 cursor-pointer text-center"
             >
               <Trash2 className="w-4 h-4" /> Hủy Cuộc Họp
             </button>

@@ -170,30 +170,30 @@ export const AnnouncementsFeed: React.FC<{ compact?: boolean }> = ({ compact = f
   return (
     <div className="space-y-4">
       {/* Header Panel */}
-      <div className={`p-5 sm:p-6 rounded-3xl border shadow-xl ${
+      <div className={`p-3.5 min-[360px]:p-4 sm:p-6 rounded-2xl sm:rounded-3xl border shadow-xl ${
         isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'
       }`}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <div
-              className={`p-2.5 rounded-2xl border ${
+              className={`p-2 sm:p-2.5 rounded-xl sm:rounded-2xl border shrink-0 ${
                 isLight
                   ? 'bg-rose-100 text-rose-700 border-rose-200'
                   : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
               }`}
             >
-              <Megaphone className="w-5 h-5 animate-pulse" />
+              <Megaphone className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className={`text-base sm:text-lg font-extrabold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                  Bảng Tin & Thông Báo Chung Toàn Công Ty
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <h3 className={`text-sm sm:text-base lg:text-lg font-extrabold tracking-tight truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  Bảng Tin & Thông Báo Công Ty
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30">
+                <span className="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 shrink-0">
                   {announcements.length} Tin
                 </span>
               </div>
-              <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'} mt-0.5`}>
+              <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'} mt-0.5 line-clamp-1`}>
                 Các vấn đề chỉ đạo, kế hoạch mới, thông báo tức thì qua Web & Telegram
               </p>
             </div>
@@ -202,7 +202,7 @@ export const AnnouncementsFeed: React.FC<{ compact?: boolean }> = ({ compact = f
           {canPost && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white rounded-2xl text-xs font-extrabold shadow-lg shadow-rose-600/30 transition flex items-center gap-2 hover:scale-105 cursor-pointer shrink-0 self-start sm:self-auto"
+              className="w-full sm:w-auto px-3.5 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white rounded-xl sm:rounded-2xl text-xs font-extrabold shadow-md sm:shadow-lg shadow-rose-600/30 transition flex items-center justify-center gap-1.5 hover:scale-105 cursor-pointer shrink-0"
             >
               <Plus className="w-4 h-4" /> Soạn Thông Báo
             </button>
@@ -210,7 +210,7 @@ export const AnnouncementsFeed: React.FC<{ compact?: boolean }> = ({ compact = f
         </div>
 
         {/* Announcements List Feed */}
-        <div className="pt-4 space-y-3.5">
+        <div className="pt-3 sm:pt-4 space-y-3">
           {loading ? (
             <div className="py-8 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
               <div className="w-4 h-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />

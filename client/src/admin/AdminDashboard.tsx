@@ -185,16 +185,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* 1. Top Executive Banner */}
       <div
-        className={`relative overflow-hidden rounded-3xl p-6 sm:p-7 border backdrop-blur-2xl transition-all duration-300 ${
+        className={`relative overflow-hidden rounded-3xl p-5 sm:p-7 border backdrop-blur-2xl transition-all duration-300 ${
           isLight
             ? 'bg-gradient-to-r from-blue-100/80 via-indigo-50 to-white border-blue-200/90 shadow-xl shadow-blue-500/5'
             : 'bg-gradient-to-r from-[#0B0F19] via-[#111928] to-[#0B0F19] border-blue-500/30 shadow-xl'
         }`}
       >
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-          <div className="flex items-center gap-4">
+          <div className="flex items-start sm:items-center gap-3.5 sm:gap-4 min-w-0">
             <div
-              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl p-2.5 shadow-lg flex items-center justify-center shrink-0 border transition-all ${
+              className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl p-2 sm:p-2.5 shadow-lg flex items-center justify-center shrink-0 border transition-all ${
                 isLight
                   ? 'bg-white border-blue-200 shadow-blue-500/10'
                   : 'bg-slate-900 border-blue-500/40 shadow-blue-500/20'
@@ -203,10 +203,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
               <img src="/logo.png" alt="Company Logo" className="w-full h-full object-contain drop-shadow-sm" />
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <span
-                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold flex items-center gap-1.5 shadow-sm border ${
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold flex items-center gap-1.5 shadow-sm border ${
                     isLight
                       ? 'bg-blue-500/15 border-blue-400/50 text-blue-800'
                       : 'bg-blue-500/20 border-blue-500/40 text-blue-300'
@@ -215,7 +215,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
                   <ShieldCheck className="w-3.5 h-3.5 text-blue-400" /> TRUNG TÂM ĐIỀU HÀNH DOANH NGHIỆP
                 </span>
                 <span
-                  className={`text-[11px] font-bold flex items-center gap-1 ${
+                  className={`text-[10px] sm:text-[11px] font-bold flex items-center gap-1 ${
                     isLight ? 'text-blue-700' : 'text-blue-400'
                   }`}
                 >
@@ -223,7 +223,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
                 </span>
               </div>
               <h1
-                className={`text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight ${
+                className={`text-lg sm:text-2xl lg:text-3xl font-extrabold tracking-tight break-words ${
                   isLight ? 'text-slate-900' : 'text-white'
                 }`}
               >
@@ -235,24 +235,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap self-start md:self-auto">
+          <div className="flex flex-col min-[480px]:flex-row items-stretch min-[480px]:items-center gap-2 sm:gap-2.5 w-full md:w-auto shrink-0">
             <button
               onClick={() => setActiveAdminTab('secretary')}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white rounded-2xl text-xs font-bold shadow-md shadow-rose-600/25 transition hover:scale-105 cursor-pointer"
+              className="flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white rounded-2xl text-xs font-bold shadow-md shadow-rose-600/25 transition hover:scale-105 cursor-pointer"
             >
-              <FileSignature className="w-4 h-4" /> Ban Thư Ký
+              <FileSignature className="w-4 h-4 shrink-0" /> Ban Thư Ký
             </button>
             <button
               onClick={() => setActiveAdminTab('users')}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl text-xs font-bold shadow-md shadow-indigo-600/25 transition hover:scale-105 cursor-pointer"
+              className="flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl text-xs font-bold shadow-md shadow-indigo-600/25 transition hover:scale-105 cursor-pointer"
             >
-              <UserPlus className="w-4 h-4" /> Thêm Nhân Viên
+              <UserPlus className="w-4 h-4 shrink-0" /> Thêm Nhân Viên
             </button>
             <button
               onClick={() => setActiveAdminTab('tasks')}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl text-xs font-extrabold shadow-md shadow-blue-600/25 transition hover:scale-105 cursor-pointer"
+              className="flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl text-xs font-extrabold shadow-md shadow-blue-600/25 transition hover:scale-105 cursor-pointer"
             >
-              <CheckSquare className="w-4 h-4" /> Giao Công Việc
+              <CheckSquare className="w-4 h-4 shrink-0" /> Giao Công Việc
             </button>
           </div>
         </div>
@@ -263,13 +263,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
       {/* 2. Pending Approval Alert Banner (High visibility) */}
       {overview?.pendingApprovalsCount > 0 && (
         <div
-          className={`p-4 sm:p-5 rounded-3xl border shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in transition-all ${
+          className={`p-4 sm:p-5 rounded-3xl border shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 animate-in fade-in transition-all ${
             isLight
               ? 'bg-gradient-to-r from-blue-100 via-indigo-50 to-blue-50 border-blue-300 text-blue-950'
               : 'bg-gradient-to-r from-[#111928] via-[#0B0F19] to-[#111928] border-blue-500/50 text-white'
           }`}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <div
               className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-base shrink-0 border ${
                 isLight
@@ -279,11 +279,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
             >
               <Clock className="w-5 h-5 animate-spin" />
             </div>
-            <div>
-              <h4 className={`font-extrabold text-sm ${isLight ? 'text-blue-950' : 'text-white'}`}>
+            <div className="min-w-0">
+              <h4 className={`font-extrabold text-xs sm:text-sm ${isLight ? 'text-blue-950' : 'text-white'}`}>
                 Có <span className="text-blue-600 dark:text-blue-400 font-extrabold">{overview.pendingApprovalsCount} nhân viên mới</span> vừa nhập mã phòng và đang chờ bạn phê duyệt!
               </h4>
-              <p className={`text-xs mt-0.5 ${isLight ? 'text-blue-800' : 'text-slate-300'}`}>
+              <p className={`text-[11px] sm:text-xs mt-0.5 ${isLight ? 'text-blue-800' : 'text-slate-300'}`}>
                 Nhân viên bị cách ly bảo mật và chỉ được vào phòng làm việc sau khi bạn duyệt tay.
               </p>
             </div>
@@ -291,7 +291,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
 
           <button
             onClick={() => setActiveAdminTab('users')}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-extrabold text-xs shadow-lg shadow-blue-500/30 transition hover:scale-105 shrink-0"
+            className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-extrabold text-xs shadow-lg shadow-blue-500/30 transition hover:scale-105 shrink-0 text-center cursor-pointer"
           >
             Mở Danh Sách Duyệt Ngay ➔
           </button>
@@ -299,7 +299,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
       )}
 
       {/* 3. 4 Core Stat Cards (Adaptive Theme) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+      <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         <StatCard
           title="Nhân Sự"
           value={overview?.totalUsers || 0}
@@ -421,20 +421,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
                   </button>
                 </div>
 
-                <div className="grid grid-cols-3 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+                <div className="grid grid-cols-3 sm:flex sm:items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
                   <button
                     type="submit"
                     disabled={updatingCode}
-                    className="px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 text-white rounded-xl text-xs font-extrabold shadow-md shadow-blue-500/20 transition whitespace-nowrap cursor-pointer disabled:opacity-50 flex items-center justify-center text-center"
+                    className="px-2 min-[360px]:px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 text-white rounded-xl text-[11px] min-[360px]:text-xs font-extrabold shadow-md shadow-blue-500/20 transition whitespace-nowrap cursor-pointer disabled:opacity-50 flex items-center justify-center text-center"
                   >
-                    {updatingCode ? 'Đang lưu...' : 'Lưu (15p)'}
+                    {updatingCode ? 'Lưu...' : 'Lưu (15p)'}
                   </button>
 
                   <button
                     type="button"
                     onClick={handleGenerateRandomCode}
                     disabled={updatingCode}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 whitespace-nowrap border cursor-pointer ${
+                    className={`px-2 min-[360px]:px-3 py-2 rounded-xl text-[11px] min-[360px]:text-xs font-bold transition flex items-center justify-center gap-1 whitespace-nowrap border cursor-pointer ${
                       isLight
                         ? 'bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700'
                         : 'bg-blue-900/30 hover:bg-blue-800/40 border-blue-500/30 text-blue-300'
@@ -448,7 +448,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ setActiveAdminTa
                   <button
                     type="button"
                     onClick={handleCopyCode}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 whitespace-nowrap border cursor-pointer ${
+                    className={`px-2 min-[360px]:px-3 py-2 rounded-xl text-[11px] min-[360px]:text-xs font-bold transition flex items-center justify-center gap-1 whitespace-nowrap border cursor-pointer ${
                       isLight
                         ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
                         : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300 hover:text-white'

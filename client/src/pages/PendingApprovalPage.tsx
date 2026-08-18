@@ -73,7 +73,7 @@ export const PendingApprovalPage: React.FC = () => {
       {/* Main Glass Modal Card */}
       <div className="w-full max-w-[500px] z-10 animate-in fade-in zoom-in-95 duration-300">
         <div
-          className={`p-7 sm:p-9 rounded-3xl border shadow-2xl space-y-6 relative overflow-hidden backdrop-blur-2xl transition-all ${
+          className={`p-5 sm:p-7 lg:p-9 rounded-2xl sm:rounded-3xl border shadow-2xl space-y-5 sm:space-y-6 relative overflow-hidden backdrop-blur-2xl transition-all ${
             isLight
               ? 'bg-white/95 border-slate-200 shadow-slate-200/80 text-slate-900'
               : 'bg-slate-900/90 border-slate-700/80 shadow-black/60 text-slate-100'

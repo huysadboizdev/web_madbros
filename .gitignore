@@ -31,4 +31,5 @@ yarn-error.log*
 Thumbs.db
 .vscode/
 .idea/
+*.code-workspace
 caddy.exe

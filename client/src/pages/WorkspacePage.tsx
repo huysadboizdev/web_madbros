@@ -221,45 +221,45 @@ export const WorkspacePage: React.FC = () => {
   const paginatedMembers = filteredUsers.slice(startIdx, endIdx);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-300">
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <h2 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+          <h2 className={`text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight break-words leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
             Cài Đặt Workspace & Phân Quyền
           </h2>
           <span
-            className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+            className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold border shrink-0 ${
               isLight ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
             }`}
           >
             {isAdmin ? 'Quản Trị Viên' : 'Thành Viên'}
           </span>
         </div>
-        <p className={`text-xs sm:text-sm mt-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+        <p className={`text-xs sm:text-sm mt-1 leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
           Quản lý mã mời thành viên, phân quyền Quản Trị Viên (ADMIN) / Thành Viên (MEMBER) và cấu hình Email SMTP
         </p>
       </div>
 
       {/* Workspace Top Banner & Invite Code Box */}
-      <div className={`p-6 sm:p-7 rounded-3xl border shadow-xl ${
+      <div className={`p-4 min-[360px]:p-5 sm:p-7 rounded-2xl sm:rounded-3xl border shadow-xl ${
         isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'
       }`}>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25 shrink-0">
-              <Building2 className="w-7 h-7 text-white" />
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-md sm:shadow-lg shadow-blue-500/25 shrink-0">
+              <Building2 className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className={`text-xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>{workspace?.name}</h3>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className={`text-lg sm:text-xl font-bold truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>{workspace?.name}</h3>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold border shrink-0 ${
                   isLight ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
                 }`}>
                   {workspace?.users?.length || 0} Thành viên
                 </span>
               </div>
-              <p className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              <p className={`text-[11px] sm:text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 Ngày thành lập: {new Date(workspace?.createdAt).toLocaleDateString('vi-VN')}
               </p>
             </div>
@@ -267,16 +267,16 @@ export const WorkspacePage: React.FC = () => {
 
           {/* Invite Code Box (Only visible for Admin, masked by default) */}
           {isAdmin && (
-            <div className={`flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-start gap-2 sm:gap-3 p-3 rounded-2xl border shadow-md ${
+            <div className={`flex flex-col min-[400px]:flex-row items-stretch min-[400px]:items-center justify-between gap-2.5 sm:gap-3 p-3 rounded-2xl border shadow-md w-full lg:w-auto ${
               isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-700/80'
             }`}>
-              <div className="px-2 sm:px-3">
-                <p className={`text-[10px] uppercase font-bold tracking-wider ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Mã Mời Nhân Viên (Bảo Mật)</p>
-                <p className="font-mono text-base sm:text-lg font-extrabold text-blue-600 dark:text-blue-400 tracking-widest">
+              <div className="px-1 sm:px-2 min-w-0">
+                <p className={`text-[10px] uppercase font-bold tracking-wider truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Mã Mời Nhân Viên (Bảo Mật)</p>
+                <p className="font-mono text-base sm:text-lg font-extrabold text-blue-600 dark:text-blue-400 tracking-widest truncate">
                   {showCode ? workspace?.code : '••••••••'}
                 </p>
               </div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 self-end min-[400px]:self-auto">
                 <button
                   onClick={() => setShowCode(!showCode)}
                   className={`p-2 rounded-xl transition cursor-pointer ${
@@ -292,7 +292,7 @@ export const WorkspacePage: React.FC = () => {
                   title="Sao chép mã mời"
                 >
                   {copied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
-                  {copied ? 'Đã sao chép' : 'Sao chép'}
+                  {copied ? 'Đã chép' : 'Sao chép'}
                 </button>
                 <button
                   onClick={handleRegenerateCode}
@@ -310,31 +310,31 @@ export const WorkspacePage: React.FC = () => {
       </div>
 
       {/* 12-Column Responsive Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 items-start">
         {/* Left Column: Member List & Permissions (7 Cols) */}
-        <div className="xl:col-span-7 space-y-6">
-          <div className={`p-6 sm:p-7 rounded-3xl border space-y-5 shadow-xl ${
+        <div className="xl:col-span-7 space-y-6 min-w-0">
+          <div className={`p-4 min-[360px]:p-5 sm:p-7 rounded-2xl sm:rounded-3xl border space-y-4 sm:space-y-5 shadow-xl ${
             isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'
           }`}>
             <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b ${
               isLight ? 'border-slate-200' : 'border-slate-800'
             }`}>
-              <div className="flex items-center gap-3">
-                <div className={`p-2.5 rounded-xl border ${
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className={`p-2 sm:p-2.5 rounded-xl border shrink-0 ${
                   isLight ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-blue-500/15 text-blue-400 border-blue-500/20'
                 }`}>
-                  <Users className="w-5 h-5" />
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <h3 className={`text-base sm:text-lg font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                <div className="min-w-0">
+                  <h3 className={`text-sm sm:text-base lg:text-lg font-bold truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>
                     Thành Viên Workspace ({workspace?.users?.length || 0})
                   </h3>
-                  <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Danh sách nhân sự & quyền hạn trong hệ thống</p>
+                  <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'} line-clamp-1`}>Danh sách nhân sự & quyền hạn trong hệ thống</p>
                 </div>
               </div>
 
               {/* Search member */}
-              <div className="relative w-full sm:w-56">
+              <div className="relative w-full sm:w-56 min-w-0">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
                 <input
                   type="text"
@@ -355,38 +355,38 @@ export const WorkspacePage: React.FC = () => {
                 const isSelf = m.id === user?.id;
 
                 return (
-                  <div key={m.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3.5">
-                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm shadow-inner border ${
+                  <div key={m.id} className="py-3.5 sm:py-4 flex flex-col min-[480px]:flex-row min-[480px]:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold text-xs sm:text-sm shadow-inner border shrink-0 ${
                         isLight
                           ? 'bg-blue-100 border-blue-200 text-blue-700'
                           : 'bg-gradient-to-br from-slate-800 to-slate-700 border-slate-600/80 text-blue-400'
                       }`}>
-                        {m.name.charAt(0)}
+                        {m.name.charAt(0).toUpperCase()}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className={`text-sm font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{m.name}</p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className={`text-xs sm:text-sm font-bold truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{m.name}</p>
                           {isSelf && (
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                            <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold border shrink-0 ${
                               isLight ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
                             }`}>
                               Bạn
                             </span>
                           )}
                         </div>
-                        <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{m.email}</p>
+                        <p className={`text-[11px] sm:text-xs truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{m.email}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 self-end sm:self-auto">
+                    <div className="flex items-center gap-2 self-start min-[480px]:self-auto shrink-0 w-full min-[480px]:w-auto justify-between min-[480px]:justify-end">
                       {/* Role selection dropdown (for Admin) */}
                       {isAdmin ? (
                         <select
                           value={m.role}
                           disabled={isSelf}
                           onChange={(e) => handleChangeRole(m.id, e.target.value)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold border focus:outline-none transition shadow-sm ${
+                          className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border focus:outline-none transition shadow-sm cursor-pointer ${
                             m.role === 'ADMIN'
                               ? isLight ? 'bg-blue-100 border-blue-300 text-blue-900' : 'bg-blue-950/70 border-blue-500/40 text-blue-300'
                               : isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-700 text-slate-300'
@@ -397,7 +397,7 @@ export const WorkspacePage: React.FC = () => {
                         </select>
                       ) : (
                         <span
-                          className={`text-[10px] font-extrabold px-3 py-1 rounded-full border ${
+                          className={`text-[9px] min-[360px]:text-[10px] font-extrabold px-2.5 sm:px-3 py-1 rounded-full border ${
                             m.role === 'ADMIN'
                               ? isLight ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-blue-500/15 text-blue-400 border-blue-500/30'
                               : isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-800 text-slate-300 border-slate-700'
@@ -427,7 +427,7 @@ export const WorkspacePage: React.FC = () => {
 
             {/* Pagination for Members */}
             {totalMembers > pageSize && (
-              <div className={`pt-3 border-t flex items-center justify-between text-xs ${
+              <div className={`pt-3 border-t flex flex-col sm:flex-row items-center justify-between gap-2 text-xs ${
                 isLight ? 'border-slate-200 text-slate-600' : 'border-slate-800 text-slate-400'
               }`}>
                 <span>
@@ -462,61 +462,61 @@ export const WorkspacePage: React.FC = () => {
         </div>
 
         {/* Right Column: SMTP Configuration (if Admin) or Member Role Guide (if Member) */}
-        <div className="xl:col-span-5 space-y-6">
+        <div className="xl:col-span-5 space-y-6 min-w-0">
           {isAdmin ? (
             <>
             {/* Card Cấu Hình & Test Bot Telegram */}
-            <div className={`p-6 sm:p-7 rounded-3xl border space-y-6 shadow-xl ${
+            <div className={`p-4 min-[360px]:p-5 sm:p-7 rounded-2xl sm:rounded-3xl border space-y-5 sm:space-y-6 shadow-xl ${
               isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'
             }`}>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2.5 rounded-xl border ${
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  <div className={`p-2 sm:p-2.5 rounded-xl border shrink-0 ${
                     isLight ? 'bg-sky-100 text-sky-700 border-sky-200' : 'bg-sky-500/15 text-sky-400 border-sky-500/20'
                   }`}>
-                    <Bot className="w-5 h-5" />
+                    <Bot className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <div>
-                    <h3 className={`text-base font-bold flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                      Thông Báo Telegram Bot 2 Chiều
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-500/10 text-sky-600 border border-sky-500/20">
-                        ⚡ Real-Time Auto
+                  <div className="min-w-0">
+                    <h3 className={`text-sm sm:text-base font-bold flex items-center gap-1.5 sm:gap-2 flex-wrap ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                      <span>Telegram Bot 2 Chiều</span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-extrabold bg-sky-500/10 text-sky-600 border border-sky-500/20 shrink-0">
+                        ⚡ Real-Time
                       </span>
                     </h3>
-                    <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'} line-clamp-1`}>
                       Tự động bắn tin nhắn lên Nhóm / Kênh Telegram công ty khi có hoạt động
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className={`p-4 rounded-2xl border text-xs space-y-2 ${
+              <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border text-xs space-y-2 ${
                 isLight ? 'bg-sky-50/60 border-sky-200 text-slate-700' : 'bg-sky-950/20 border-sky-500/30 text-sky-200'
               }`}>
-                <p className="font-bold flex items-center gap-1.5 text-sky-600">
-                  <Sparkles className="w-3.5 h-3.5" /> 8 Sự Kiện Tự Động Bắn Tin Lên Telegram:
+                <p className="font-bold flex items-center gap-1.5 text-sky-600 text-xs">
+                  <Sparkles className="w-3.5 h-3.5 shrink-0" /> 8 Sự Kiện Tự Động Bắn Tin Lên Telegram:
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] pt-1 opacity-90">
-                  <div>👑 Sếp giao việc mới (Task)</div>
-                  <div>⚡ Nhân viên bấm Tiếp nhận việc</div>
-                  <div>📝 Nhân viên nộp báo cáo nghiệm thu</div>
-                  <div>🏆 Sếp duyệt hoàn thành 100%</div>
-                  <div>⚠️ Sếp yêu cầu chỉnh sửa/làm lại</div>
-                  <div>📅 Sếp lên lịch họp công ty mới</div>
-                  <div>🗳️ Thành viên xác nhận tham gia họp</div>
-                  <div>🎉 Chào mừng nhân sự mới được duyệt</div>
+                  <div>👑 Giao việc mới (Task)</div>
+                  <div>⚡ Tiếp nhận việc</div>
+                  <div>📝 Nộp báo cáo nghiệm thu</div>
+                  <div>🏆 Duyệt hoàn thành 100%</div>
+                  <div>⚠️ Yêu cầu chỉnh sửa/làm lại</div>
+                  <div>📅 Lên lịch họp công ty mới</div>
+                  <div>🗳️ Xác nhận tham gia họp</div>
+                  <div>🎉 Chào mừng nhân sự mới</div>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className={`block text-xs font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                  Cách Cấu Hình Trong File <code>server/.env</code>:
+                  Cấu hình trong file <code>server/.env</code>:
                 </label>
-                <div className={`p-3 rounded-xl font-mono text-[11px] border overflow-x-auto ${
+                <div className={`p-3 rounded-xl font-mono text-[10px] sm:text-[11px] border overflow-x-auto ${
                   isLight ? 'bg-slate-50 border-slate-200 text-slate-800' : 'bg-slate-900 border-slate-800 text-sky-300'
                 }`}>
-                  <code>TELEGRAM_BOT_TOKEN=123456789:ABCdefGHI... (Lấy từ @BotFather)</code><br/>
-                  <code>TELEGRAM_CHAT_ID=-1001234567890 (Lấy từ @RawDataBot trong nhóm)</code><br/>
+                  <code>TELEGRAM_BOT_TOKEN=123456789:ABCdefGHI...</code><br/>
+                  <code>TELEGRAM_CHAT_ID=-1001234567890</code><br/>
                   <code>TELEGRAM_ENABLED=true</code>
                 </div>
               </div>
@@ -535,10 +535,10 @@ export const WorkspacePage: React.FC = () => {
                     }`}
                   >
                     {testTelegramResult.success ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
-                    {testTelegramResult.text}
+                    <span className="flex-1 break-words">{testTelegramResult.text}</span>
                   </div>
                 )}
-                <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex flex-col min-[380px]:flex-row gap-2">
                   <input
                     type="text"
                     placeholder="Nhập nội dung test thử..."
@@ -551,32 +551,32 @@ export const WorkspacePage: React.FC = () => {
                   <button
                     onClick={handleSendTestTelegram}
                     disabled={testingTelegram}
-                    className="px-5 py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-md shadow-sky-500/20 cursor-pointer"
+                    className="px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-md shadow-sky-500/20 cursor-pointer shrink-0 text-center"
                   >
-                    <Send className="w-3.5 h-3.5" /> {testingTelegram ? 'Đang gửi...' : 'Gửi Test Telegram'}
+                    <Send className="w-3.5 h-3.5" /> {testingTelegram ? 'Đang gửi...' : 'Gửi Test'}
                   </button>
                 </div>
               </div>
             </div>
           </>
           ) : (
-            <div className={`p-6 sm:p-7 rounded-3xl border space-y-4 shadow-xl ${
+            <div className={`p-4 min-[360px]:p-5 sm:p-7 rounded-2xl sm:rounded-3xl border space-y-4 shadow-xl ${
               isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'
             }`}>
-              <div className="flex items-center gap-3">
-                <div className={`p-2.5 rounded-xl border ${
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className={`p-2 sm:p-2.5 rounded-xl border shrink-0 ${
                   isLight ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-blue-500/15 text-blue-400 border-blue-500/20'
                 }`}>
-                  <ShieldCheck className="w-5 h-5" />
+                  <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <h3 className={`text-base font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Quyền Hạn Của Bạn</h3>
-                  <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Tài khoản Thành Viên (MEMBER)</p>
+                <div className="min-w-0">
+                  <h3 className={`text-sm sm:text-base font-bold truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>Quyền Hạn Của Bạn</h3>
+                  <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Tài khoản Thành Viên (MEMBER)</p>
                 </div>
               </div>
 
-              <div className="space-y-3 pt-2">
-                <div className={`p-3.5 rounded-2xl border flex items-start gap-3 ${
+              <div className="space-y-2.5 sm:space-y-3 pt-2">
+                <div className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border flex items-start gap-2.5 sm:gap-3 ${
                   isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'
                 }`}>
                   <CheckSquare className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
@@ -586,7 +586,7 @@ export const WorkspacePage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className={`p-3.5 rounded-2xl border flex items-start gap-3 ${
+                <div className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border flex items-start gap-2.5 sm:gap-3 ${
                   isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'
                 }`}>
                   <Calendar className="w-4 h-4 text-purple-500 shrink-0 mt-0.5" />
@@ -596,7 +596,7 @@ export const WorkspacePage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className={`p-3.5 rounded-2xl border flex items-start gap-3 ${
+                <div className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border flex items-start gap-2.5 sm:gap-3 ${
                   isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'
                 }`}>
                   <Users className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />

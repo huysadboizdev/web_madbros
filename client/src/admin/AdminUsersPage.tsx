@@ -345,7 +345,7 @@ export const AdminUsersPage: React.FC = () => {
 
       {/* Main Tabs: Active vs Pending */}
       <div
-        className={`flex items-center gap-2 p-1.5 rounded-2xl w-fit border ${
+        className={`flex flex-wrap items-center gap-2 p-1.5 rounded-2xl w-full sm:w-fit border ${
           isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-900/80 border-slate-800'
         }`}
       >
@@ -382,8 +382,8 @@ export const AdminUsersPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="glass-panel p-4 sm:p-5 rounded-3xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="relative w-full sm:w-80">
+      <div className="glass-panel p-3.5 sm:p-5 rounded-3xl shadow-lg flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="relative w-full md:w-80 min-w-0">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
           <input
             type="text"
@@ -398,12 +398,12 @@ export const AdminUsersPage: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-col min-[480px]:flex-row items-stretch min-[480px]:items-center gap-2.5 sm:gap-3 w-full md:w-auto">
           {activeTab === 'ACTIVE' && (
             <select
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
-              className={`px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition border ${
+              className={`w-full min-[480px]:w-auto px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition border font-medium ${
                 isLight
                   ? 'bg-slate-50 border-slate-300 text-slate-800'
                   : 'bg-slate-900/80 border-slate-700/80 text-slate-300'
@@ -411,26 +411,26 @@ export const AdminUsersPage: React.FC = () => {
             >
               <option value="ALL">Mọi vai trò</option>
               <option value="ADMIN">🛡️ Quản Trị Cấp Cao (ADMIN)</option>
-              <option value="SECRETARY">📋 Thư Ký / Trợ Lý Giám Đốc (SECRETARY)</option>
-              <option value="MANAGER">⚡ Trưởng Nhóm / Quản Lý (MANAGER)</option>
-              <option value="MEMBER">👤 Nhân Viên Thông Thường (MEMBER)</option>
+              <option value="SECRETARY">📋 Thư Ký / Trợ Lý (SECRETARY)</option>
+              <option value="MANAGER">⚡ Quản Lý (MANAGER)</option>
+              <option value="MEMBER">👤 Nhân Viên (MEMBER)</option>
             </select>
           )}
 
-          <div className={`flex items-center gap-1.5 text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-            <span>Hiển thị:</span>
+          <div className={`flex items-center justify-between min-[480px]:justify-start gap-1.5 text-xs shrink-0 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+            <span className="whitespace-nowrap">Hiển thị:</span>
             <select
               value={pageSize}
               onChange={(e) => setPageSize(Number(e.target.value))}
-              className={`px-2 py-1.5 rounded-lg text-xs focus:outline-none border ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs focus:outline-none border font-medium ${
                 isLight
                   ? 'bg-slate-50 border-slate-300 text-slate-800'
                   : 'bg-slate-900/80 border-slate-700/80 text-slate-300'
               }`}
             >
-              <option value={8}>8 người</option>
-              <option value={16}>16 người</option>
-              <option value={32}>32 người</option>
+              <option value={8}>8 người / trang</option>
+              <option value={16}>16 người / trang</option>
+              <option value={32}>32 người / trang</option>
             </select>
           </div>
         </div>
@@ -582,36 +582,36 @@ export const AdminUsersPage: React.FC = () => {
               return (
                 <div
                   key={u.id}
-                  className={`p-4 rounded-2xl border space-y-3 ${
+                  className={`p-4 rounded-2xl border space-y-3 shadow-sm ${
                     isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-900/80 border-slate-800'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-sm">
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-sm">
                         {u.name.slice(0, 1).toUpperCase()}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-white'}`}>{u.name}</h4>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h4 className={`font-bold text-sm truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>{u.name}</h4>
                           {isSelf && (
                             <span className="text-[9px] bg-blue-500/20 text-blue-600 dark:text-blue-400 font-extrabold px-1.5 py-0.5 rounded border border-blue-500/30">
                               Bạn
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-slate-400 font-mono">{u.email}</p>
+                        <p className="text-[11px] text-slate-400 font-mono break-all leading-tight mt-0.5">{u.email}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => {
                           setSelectedUser(u);
                           setShowResetPassModal(true);
                         }}
-                        className={`p-2 rounded-xl transition ${
-                          isLight ? 'text-amber-600 bg-amber-50' : 'text-amber-400 bg-amber-500/10'
+                        className={`p-2 rounded-xl transition cursor-pointer ${
+                          isLight ? 'text-amber-600 bg-amber-50 hover:bg-amber-100' : 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20'
                         }`}
                         title="Đổi mật khẩu"
                       >
@@ -620,8 +620,8 @@ export const AdminUsersPage: React.FC = () => {
                       {!isSelf && (
                         <button
                           onClick={() => handleDeleteUser(u)}
-                          className={`p-2 rounded-xl transition ${
-                            isLight ? 'text-rose-600 bg-rose-50' : 'text-rose-400 bg-rose-500/10'
+                          className={`p-2 rounded-xl transition cursor-pointer ${
+                            isLight ? 'text-rose-600 bg-rose-50 hover:bg-rose-100' : 'text-rose-400 bg-rose-500/10 hover:bg-rose-500/20'
                           }`}
                           title="Xóa nhân viên"
                         >
@@ -631,14 +631,14 @@ export const AdminUsersPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-xs">
+                  <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-xs">
                     <div>
                       <span className="text-[10px] text-slate-400 block mb-1">Vai Trò:</span>
                       <select
                         disabled={isSelf}
                         value={u.role}
                         onChange={(e) => handleUpdateRole(u.id, e.target.value)}
-                        className={`w-full px-2 py-1.5 rounded-xl text-xs font-bold border transition ${
+                        className={`w-full px-2.5 py-1.5 rounded-xl text-xs font-bold border transition ${
                           u.role === 'ADMIN'
                             ? 'bg-blue-600/15 border-blue-500/40 text-blue-600 dark:text-blue-400'
                             : u.role === 'SECRETARY'
@@ -648,7 +648,7 @@ export const AdminUsersPage: React.FC = () => {
                             : isLight
                             ? 'bg-white border-slate-300 text-slate-700'
                             : 'bg-slate-800 border-slate-700 text-slate-300'
-                        }`}
+                        } disabled:opacity-60`}
                       >
                         <option value="ADMIN">🛡️ Admin</option>
                         <option value="SECRETARY">📋 Thư Ký</option>
@@ -658,12 +658,12 @@ export const AdminUsersPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <span className="text-[10px] text-slate-400 block mb-1">Công Việc:</span>
-                      <div className={`px-2 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border ${
+                      <span className="text-[10px] text-slate-400 block mb-1">Công Việc & Thiết Bị:</span>
+                      <div className={`px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center justify-between border ${
                         isLight ? 'bg-white border-slate-200 text-slate-700' : 'bg-slate-800/80 border-slate-700 text-slate-300'
                       }`}>
-                        <CheckSquare className="w-3.5 h-3.5 text-blue-500" />
-                        <span>{u._count?.assignedTasks || 0} việc</span>
+                        <span className="flex items-center gap-1"><CheckSquare className="w-3 h-3 text-blue-500" />{u._count?.assignedTasks || 0} việc</span>
+                        <span className="flex items-center gap-1 text-slate-400"><Laptop className="w-3 h-3 text-amber-500" />{u._count?.assignedAssets || 0}</span>
                       </div>
                     </div>
                   </div>
@@ -800,22 +800,22 @@ export const AdminUsersPage: React.FC = () => {
               return (
                 <div
                   key={u.id}
-                  className={`p-4 rounded-2xl border space-y-3 ${
+                  className={`p-4 rounded-2xl border space-y-3 shadow-sm ${
                     isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-900/80 border-slate-800'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center font-bold text-amber-600 dark:text-amber-400 text-xs shrink-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center font-bold text-amber-600 dark:text-amber-400 text-xs shrink-0">
                       {u.name.slice(0, 1).toUpperCase()}
                     </div>
-                    <div>
-                      <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-white'}`}>{u.name}</h4>
-                      <p className="text-[11px] text-slate-400 font-mono">{u.email}</p>
+                    <div className="min-w-0 flex-1">
+                      <h4 className={`font-bold text-sm truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>{u.name}</h4>
+                      <p className="text-[11px] text-slate-400 font-mono break-all leading-tight">{u.email}</p>
                     </div>
                   </div>
 
                   <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-xs">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <span className="text-[11px] text-slate-400">Mã phòng nhập:</span>
                       <span className="font-mono font-extrabold px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs">
                         {u.joinCodeUsed || 'N/A'}
@@ -823,7 +823,7 @@ export const AdminUsersPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <span className="text-[11px] text-slate-400 block mb-1">Cấp quyền:</span>
+                      <span className="text-[11px] text-slate-400 block mb-1">Cấp quyền khi duyệt:</span>
                       <select
                         value={currentSelectedRole}
                         onChange={(e) =>
@@ -841,7 +841,7 @@ export const AdminUsersPage: React.FC = () => {
                     <div className="grid grid-cols-2 gap-2 pt-1">
                       <button
                         onClick={() => handleReject(u)}
-                        className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition ${
+                        className={`py-2 px-3 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition cursor-pointer ${
                           isLight ? 'border-slate-300 text-slate-700 hover:bg-slate-100' : 'border-slate-700 text-slate-300 hover:bg-slate-800'
                         }`}
                       >
@@ -993,17 +993,17 @@ export const AdminUsersPage: React.FC = () => {
             </div>
           </div>
 
-          <div className={`pt-4 border-t flex justify-end gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+          <div className={`pt-4 border-t flex flex-col-reverse min-[400px]:flex-row justify-end gap-2 min-[400px]:gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
             <button
               type="button"
               onClick={() => setShowApproveModal(false)}
-              className={`px-4 py-2 text-xs font-semibold cursor-pointer ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer text-center ${isLight ? 'text-slate-500 hover:text-slate-800 hover:bg-slate-100' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
             >
               Hủy
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/30 transition flex items-center gap-1.5 cursor-pointer"
+              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <UserCheck className="w-4 h-4" /> Xác Nhận Duyệt Vào Cty
             </button>
@@ -1093,17 +1093,17 @@ export const AdminUsersPage: React.FC = () => {
             </select>
           </div>
 
-          <div className={`pt-4 border-t flex justify-end gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+          <div className={`pt-4 border-t flex flex-col-reverse min-[400px]:flex-row justify-end gap-2 min-[400px]:gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
             <button
               type="button"
               onClick={() => setShowCreateModal(false)}
-              className={`px-4 py-2 text-xs font-semibold cursor-pointer ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer text-center ${isLight ? 'text-slate-500 hover:text-slate-800 hover:bg-slate-100' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
             >
               Hủy
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition flex items-center gap-1.5 cursor-pointer"
+              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <UserPlus className="w-4 h-4" /> Tạo Tài Khoản
             </button>
@@ -1139,17 +1139,17 @@ export const AdminUsersPage: React.FC = () => {
             />
           </div>
 
-          <div className={`pt-4 border-t flex justify-end gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+          <div className={`pt-4 border-t flex flex-col-reverse min-[400px]:flex-row justify-end gap-2 min-[400px]:gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
             <button
               type="button"
               onClick={() => setShowResetPassModal(false)}
-              className={`px-4 py-2 text-xs font-semibold cursor-pointer ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer text-center ${isLight ? 'text-slate-500 hover:text-slate-800 hover:bg-slate-100' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
             >
               Hủy
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-amber-600/30 transition cursor-pointer"
+              className="px-5 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-amber-600/30 transition cursor-pointer text-center"
             >
               Xác Nhận Đổi Mật Khẩu
             </button>

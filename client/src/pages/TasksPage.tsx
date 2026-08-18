@@ -551,34 +551,34 @@ export const TasksPage: React.FC = () => {
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header & Controls */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h2 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+            <h2 className={`text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight break-words leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
               Quản Lý Công Việc & Tiến Trình
             </h2>
             <span
-              className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+              className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold border shrink-0 ${
                 isLight ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
               }`}
             >
               {totalItems} Tasks
             </span>
           </div>
-          <p className={`text-xs sm:text-sm mt-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+          <p className={`text-xs sm:text-sm mt-1 leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
             Quy trình tiếp nhận task qua Web & Telegram ➔ thực hiện việc con ➔ nộp báo cáo ➔ nghiệm thu hoàn thành
           </p>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
           {/* View Mode Toggle */}
           <div
-            className={`flex items-center p-1 rounded-2xl border ${
+            className={`flex items-center p-1 rounded-xl sm:rounded-2xl border shrink-0 ${
               isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-900/90 border-slate-800'
             }`}
           >
             <button
               onClick={() => setViewMode('kanban')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg sm:rounded-xl text-xs font-bold transition cursor-pointer ${
                 viewMode === 'kanban'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : isLight
@@ -591,7 +591,7 @@ export const TasksPage: React.FC = () => {
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg sm:rounded-xl text-xs font-bold transition cursor-pointer ${
                 viewMode === 'list'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : isLight
@@ -607,7 +607,7 @@ export const TasksPage: React.FC = () => {
           {canCreateTask && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl text-xs sm:text-sm font-bold shadow-lg shadow-blue-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+              className="flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold shadow-md sm:shadow-lg shadow-blue-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shrink-0"
             >
               <Plus className="w-4 h-4" /> Giao Việc Mới
             </button>
@@ -616,10 +616,10 @@ export const TasksPage: React.FC = () => {
       </div>
 
       {/* Scope Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full min-w-0">
         <button
           onClick={() => setScopeFilter('MY_TASKS')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs font-bold transition cursor-pointer max-w-full ${
             scopeFilter === 'MY_TASKS'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
               : isLight
@@ -632,7 +632,7 @@ export const TasksPage: React.FC = () => {
 
         <button
           onClick={() => setScopeFilter('PENDING_MY_ACCEPT')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs font-bold transition cursor-pointer max-w-full ${
             scopeFilter === 'PENDING_MY_ACCEPT'
               ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
               : isLight
@@ -645,7 +645,7 @@ export const TasksPage: React.FC = () => {
 
         <button
           onClick={() => setScopeFilter('TODAY')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs font-bold transition cursor-pointer max-w-full ${
             scopeFilter === 'TODAY'
               ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30'
               : isLight
@@ -658,7 +658,7 @@ export const TasksPage: React.FC = () => {
 
         <button
           onClick={() => setScopeFilter('REVIEW')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs font-bold transition cursor-pointer max-w-full ${
             scopeFilter === 'REVIEW'
               ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
               : isLight
@@ -671,7 +671,7 @@ export const TasksPage: React.FC = () => {
 
         <button
           onClick={() => setScopeFilter('ALL')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs font-bold transition cursor-pointer max-w-full ${
             scopeFilter === 'ALL'
               ? 'bg-slate-800 dark:bg-slate-700 text-white shadow-md'
               : isLight
@@ -684,8 +684,8 @@ export const TasksPage: React.FC = () => {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="glass-panel p-4 sm:p-5 rounded-3xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="relative w-full sm:w-80">
+      <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="relative w-full sm:w-80 min-w-0">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
           <input
             type="text"
@@ -700,11 +700,11 @@ export const TasksPage: React.FC = () => {
           />
         </div>
 
-        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+        <div className="grid grid-cols-1 min-[360px]:grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
           <select
             value={filterPriority}
             onChange={(e) => setFilterPriority(e.target.value)}
-            className={`w-full sm:w-auto px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition border ${
+            className={`w-full sm:w-auto px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition border cursor-pointer ${
               isLight
                 ? 'bg-slate-50 border-slate-300 text-slate-800'
                 : 'bg-slate-900/80 border-slate-700/80 text-slate-300'
@@ -720,7 +720,7 @@ export const TasksPage: React.FC = () => {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className={`w-full sm:w-auto px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition border ${
+            className={`w-full sm:w-auto px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition border cursor-pointer ${
               isLight
                 ? 'bg-slate-50 border-slate-300 text-slate-800'
                 : 'bg-slate-900/80 border-slate-700/80 text-slate-300'
@@ -746,12 +746,12 @@ export const TasksPage: React.FC = () => {
         </div>
       ) : filteredTasks.length === 0 ? (
         <div
-          className={`text-center py-16 rounded-3xl border space-y-4 shadow-xl ${
+          className={`text-center py-12 sm:py-16 rounded-2xl sm:rounded-3xl border space-y-4 shadow-xl p-4 sm:p-8 ${
             isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'
           }`}
         >
-          <CheckSquare className={`w-12 h-12 mx-auto ${isLight ? 'text-slate-400' : 'text-slate-600'}`} />
-          <h3 className={`text-base font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
+          <CheckSquare className={`w-10 h-10 sm:w-12 sm:h-12 mx-auto ${isLight ? 'text-slate-400' : 'text-slate-600'}`} />
+          <h3 className={`text-sm sm:text-base font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
             Không tìm thấy công việc nào phù hợp
           </h3>
           <p className={`text-xs max-w-md mx-auto ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
@@ -776,205 +776,316 @@ export const TasksPage: React.FC = () => {
           </button>
         </div>
       ) : viewMode === 'kanban' ? (
-        /* KANBAN BOARD VIEW */
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-start">
+        /* KANBAN BOARD VIEW (Vertical Stack on Mobile, 2-Col on Tablet, 4-Col on Desktop) */
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 xl:gap-6 items-start w-full max-w-full min-w-0">
           {columns.map((col) => {
             const colTasks = filteredTasks.filter((t) => t.status === col.id);
             return (
               <div
                 key={col.id}
-                className={`rounded-3xl border p-4 sm:p-5 flex flex-col min-h-[500px] shadow-xl space-y-4 ${
+                className={`w-full max-w-full min-w-0 rounded-2xl sm:rounded-3xl border p-3.5 sm:p-4 lg:p-5 flex flex-col xl:min-h-[460px] shadow-xl space-y-3 sm:space-y-3.5 ${
                   isLight ? 'bg-slate-50/80 border-slate-200' : 'glass-panel border-white/[0.08]'
                 }`}
               >
                 {/* Column Header */}
-                <div className={`flex items-center justify-between pb-3 border-b ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-                  <div>
-                    <h3 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-white'}`}>{col.label}</h3>
-                    <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{col.desc}</p>
+                <div className={`flex items-center justify-between pb-2.5 sm:pb-3 border-b gap-2 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+                  <div className="min-w-0">
+                    <h3 className={`font-bold text-xs sm:text-sm truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>{col.label}</h3>
+                    <p className={`text-[10px] sm:text-[11px] truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{col.desc}</p>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold ${col.badge}`}>
+                  <span className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-extrabold shrink-0 ${col.badge}`}>
                     {colTasks.length}
                   </span>
                 </div>
 
                 {/* Task Cards in this column */}
-                <div className="space-y-3.5 flex-1">
-                  {colTasks.map((t) => {
-                    const isMyAssigned = t.assignees?.some((a) => a.id === user?.id);
-                    const myAssigneeObj = t.assignees?.find((a) => a.id === user?.id);
-                    const isPendingMyAccept = myAssigneeObj?.acceptanceStatus === 'PENDING';
+                <div className="space-y-2.5 sm:space-y-3 flex-1 min-w-0">
+                  {colTasks.length === 0 ? (
+                    <div className={`py-4 sm:py-6 px-3 text-center rounded-xl sm:rounded-2xl border border-dashed text-xs ${
+                      isLight ? 'bg-slate-50/50 border-slate-200 text-slate-400' : 'bg-slate-900/30 border-slate-800 text-slate-500'
+                    }`}>
+                      Chưa có công việc
+                    </div>
+                  ) : (
+                    colTasks.map((t) => {
+                      const isMyAssigned = t.assignees?.some((a) => a.id === user?.id);
+                      const myAssigneeObj = t.assignees?.find((a) => a.id === user?.id);
+                      const isPendingMyAccept = myAssigneeObj?.acceptanceStatus === 'PENDING';
 
-                    return (
-                      <div
-                        key={t.id}
-                        onClick={() => setSelectedTask(t)}
-                        className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md space-y-3 group ${
-                          isLight
-                            ? 'bg-white hover:bg-blue-50/40 border-slate-200 hover:border-blue-300'
-                            : 'bg-slate-900/70 hover:bg-slate-800/80 border-slate-800/80 hover:border-blue-500/40'
-                        }`}
-                      >
-                        {/* Title & Priority + Quick Actions */}
-                        <div className="flex items-start justify-between gap-2">
-                          <h4
-                            className={`font-bold text-sm transition line-clamp-2 ${
-                              isLight ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-100 group-hover:text-blue-400'
-                            }`}
-                          >
-                            {t.title}
-                          </h4>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            {getPriorityBadge(t.priority)}
-                            {(isAdminOrManager || user?.role === 'SECRETARY') && (
-                              <div className="flex items-center gap-0.5 opacity-80 group-hover:opacity-100 transition">
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openEditModal(t);
-                                  }}
-                                  className={`p-1 rounded-lg transition cursor-pointer ${
-                                    isLight ? 'hover:bg-blue-100 text-blue-600' : 'hover:bg-blue-600/20 text-blue-400'
+                      return (
+                        <div
+                          key={t.id}
+                          onClick={() => setSelectedTask(t)}
+                          className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md space-y-2.5 sm:space-y-3 group w-full min-w-0 ${
+                            isLight
+                              ? 'bg-white hover:bg-blue-50/40 border-slate-200 hover:border-blue-300'
+                              : 'bg-slate-900/70 hover:bg-slate-800/80 border-slate-800/80 hover:border-blue-500/40'
+                          }`}
+                        >
+                          {/* Title & Priority + Quick Actions */}
+                          <div className="flex items-start justify-between gap-2">
+                            <h4
+                              className={`font-bold text-xs sm:text-sm transition line-clamp-2 break-words flex-1 min-w-0 ${
+                                isLight ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-100 group-hover:text-blue-400'
+                              }`}
+                            >
+                              {t.title}
+                            </h4>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {getPriorityBadge(t.priority)}
+                              {(isAdminOrManager || user?.role === 'SECRETARY') && (
+                                <div className="flex items-center gap-0.5 opacity-80 group-hover:opacity-100 transition">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openEditModal(t);
+                                    }}
+                                    className={`p-1 rounded-lg transition cursor-pointer ${
+                                      isLight ? 'hover:bg-blue-100 text-blue-600' : 'hover:bg-blue-600/20 text-blue-400'
+                                    }`}
+                                    title="Chỉnh sửa công việc"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openDeleteConfirm(t.id);
+                                    }}
+                                    className={`p-1 rounded-lg transition cursor-pointer ${
+                                      isLight ? 'hover:bg-rose-100 text-rose-600' : 'hover:bg-rose-600/20 text-rose-400'
+                                    }`}
+                                    title="Xóa công việc"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {t.description && (
+                            <p className={`text-[11px] sm:text-xs line-clamp-2 break-words ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{t.description}</p>
+                          )}
+
+                          {/* Progress Bar */}
+                          <div className="space-y-1">
+                            <div className={`flex justify-between text-[10px] min-[360px]:text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                              <span>Việc con: {t.completedSubtasks}/{t.totalSubtasks}</span>
+                              <span className="font-bold text-blue-600 dark:text-blue-400">{t.progress}%</span>
+                            </div>
+                            <div className={`w-full h-1.5 rounded-full overflow-hidden ${isLight ? 'bg-slate-200' : 'bg-slate-800'}`}>
+                              <div
+                                className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
+                                style={{ width: `${t.progress}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Quick Action Button for Member if Pending */}
+                          {isPendingMyAccept && (
+                            <div className={`pt-2 border-t flex items-center gap-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAcceptTask(t.id);
+                                }}
+                                className="w-full py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-600/30 transition flex items-center justify-center gap-1 cursor-pointer"
+                              >
+                                <Check className="w-3.5 h-3.5" /> Tiếp nhận task
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Quick Action Button if In Progress -> Submit Review */}
+                          {t.status === 'IN_PROGRESS' && isMyAssigned && (
+                            <div className={`pt-2 border-t flex items-center gap-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedTask(t);
+                                  setShowSubmitModal(true);
+                                }}
+                                className="w-full py-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-600 dark:text-blue-400 hover:text-white border border-blue-500/30 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                              >
+                                <Send className="w-3 h-3" /> Nộp báo cáo duyệt
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Quick Action for Admin if Review */}
+                          {t.status === 'REVIEW' && isAdminOrManager && (
+                            <div className={`pt-2 border-t flex items-center gap-1.5 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedTask(t);
+                                  setReviewAction('APPROVE');
+                                  setShowReviewModal(true);
+                                }}
+                                className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[11px] font-bold shadow-sm transition flex items-center justify-center gap-1 cursor-pointer"
+                              >
+                                <Check className="w-3 h-3" /> Duyệt
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedTask(t);
+                                  setReviewAction('REJECT');
+                                  setShowReviewModal(true);
+                                }}
+                                className="px-2.5 py-1.5 bg-rose-600/20 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white border border-rose-500/30 rounded-xl text-[11px] font-bold transition cursor-pointer shrink-0"
+                              >
+                                Làm lại
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Assignees and Due Date footer */}
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[10px] sm:text-[11px] text-slate-400">
+                            <div className="flex items-center -space-x-1.5">
+                              {t.assignees?.map((a) => (
+                                <div
+                                  key={a.id}
+                                  title={`${a.name} (${a.acceptanceStatus === 'ACCEPTED' ? 'Đã nhận' : 'Chưa nhận'})`}
+                                  className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-bold text-white border-2 border-slate-900 ${
+                                    a.acceptanceStatus === 'ACCEPTED' ? 'bg-blue-600' : 'bg-purple-600'
                                   }`}
-                                  title="Chỉnh sửa công việc"
                                 >
-                                  <Pencil className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openDeleteConfirm(t.id);
-                                  }}
-                                  className={`p-1 rounded-lg transition cursor-pointer ${
-                                    isLight ? 'hover:bg-rose-100 text-rose-600' : 'hover:bg-rose-600/20 text-rose-400'
-                                  }`}
-                                  title="Xóa công việc"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
+                                  {a.name.slice(0, 1).toUpperCase()}
+                                </div>
+                              ))}
+                            </div>
+
+                            {t.dueDate && (
+                              <span className="flex items-center gap-1 text-slate-400 font-medium">
+                                <Calendar className="w-3 h-3 text-slate-500" />
+                                {new Date(t.dueDate).toLocaleDateString('vi-VN')}
+                              </span>
                             )}
                           </div>
                         </div>
-
-                        {t.description && (
-                          <p className={`text-xs line-clamp-2 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{t.description}</p>
-                        )}
-
-                        {/* Progress Bar */}
-                        <div className="space-y-1">
-                          <div className={`flex justify-between text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                            <span>Việc con: {t.completedSubtasks}/{t.totalSubtasks}</span>
-                            <span className="font-bold text-blue-600 dark:text-blue-400">{t.progress}%</span>
-                          </div>
-                          <div className={`w-full h-1.5 rounded-full overflow-hidden ${isLight ? 'bg-slate-200' : 'bg-slate-800'}`}>
-                            <div
-                              className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
-                              style={{ width: `${t.progress}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Quick Action Button for Member if Pending */}
-                        {isPendingMyAccept && (
-                          <div className={`pt-2 border-t flex items-center gap-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleAcceptTask(t.id);
-                              }}
-                              className="flex-1 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-600/30 transition flex items-center justify-center gap-1 cursor-pointer"
-                            >
-                              <Check className="w-3.5 h-3.5" /> Tiếp nhận task
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Quick Action Button if In Progress -> Submit Review */}
-                        {t.status === 'IN_PROGRESS' && isMyAssigned && (
-                          <div className={`pt-2 border-t flex items-center gap-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedTask(t);
-                                setShowSubmitModal(true);
-                              }}
-                              className="flex-1 py-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-600 dark:text-blue-400 hover:text-white border border-blue-500/30 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer"
-                            >
-                              <Send className="w-3 h-3" /> Nộp báo cáo duyệt
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Quick Action for Admin if Review */}
-                        {t.status === 'REVIEW' && isAdminOrManager && (
-                          <div className={`pt-2 border-t flex items-center gap-2 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedTask(t);
-                                setReviewAction('APPROVE');
-                                setShowReviewModal(true);
-                              }}
-                              className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[11px] font-bold shadow-sm transition flex items-center justify-center gap-1 cursor-pointer"
-                            >
-                              <Check className="w-3 h-3" /> Duyệt
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedTask(t);
-                                setReviewAction('REJECT');
-                                setShowReviewModal(true);
-                              }}
-                              className="px-2.5 py-1.5 bg-rose-600/20 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white border border-rose-500/30 rounded-xl text-[11px] font-bold transition cursor-pointer"
-                            >
-                              Làm lại
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Assignees and Due Date footer */}
-                        <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-[11px] text-slate-400">
-                          <div className="flex items-center -space-x-1.5">
-                            {t.assignees?.map((a) => (
-                              <div
-                                key={a.id}
-                                title={`${a.name} (${a.acceptanceStatus === 'ACCEPTED' ? 'Đã nhận' : 'Chưa nhận'})`}
-                                className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white border-2 border-slate-900 ${
-                                  a.acceptanceStatus === 'ACCEPTED' ? 'bg-blue-600' : 'bg-purple-600'
-                                }`}
-                              >
-                                {a.name.slice(0, 1).toUpperCase()}
-                              </div>
-                            ))}
-                          </div>
-
-                          {t.dueDate && (
-                            <span className="flex items-center gap-1 text-slate-400 font-medium">
-                              <Calendar className="w-3 h-3 text-slate-500" />
-                              {new Date(t.dueDate).toLocaleDateString('vi-VN')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
       ) : (
-        /* LIST VIEW WITH PAGINATION */
-        <div className={`rounded-3xl border shadow-xl overflow-hidden ${isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'}`}>
-          <div className="overflow-x-auto">
+        /* LIST VIEW WITH DUAL RESPONSIVE RENDERING (CARDS ON MOBILE, TABLE ON DESKTOP) */
+        <div className={`rounded-2xl sm:rounded-3xl border shadow-xl overflow-hidden ${isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'}`}>
+          {/* 1. Mobile Task Cards (< 768px) */}
+          <div className="block md:hidden divide-y divide-slate-200 dark:divide-slate-800">
+            {paginatedTasks.map((t) => {
+              const isPendingMyAccept = t.assignees?.some(
+                (a) => a.id === user?.id && a.acceptanceStatus === 'PENDING'
+              );
+              return (
+                <div
+                  key={t.id}
+                  onClick={() => setSelectedTask(t)}
+                  className={`p-3.5 sm:p-4 transition cursor-pointer space-y-2.5 ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className={`font-bold text-xs sm:text-sm line-clamp-2 break-words flex-1 min-w-0 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                      {t.title}
+                    </h4>
+                    <div className="shrink-0">{getPriorityBadge(t.priority)}</div>
+                  </div>
+
+                  {t.description && (
+                    <p className={`text-[11px] line-clamp-2 break-words ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{t.description}</p>
+                  )}
+
+                  {/* Progress & Status */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10px] min-[360px]:text-[11px]">
+                      <span className={`font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                        Tiến độ ({t.completedSubtasks}/{t.totalSubtasks})
+                      </span>
+                      <span className="font-extrabold text-blue-600 dark:text-blue-400">{t.progress}%</span>
+                    </div>
+                    <div className={`w-full h-1.5 rounded-full overflow-hidden ${isLight ? 'bg-slate-200' : 'bg-slate-800'}`}>
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
+                        style={{ width: `${t.progress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Footer info: Status badge, Assignees, Due date & Actions */}
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[9px] min-[360px]:text-[10px] font-extrabold border ${
+                          t.status === 'DONE'
+                            ? isLight ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                            : t.status === 'IN_PROGRESS'
+                            ? isLight ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                            : t.status === 'REVIEW'
+                            ? isLight ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                            : isLight ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
+                        }`}
+                      >
+                        {t.status === 'DONE' ? 'Hoàn thành' : t.status === 'IN_PROGRESS' ? 'Đang làm' : t.status === 'REVIEW' ? 'Chờ duyệt' : 'Chờ nhận'}
+                      </span>
+
+                      <div className="flex items-center -space-x-1.5">
+                        {t.assignees?.map((a) => (
+                          <div
+                            key={a.id}
+                            title={`${a.name}`}
+                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white border ${
+                              isLight ? 'border-white' : 'border-slate-900'
+                            } ${a.acceptanceStatus === 'ACCEPTED' ? 'bg-blue-600' : 'bg-purple-600'}`}
+                          >
+                            {a.name.slice(0, 1).toUpperCase()}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {isPendingMyAccept && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAcceptTask(t.id);
+                          }}
+                          className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-[10px] font-bold shadow-sm transition flex items-center gap-1 cursor-pointer"
+                        >
+                          <Check className="w-3 h-3" /> Nhận
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedTask(t);
+                        }}
+                        className={`p-1.5 rounded-lg transition cursor-pointer ${
+                          isLight ? 'text-slate-500 hover:text-blue-600 hover:bg-blue-50' : 'text-slate-400 hover:text-blue-400 hover:bg-blue-500/10'
+                        }`}
+                        title="Xem chi tiết"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 2. Desktop Table View (>= 768px) */}
+          <div className="hidden md:block overflow-x-auto scrollbar-thin">
             <table className={`w-full text-left text-xs ${isLight ? 'text-slate-800' : 'text-slate-300'}`}>
               <thead className={`font-semibold border-b uppercase tracking-wider text-[10px] ${isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-900/90 text-slate-400 border-slate-800'}`}>
                 <tr>
@@ -999,8 +1110,8 @@ export const TasksPage: React.FC = () => {
                       className={`transition cursor-pointer group ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/50'}`}
                     >
                       <td className="py-3.5 px-4">
-                        <div className="space-y-0.5">
-                          <span className={`font-bold transition text-sm ${isLight ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-100 group-hover:text-blue-400'}`}>
+                        <div className="space-y-0.5 min-w-[180px]">
+                          <span className={`font-bold transition text-sm line-clamp-1 ${isLight ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-100 group-hover:text-blue-400'}`}>
                             {t.title}
                           </span>
                           {t.description && (
@@ -1008,8 +1119,8 @@ export const TasksPage: React.FC = () => {
                           )}
                         </div>
                       </td>
-                      <td className="py-3.5 px-4">{getPriorityBadge(t.priority)}</td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4 whitespace-nowrap">{getPriorityBadge(t.priority)}</td>
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         <span
                           className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${
                             t.status === 'DONE'
@@ -1071,7 +1182,7 @@ export const TasksPage: React.FC = () => {
                           '--'
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
                           {isPendingMyAccept && (
                             <button
@@ -1132,8 +1243,8 @@ export const TasksPage: React.FC = () => {
 
           {/* Pagination Footer */}
           {totalItems > pageSize && (
-            <div className={`p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs ${isLight ? 'border-slate-200 text-slate-600' : 'border-slate-800 text-slate-400'}`}>
-              <div>
+            <div className={`p-3.5 sm:p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs ${isLight ? 'border-slate-200 text-slate-600' : 'border-slate-800 text-slate-400'}`}>
+              <div className="text-center sm:text-left">
                 Hiển thị <strong className={isLight ? 'text-slate-900' : 'text-white'}>{startIndex + 1}</strong> - <strong className={isLight ? 'text-slate-900' : 'text-white'}>{endIndex}</strong> / <strong className="text-blue-600 dark:text-blue-400">{totalItems}</strong> công việc
               </div>
 
@@ -1307,7 +1418,7 @@ export const TasksPage: React.FC = () => {
               </div>
 
               {/* Add subtask inline */}
-              <div className="flex gap-2 pt-1">
+              <div className="flex flex-col min-[380px]:flex-row gap-2 pt-1">
                 <input
                   type="text"
                   placeholder="Thêm đầu việc con mới..."
@@ -1328,7 +1439,7 @@ export const TasksPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleAddInlineSubtask(selectedTask.id)}
-                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/20 transition cursor-pointer"
+                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/20 transition cursor-pointer shrink-0 text-center"
                 >
                   + Thêm việc
                 </button>
@@ -1337,7 +1448,7 @@ export const TasksPage: React.FC = () => {
 
             {/* Completion Report Section */}
             {selectedTask.completionReport && (
-              <div className={`p-4 rounded-2xl border space-y-2 ${
+              <div className={`p-3.5 sm:p-4 rounded-2xl border space-y-2 ${
                 isLight ? 'bg-blue-50/80 border-blue-200 text-slate-800' : 'bg-indigo-950/40 border-indigo-500/30 text-slate-200'
               }`}>
                 <h5 className={`text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 ${isLight ? 'text-blue-700' : 'text-indigo-400'}`}>
@@ -1353,20 +1464,20 @@ export const TasksPage: React.FC = () => {
             )}
 
             {/* Action Bar */}
-            <div className={`pt-4 border-t flex items-center justify-between flex-wrap gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`pt-4 border-t flex flex-col min-[480px]:flex-row items-stretch min-[480px]:items-center justify-between gap-2.5 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
               {(isAdminOrManager || user?.role === 'SECRETARY') ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     type="button"
                     onClick={() => openEditModal(selectedTask)}
-                    className="px-3.5 py-2 bg-blue-600/10 hover:bg-blue-600 text-blue-600 dark:text-blue-400 hover:text-white border border-blue-500/30 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                    className="flex-1 min-[480px]:flex-none px-3.5 py-2 bg-blue-600/10 hover:bg-blue-600 text-blue-600 dark:text-blue-400 hover:text-white border border-blue-500/30 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Pencil className="w-4 h-4" /> Sửa Task
                   </button>
                   <button
                     type="button"
                     onClick={() => openDeleteConfirm(selectedTask.id)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    className={`flex-1 min-[480px]:flex-none px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
                       isLight
                         ? 'bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 shadow-sm'
                         : 'bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white'
@@ -1379,13 +1490,13 @@ export const TasksPage: React.FC = () => {
                 <div />
               )}
 
-              <div className="flex items-center gap-2 ml-auto">
+              <div className="flex items-center gap-2 flex-wrap min-[480px]:ml-auto">
                 {/* Accept/Decline button for pending assignee */}
                 {selectedTask.assignees?.some((a) => a.id === user?.id && a.acceptanceStatus === 'PENDING') && (
                   <>
                     <button
                       onClick={() => setShowDeclineModal(true)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      className={`flex-1 min-[480px]:flex-none px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer text-center ${
                         isLight ? 'bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200' : 'bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white'
                       }`}
                     >
@@ -1393,7 +1504,7 @@ export const TasksPage: React.FC = () => {
                     </button>
                     <button
                       onClick={() => handleAcceptTask(selectedTask.id)}
-                      className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-purple-600/30 transition flex items-center gap-1.5 cursor-pointer"
+                      className="flex-1 min-[480px]:flex-none px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-purple-600/30 transition flex items-center justify-center gap-1.5 cursor-pointer text-center"
                     >
                       <Check className="w-4 h-4" /> Tiếp Nhận Task
                     </button>
@@ -1405,7 +1516,7 @@ export const TasksPage: React.FC = () => {
                   selectedTask.assignees?.some((a) => a.id === user?.id) && (
                     <button
                       onClick={() => setShowSubmitModal(true)}
-                      className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition flex items-center gap-1.5 cursor-pointer"
+                      className="w-full min-[480px]:w-auto px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <Send className="w-4 h-4" /> Nộp Báo Cáo Nghiệm Thu
                     </button>
@@ -1419,7 +1530,7 @@ export const TasksPage: React.FC = () => {
                         setReviewAction('REJECT');
                         setShowReviewModal(true);
                       }}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      className={`flex-1 min-[480px]:flex-none px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer text-center ${
                         isLight ? 'bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200' : 'bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white'
                       }`}
                     >
@@ -1430,9 +1541,9 @@ export const TasksPage: React.FC = () => {
                         setReviewAction('APPROVE');
                         setShowReviewModal(true);
                       }}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/30 transition flex items-center gap-1.5 cursor-pointer"
+                      className="flex-1 min-[480px]:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-1.5 cursor-pointer text-center"
                     >
-                      <Check className="w-4 h-4" /> Duyệt Nghiệm Thu Hoàn Thành
+                      <Check className="w-4 h-4" /> Duyệt Hoàn Thành
                     </button>
                   </>
                 )}
@@ -1461,16 +1572,16 @@ export const TasksPage: React.FC = () => {
               isLight ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-100' : 'bg-slate-800/80 border-slate-700 text-white placeholder-slate-500'
             }`}
           />
-          <div className={`flex justify-end gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+          <div className={`flex flex-col min-[380px]:flex-row justify-end gap-2 sm:gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
             <button
               onClick={() => setShowSubmitModal(false)}
-              className={`px-4 py-2 text-xs font-semibold cursor-pointer ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
+              className={`px-4 py-2 text-xs font-semibold cursor-pointer rounded-xl border border-transparent hover:border-slate-300 dark:hover:border-slate-700 ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
             >
               Hủy
             </button>
             <button
               onClick={handleSubmitReview}
-              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/30 transition cursor-pointer"
+              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/30 transition cursor-pointer text-center"
             >
               🚀 Gửi Báo Cáo Duyệt
             </button>
@@ -1503,16 +1614,16 @@ export const TasksPage: React.FC = () => {
               isLight ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-100' : 'bg-slate-800/80 border-slate-700 text-white placeholder-slate-500'
             }`}
           />
-          <div className={`flex justify-end gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+          <div className={`flex flex-col min-[380px]:flex-row justify-end gap-2 sm:gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
             <button
               onClick={() => setShowReviewModal(false)}
-              className={`px-4 py-2 text-xs font-semibold cursor-pointer ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
+              className={`px-4 py-2 text-xs font-semibold cursor-pointer rounded-xl border border-transparent hover:border-slate-300 dark:hover:border-slate-700 ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
             >
               Hủy
             </button>
             <button
               onClick={handleReviewAction}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md transition cursor-pointer ${
+              className={`px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md transition cursor-pointer text-center ${
                 reviewAction === 'APPROVE'
                   ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/30'
                   : 'bg-rose-600 hover:bg-rose-500 shadow-rose-600/30'
@@ -1544,17 +1655,17 @@ export const TasksPage: React.FC = () => {
               isLight ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-rose-100' : 'bg-slate-800/80 border-slate-700 text-white placeholder-slate-500'
             }`}
           />
-          <div className={`flex justify-end gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+          <div className={`flex flex-col min-[380px]:flex-row justify-end gap-2 sm:gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
             <button
               onClick={() => setShowDeclineModal(false)}
-              className={`px-4 py-2 text-xs font-semibold cursor-pointer ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
+              className={`px-4 py-2 text-xs font-semibold cursor-pointer rounded-xl border border-transparent hover:border-slate-300 dark:hover:border-slate-700 ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
             >
               Hủy
             </button>
             <button
               onClick={handleDeclineTask}
               disabled={!declineReason.trim()}
-              className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-600/30 transition cursor-pointer"
+              className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-600/30 transition cursor-pointer text-center"
             >
               Xác Nhận Từ Chối
             </button>
@@ -1711,7 +1822,7 @@ export const TasksPage: React.FC = () => {
               ))}
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-col min-[380px]:flex-row gap-2">
               <input
                 type="text"
                 placeholder="Thêm đầu việc con cụ thể..."
@@ -1738,7 +1849,7 @@ export const TasksPage: React.FC = () => {
                     setNewSubtaskInput('');
                   }
                 }}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 text-center ${
                   isLight ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300' : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
                 }`}
               >
@@ -1747,17 +1858,17 @@ export const TasksPage: React.FC = () => {
             </div>
           </div>
 
-          <div className={`pt-4 border-t flex justify-end gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+          <div className={`pt-4 border-t flex flex-col min-[380px]:flex-row justify-end gap-2 sm:gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
             <button
               type="button"
               onClick={() => setShowCreateModal(false)}
-              className={`px-4 py-2 text-xs font-semibold cursor-pointer ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
+              className={`px-4 py-2 text-xs font-semibold cursor-pointer rounded-xl border border-transparent hover:border-slate-300 dark:hover:border-slate-700 ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
             >
               Hủy
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition flex items-center gap-1.5 cursor-pointer"
+              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-1.5 cursor-pointer text-center"
             >
               <Plus className="w-4 h-4" /> Giao Việc & Gửi Thông Báo
             </button>
@@ -1872,18 +1983,18 @@ export const TasksPage: React.FC = () => {
             </div>
           </div>
 
-          <div className={`pt-4 border-t flex justify-end gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+          <div className={`pt-4 border-t flex flex-col min-[380px]:flex-row justify-end gap-2 sm:gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
             <button
               type="button"
               onClick={() => setShowEditModal(false)}
-              className={`px-4 py-2 text-xs font-semibold cursor-pointer ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
+              className={`px-4 py-2 text-xs font-semibold cursor-pointer rounded-xl border border-transparent hover:border-slate-300 dark:hover:border-slate-700 ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
             >
               Hủy
             </button>
             <button
               type="submit"
               disabled={savingEdit}
-              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition flex items-center gap-1.5 cursor-pointer"
+              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-1.5 cursor-pointer text-center"
             >
               <Check className="w-4 h-4" /> {savingEdit ? 'Đang lưu...' : 'Lưu Thay Đổi'}
             </button>
@@ -1912,11 +2023,11 @@ export const TasksPage: React.FC = () => {
             </div>
           </div>
 
-          <div className={`pt-3 border-t flex justify-end gap-2.5 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+          <div className={`pt-3 border-t flex flex-col min-[380px]:flex-row justify-end gap-2 sm:gap-2.5 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
             <button
               type="button"
               onClick={() => setShowDeleteConfirmModal(false)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer text-center ${
                 isLight ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
               }`}
             >
@@ -1925,7 +2036,7 @@ export const TasksPage: React.FC = () => {
             <button
               type="button"
               onClick={handleConfirmDelete}
-              className="px-5 py-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-rose-600/30 transition flex items-center gap-1.5 cursor-pointer"
+              className="px-5 py-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-rose-600/30 transition flex items-center justify-center gap-1.5 cursor-pointer text-center"
             >
               <Trash2 className="w-4 h-4" /> Xóa Vĩnh Viễn
             </button>

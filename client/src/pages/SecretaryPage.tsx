@@ -351,17 +351,17 @@ export const SecretaryPage: React.FC = () => {
 
       {/* 1. Executive Secretary Top Banner */}
       <div
-        className={`relative overflow-hidden rounded-3xl p-6 sm:p-8 border shadow-xl backdrop-blur-xl transition-all duration-300 ${
+        className={`relative overflow-hidden rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border shadow-xl backdrop-blur-xl transition-all duration-300 ${
           isLight
             ? 'bg-gradient-to-r from-rose-100/80 via-pink-50 to-white border-rose-200 shadow-rose-500/5'
             : 'bg-gradient-to-r from-rose-950/40 via-purple-950/30 to-indigo-950/40 border-rose-500/30 shadow-2xl'
         }`}
       >
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 sm:gap-6">
+          <div className="space-y-1.5 sm:space-y-2 min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               <span
-                className={`px-3 py-1 rounded-full text-xs font-extrabold flex items-center gap-1.5 border shadow-sm ${
+                className={`px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-extrabold flex items-center gap-1.5 border shadow-sm ${
                   isLight
                     ? 'bg-rose-100 border-rose-300 text-rose-800'
                     : 'bg-rose-500/20 border-rose-500/40 text-rose-300'
@@ -370,7 +370,7 @@ export const SecretaryPage: React.FC = () => {
                 <FileSignature className="w-3.5 h-3.5" /> BAN THƯ KÝ & TRỢ LÝ ĐIỀU HÀNH
               </span>
               <span
-                className={`px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1 border ${
+                className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold flex items-center gap-1 border ${
                   isLight ? 'bg-purple-100 border-purple-200 text-purple-800' : 'bg-purple-500/15 border-purple-500/30 text-purple-300'
                 }`}
               >
@@ -378,7 +378,7 @@ export const SecretaryPage: React.FC = () => {
               </span>
             </div>
 
-            <h1 className={`text-2xl sm:text-3xl xl:text-4xl font-extrabold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            <h1 className={`text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-extrabold tracking-tight break-words leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
               Trung Tâm Điều Phối & Lên Lịch Thay Sếp
             </h1>
             <p className={`text-xs sm:text-sm max-w-3xl leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
@@ -387,23 +387,23 @@ export const SecretaryPage: React.FC = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex flex-col min-[480px]:flex-row items-stretch min-[480px]:items-center gap-2 sm:gap-3 flex-wrap shrink-0">
             <button
               onClick={() => setShowCreateTaskModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-rose-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+              className="flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white text-xs sm:text-sm font-bold shadow-md sm:shadow-lg shadow-rose-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer text-center"
             >
               <Plus className="w-4 h-4" /> Giao Việc Thay Sếp
             </button>
             <button
               onClick={() => setShowCreateMeetingModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-purple-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+              className="flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-bold shadow-md sm:shadow-lg shadow-purple-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer text-center"
             >
               <Calendar className="w-4 h-4" /> Lên Lịch Họp Thay Sếp
             </button>
             <button
               onClick={fetchInitialData}
               title="Làm mới dữ liệu"
-              className={`p-2.5 rounded-2xl border transition cursor-pointer ${
+              className={`p-2 sm:p-2.5 rounded-xl sm:rounded-2xl border transition cursor-pointer flex items-center justify-center ${
                 isLight ? 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50' : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white'
               }`}
             >
@@ -416,7 +416,7 @@ export const SecretaryPage: React.FC = () => {
       </div>
 
       {/* 2. Key Metrics Summary Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 min-[360px]:grid-cols-2 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-6">
         <StatCard
           title="Tổng Việc Đã Giao Thay Sếp"
           value={tasks.length}
@@ -459,12 +459,12 @@ export const SecretaryPage: React.FC = () => {
       </div>
 
       {/* 3. Sub-navigation Tabs */}
-      <div className={`p-1 sm:p-1.5 rounded-2xl border flex items-center gap-1.5 sm:gap-2 w-full max-w-2xl overflow-x-auto no-scrollbar ${
+      <div className={`p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border flex flex-wrap items-center gap-1.5 sm:gap-2 w-full max-w-2xl min-w-0 ${
         isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-900/80 border-slate-800'
       }`}>
         <button
           onClick={() => setActiveSubTab('TASKS')}
-          className={`flex-1 min-w-[140px] sm:min-w-0 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
+          className={`flex-1 min-w-[120px] py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg sm:rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer ${
             activeSubTab === 'TASKS'
               ? isLight
                 ? 'bg-white text-rose-600 shadow-sm'
@@ -479,7 +479,7 @@ export const SecretaryPage: React.FC = () => {
 
         <button
           onClick={() => setActiveSubTab('MEETINGS')}
-          className={`flex-1 min-w-[140px] sm:min-w-0 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
+          className={`flex-1 min-w-[120px] py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg sm:rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer ${
             activeSubTab === 'MEETINGS'
               ? isLight
                 ? 'bg-white text-purple-600 shadow-sm'
@@ -494,7 +494,7 @@ export const SecretaryPage: React.FC = () => {
 
         <button
           onClick={() => setActiveSubTab('BRIEFING')}
-          className={`flex-1 min-w-[130px] sm:min-w-0 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
+          className={`flex-1 min-w-[110px] py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg sm:rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer ${
             activeSubTab === 'BRIEFING'
               ? isLight
                 ? 'bg-white text-indigo-600 shadow-sm'
@@ -514,10 +514,10 @@ export const SecretaryPage: React.FC = () => {
       {activeSubTab === 'TASKS' && (
         <div className="space-y-5">
           {/* Search & Filter Bar */}
-          <div className={`p-4 sm:p-5 rounded-3xl border shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+          <div className={`p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-3 ${
             isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'
           }`}>
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0 w-full">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
                 type="text"
@@ -530,7 +530,7 @@ export const SecretaryPage: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="grid grid-cols-1 min-[360px]:grid-cols-2 md:flex md:items-center gap-2 w-full md:w-auto">
               <select
                 value={taskStatusFilter}
                 onChange={(e) => setTaskStatusFilter(e.target.value)}
@@ -561,11 +561,12 @@ export const SecretaryPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Tasks Table */}
+          {/* Tasks Table & Mobile Cards */}
           <div className={`rounded-3xl shadow-xl overflow-hidden border ${
             isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'glass-panel border-white/[0.08]'
           }`}>
-            <div className="overflow-x-auto">
+            {/* Desktop Table View (>= 768px) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead
                   className={`font-semibold border-b uppercase tracking-wider text-[10px] ${
@@ -726,6 +727,142 @@ export const SecretaryPage: React.FC = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Cards View (< 768px) */}
+            <div className="md:hidden p-3 space-y-3">
+              {filteredTasks.map((t) => (
+                <div
+                  key={t.id}
+                  className={`p-4 rounded-2xl border space-y-3 shadow-sm ${
+                    isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-900/80 border-slate-800'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <h4 className={`font-bold text-sm break-words ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                        {t.title}
+                      </h4>
+                      {t.description && (
+                        <p className={`text-[11px] line-clamp-2 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                          {t.description}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${
+                          t.priority === 'URGENT'
+                            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                            : t.priority === 'HIGH'
+                            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                            : t.priority === 'MEDIUM'
+                            ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30'
+                            : 'bg-slate-500/15 text-slate-500 border-slate-500/30'
+                        }`}
+                      >
+                        {t.priority === 'URGENT' ? '🔴 Khẩn' : t.priority === 'HIGH' ? '🟠 Cao' : t.priority === 'MEDIUM' ? '🔵 Vừa' : '⚪ Thấp'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {t.completionNote && (
+                    <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-300 text-[11px]">
+                      <strong>Báo cáo kết quả:</strong> {t.completionNote}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-xs">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block mb-1">Người làm:</span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {t.assignees?.map((a: any) => (
+                          <div key={a.id} className="flex items-center gap-1 text-[11px] font-semibold">
+                            <div className="w-5 h-5 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-[9px] flex items-center justify-center border border-rose-500/30">
+                              {a.name?.slice(0, 1)?.toUpperCase()}
+                            </div>
+                            <span className="truncate max-w-[80px]">{a.name}</span>
+                          </div>
+                        ))}
+                        {(!t.assignees || t.assignees.length === 0) && (
+                          <span className="text-slate-400 italic text-[11px]">Chưa gán</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-slate-400 block mb-1">Trạng thái:</span>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-extrabold border ${
+                          t.status === 'DONE'
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                            : t.status === 'REVIEW'
+                            ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30'
+                            : t.status === 'IN_PROGRESS'
+                            ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30'
+                            : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                        }`}
+                      >
+                        {t.status === 'DONE'
+                          ? '✅ Xong'
+                          : t.status === 'REVIEW'
+                          ? '🎯 Chờ duyệt'
+                          : t.status === 'IN_PROGRESS'
+                          ? '⚡ Đang làm'
+                          : '⏳ Chờ nhận'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10px] text-slate-400">
+                      <span>Hạn chót: {t.dueDate ? new Date(t.dueDate).toLocaleDateString('vi-VN') : 'Không hạn'}</span>
+                      <span className="font-bold text-rose-500">{t.progress || 0}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-rose-500 h-1.5 rounded-full transition-all"
+                        style={{ width: `${t.progress || 0}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                    {t.status === 'REVIEW' && (
+                      <button
+                        onClick={() => handleApproveTask(t.id)}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <Check className="w-3.5 h-3.5" /> Duyệt
+                      </button>
+                    )}
+                    {t.status === 'REVIEW' && (
+                      <button
+                        onClick={() => {
+                          setSelectedTask(t);
+                          setShowReviewModal(true);
+                        }}
+                        className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" /> Góp ý
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDeleteTask(t.id, t.title)}
+                      className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
+                      title="Xóa công việc"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {filteredTasks.length === 0 && (
+                <div className="text-center py-8 text-xs text-slate-400">
+                  Chưa có công việc nào phù hợp với bộ lọc
+                </div>
+              )}
             </div>
           </div>
         </div>

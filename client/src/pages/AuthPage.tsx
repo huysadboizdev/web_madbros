@@ -154,7 +154,7 @@ export const AuthPage: React.FC = () => {
       {/* Main Glass Login Card */}
       <div className="w-full max-w-[480px] z-10 animate-in fade-in zoom-in-95 duration-300">
         <div
-          className={`p-8 sm:p-10 rounded-3xl border shadow-2xl space-y-6 relative overflow-hidden backdrop-blur-2xl transition-all ${
+          className={`p-5 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border shadow-2xl space-y-5 sm:space-y-6 relative overflow-hidden backdrop-blur-2xl transition-all ${
             isLight
               ? 'bg-white/95 border-slate-200 shadow-slate-200/80 text-slate-900'
               : 'bg-slate-900/90 border-slate-700/80 shadow-black/60 text-slate-100'

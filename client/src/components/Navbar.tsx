@@ -84,16 +84,16 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
           : 'bg-slate-950/90 border-white/[0.08] shadow-md shadow-black/25'
       }`}
     >
-      <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-18 py-2">
+      <div className="w-full max-w-[1600px] mx-auto px-2.5 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-18 py-1.5 sm:py-2 gap-1.5 sm:gap-4">
           {/* Left: Logo & Workspace Info */}
-          <div className="flex items-center gap-3 sm:gap-5">
+          <div className="flex items-center gap-2 sm:gap-5 min-w-0">
             <div
-              className="flex items-center gap-2.5 cursor-pointer group"
+              className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group min-w-0"
               onClick={() => setActiveTab('dashboard')}
             >
               <div
-                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-2xl p-1.5 flex items-center justify-center shadow-lg group-hover:scale-105 transition-all duration-300 shrink-0 border ${
+                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl p-1 sm:p-1.5 flex items-center justify-center shadow-md sm:shadow-lg group-hover:scale-105 transition-all duration-300 shrink-0 border ${
                   isLight
                     ? 'bg-white border-blue-200 shadow-blue-500/10'
                     : 'bg-slate-900 border-slate-700/80 shadow-blue-500/20'
@@ -101,21 +101,21 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
               >
                 <img src="/logo.png" alt="Logo" className="w-full h-full object-contain drop-shadow-sm" />
               </div>
-              <div>
-                <div className="flex items-center gap-1.5">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1 sm:gap-1.5">
                   <span
-                    className={`font-extrabold text-base sm:text-lg tracking-tight ${
+                    className={`font-extrabold text-sm sm:text-base lg:text-lg tracking-tight whitespace-nowrap ${
                       isLight ? 'text-slate-900' : 'text-white'
                     }`}
                   >
                     MAD<span className="text-blue-500">BROS</span>
                   </span>
-                  <span className="text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-500 dark:text-blue-400 border border-blue-500/30 tracking-wider">
+                  <span className="text-[8px] sm:text-[9px] uppercase font-extrabold px-1 sm:px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-500 dark:text-blue-400 border border-blue-500/30 tracking-wider shrink-0">
                     PRO
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-[11px] font-medium truncate max-w-[130px] sm:max-w-[200px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+                  <span className={`text-[10px] sm:text-[11px] font-medium truncate max-w-[90px] min-[360px]:max-w-[130px] sm:max-w-[200px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                     {user?.workspaceName}
                   </span>
                 </div>
@@ -151,7 +151,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
           </nav>
 
           {/* Right: Theme + Boss Portal + Notifications + User Profile */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 min-[360px]:gap-1.5 sm:gap-2.5 shrink-0">
             {/* Theme Toggle */}
             <ThemeToggle />
 
@@ -159,7 +159,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
             {onSwitchToAdminPortal && isAdminOrManager && (
               <button
                 onClick={onSwitchToAdminPortal}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 rounded-xl text-xs font-extrabold shadow-md shadow-amber-500/25 transition-all hover:scale-105"
+                className="flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 rounded-xl text-xs font-extrabold shadow-md shadow-amber-500/25 transition-all hover:scale-105 shrink-0 cursor-pointer"
                 title="Mở Cổng Quản Trị Cấp Cao Dành Cho Boss"
               >
                 <Crown className="w-3.5 h-3.5" />
@@ -171,7 +171,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
             <div className="relative" ref={bellRef}>
               <button
                 onClick={() => setShowBellMenu(!showBellMenu)}
-                className={`relative p-2 rounded-xl border transition-all ${
+                className={`relative p-1.5 sm:p-2 rounded-xl border transition-all cursor-pointer shrink-0 ${
                   showBellMenu
                     ? 'bg-blue-600/20 border-blue-500/40 text-blue-500'
                     : isLight
@@ -188,10 +188,10 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
                 )}
               </button>
 
-              {/* Notification Dropdown Menu */}
+              {/* Notification Dropdown Menu - Constrained to Viewport */}
               {showBellMenu && (
                 <div
-                  className={`absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl border shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl ${
+                  className={`fixed sm:absolute right-2 sm:right-0 top-16 sm:top-auto sm:mt-3 w-[calc(100vw-16px)] sm:w-96 max-w-sm sm:max-w-none rounded-2xl border shadow-2xl p-3.5 sm:p-4 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl ${
                     isLight ? 'bg-white/95 border-slate-200 text-slate-800' : 'bg-slate-900/95 border-slate-700/80 text-slate-100'
                   }`}
                 >
@@ -244,8 +244,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
                               n.isRead ? 'bg-slate-400' : 'bg-blue-500 animate-pulse'
                             }`}
                           />
-                          <div className="flex-1 space-y-1">
-                            <p className={`font-semibold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{n.title}</p>
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <p className={`font-semibold truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{n.title}</p>
                             <p className={`text-[11px] leading-relaxed line-clamp-2 ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
                               {n.content}
                             </p>
@@ -269,17 +269,17 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
             <div className="relative" ref={userRef}>
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className={`flex items-center gap-2 p-1 sm:pr-2.5 rounded-2xl border transition group cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 p-1 sm:pr-2.5 rounded-xl sm:rounded-2xl border transition group cursor-pointer shrink-0 ${
                   isLight
                     ? 'bg-slate-100 border-slate-300 hover:bg-slate-200'
                     : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
                 }`}
               >
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow-md shadow-blue-600/25">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow-md shadow-blue-600/25 shrink-0">
                   {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
                 </div>
-                <div className="hidden sm:block text-left">
-                  <p className={`text-xs font-bold transition leading-tight truncate max-w-[120px] ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
+                <div className="hidden md:block text-left min-w-0">
+                  <p className={`text-xs font-bold transition leading-tight truncate max-w-[110px] ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
                     {user?.name}
                   </p>
                   <p className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold uppercase">
@@ -291,12 +291,12 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
               {/* User Dropdown Menu */}
               {showUserMenu && (
                 <div
-                  className={`absolute right-0 mt-3 w-60 rounded-2xl border shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl ${
+                  className={`fixed sm:absolute right-2 sm:right-0 top-16 sm:top-auto sm:mt-3 w-[calc(100vw-24px)] sm:w-60 max-w-xs rounded-2xl border shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl ${
                     isLight ? 'bg-white/95 border-slate-200 text-slate-800' : 'bg-slate-900/95 border-slate-700/80 text-slate-100'
                   }`}
                 >
                   <div className={`p-2 border-b mb-2 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-                    <p className={`font-bold text-xs ${isLight ? 'text-slate-900' : 'text-white'}`}>{user?.name}</p>
+                    <p className={`font-bold text-xs truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>{user?.name}</p>
                     <p className="text-[11px] text-slate-400 truncate">{user?.email}</p>
                     <div className="mt-1.5 flex items-center gap-1.5">
                       <span className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30">
@@ -345,9 +345,10 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
             {/* Mobile Hamburger Menu Button */}
             <button
               onClick={() => setShowMobileNav(!showMobileNav)}
-              className={`lg:hidden p-2 rounded-xl border ${
+              className={`lg:hidden p-1.5 sm:p-2 rounded-xl border shrink-0 cursor-pointer ${
                 isLight ? 'bg-slate-100 border-slate-300 text-slate-700' : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
               }`}
+              title="Menu điều hướng"
             >
               {showMobileNav ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
@@ -364,7 +365,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
                   setActiveTab(item.id);
                   setShowMobileNav(false);
                 }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold transition ${
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
                   activeTab === item.id
                     ? 'bg-blue-600 text-white font-bold'
                     : isLight
@@ -382,15 +383,19 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
 
       {/* Mobile Bottom Navigation Bar (Dock) */}
       <div
-        className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t backdrop-blur-2xl px-2 py-1.5 transition-all duration-300 ${
+        className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t backdrop-blur-2xl px-1 py-1 transition-all duration-300 safe-area-bottom ${
           isLight
             ? 'bg-white/95 border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]'
             : 'bg-slate-950/95 border-slate-800/90 shadow-[0_-4px_20px_rgba(0,0,0,0.4)]'
         }`}
       >
-        <div className="flex items-center justify-around max-w-lg mx-auto">
+        <div className="flex items-center justify-around max-w-lg mx-auto gap-0.5">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
+            // Short label for 5-item mobile dock
+            const shortLabel =
+              item.id === 'secretary' ? 'Thư Ký' : item.id === 'settings' ? 'Cài Đặt' : item.label;
+
             return (
               <button
                 key={item.id}
@@ -398,7 +403,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
                   setActiveTab(item.id);
                   setShowMobileNav(false);
                 }}
-                className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all duration-150 relative ${
+                className={`flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all duration-150 relative cursor-pointer min-w-0 ${
                   isActive
                     ? isLight
                       ? 'text-blue-600 font-bold'
@@ -415,8 +420,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onSwitc
                 >
                   {item.icon}
                 </div>
-                <span className="text-[10px] leading-tight tracking-tight mt-0.5 whitespace-nowrap">
-                  {item.label}
+                <span className="text-[9px] min-[360px]:text-[10px] leading-tight tracking-tight mt-0.5 truncate max-w-full text-center">
+                  {shortLabel}
                 </span>
                 {isActive && (
                   <span className="absolute -bottom-0.5 w-4 h-0.5 rounded-full bg-blue-500" />

@@ -114,7 +114,7 @@ const AppContent: React.FC = () => {
       />
 
       {/* Main Page Content - Compact & Responsive Widescreen Container */}
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 pt-28 lg:pt-24 pb-24 lg:pb-8 z-10">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 pt-20 sm:pt-24 lg:pt-24 pb-20 sm:pb-24 lg:pb-8 z-10 min-w-0">
         {(activeTab === 'dashboard' || (activeTab === 'secretary' && !canAccessSecretary)) && (
           <DashboardPage setActiveTab={handleTabChange} />
         )}
@@ -126,18 +126,18 @@ const AppContent: React.FC = () => {
 
       {/* Footer */}
       <footer
-        className={`py-5 border-t text-xs z-10 transition-colors duration-300 ${
+        className={`py-4 sm:py-5 border-t text-xs z-10 transition-colors duration-300 ${
           isLight
             ? 'bg-white/90 border-slate-200 text-slate-500 shadow-inner'
             : 'border-slate-800/80 bg-slate-950/80 text-slate-400'
         }`}
       >
-        <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-center sm:text-left">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className={`font-medium ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Hệ thống đang hoạt động tối ưu</span>
           </div>
-          <p>© 2026 MadBros Enterprise System. Vận hành chuyên nghiệp trên Windows Server.</p>
+          <p className="text-[11px] sm:text-xs">© 2026 MadBros Enterprise System. Vận hành chuyên nghiệp trên Windows Server.</p>
         </div>
       </footer>
     </div>
