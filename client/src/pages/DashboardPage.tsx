@@ -394,8 +394,18 @@ export const DashboardPage: React.FC<DashboardProps> = ({ setActiveTab }) => {
 
                     {/* Progress Bar with glowing indicator */}
                     <div className="space-y-1">
-                      <div className={`flex justify-between text-[10px] min-[360px]:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                      <div className={`flex items-center justify-between text-[10px] min-[360px]:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'} flex-wrap gap-1`}>
                         <span className="font-medium">Tiến độ ({t.completedSubtasks || 0}/{t.totalSubtasks || 0})</span>
+                        {t.dueDate && (
+                          <span className={`flex items-center gap-1 font-semibold text-[10px] ${
+                            new Date(t.dueDate) < new Date() && t.status !== 'DONE'
+                              ? 'text-rose-500 font-bold'
+                              : isLight ? 'text-slate-600' : 'text-slate-400'
+                          }`}>
+                            <Clock className="w-3 h-3 text-blue-500" />
+                            {new Date(t.dueDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} • {new Date(t.dueDate).toLocaleDateString('vi-VN')}
+                          </span>
+                        )}
                         <span className="font-extrabold text-blue-600 dark:text-blue-400">{t.progress}%</span>
                       </div>
                       <div className={`w-full h-1.5 sm:h-2 rounded-full overflow-hidden p-0.5 border ${isLight ? 'bg-slate-200 border-slate-300' : 'bg-slate-800 border-slate-700/50'}`}>
@@ -472,22 +482,19 @@ export const DashboardPage: React.FC<DashboardProps> = ({ setActiveTab }) => {
                   >
                     <div className="flex items-start justify-between gap-2.5 sm:gap-3">
                       <p className={`font-bold text-xs sm:text-sm line-clamp-2 break-words flex-1 min-w-0 ${isLight ? 'text-slate-900' : 'text-white'}`}>{m.title}</p>
-                      <span
-                        className={`text-[9px] min-[360px]:text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0 border ${
-                          m.isOnline
-                            ? isLight ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                            : isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-800 text-slate-300 border-slate-700'
-                        }`}
-                      >
-                        {m.isOnline ? 'Online' : 'Trực tiếp'}
-                      </span>
+                      {m.location && (
+                        <span className={`text-[9px] min-[360px]:text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 border truncate max-w-[140px] ${
+                          isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-800 text-slate-300 border-slate-700'
+                        }`}>
+                          📍 {m.location}
+                        </span>
+                      )}
                     </div>
 
                     <div className={`flex items-center gap-4 text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                        {new Date(m.startTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} -{' '}
-                        {new Date(m.endTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(m.startTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                   </div>

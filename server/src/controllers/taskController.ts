@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from '../middlewares/auth';
 import { EmailService } from '../services/emailService';
 import { SocketService } from '../services/socketService';
 import { TelegramService } from '../services/telegramService';
+import { SchedulerService } from '../services/schedulerService';
 
 export class TaskController {
   // Lấy danh sách công việc của Workspace
@@ -549,6 +550,9 @@ export class TaskController {
           }
         }
       });
+
+      // ⚡ Reset trạng thái alert của scheduler nếu deadline thay đổi
+      SchedulerService.resetAlertForTask(id);
 
       // ⚡ Real-Time WebSocket
       SocketService.emitToWorkspace(workspaceId, 'task:updated', { taskId: id, action: 'EDITED' });

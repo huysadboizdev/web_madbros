@@ -24,6 +24,8 @@ import {
   Search,
   User as UserIcon,
   AlertTriangle,
+  AlertCircle,
+  Pencil,
 } from 'lucide-react';
 
 interface MeetingItem {
@@ -42,6 +44,29 @@ interface MeetingItem {
     user: { id: string; name: string; email: string; avatar?: string };
   }[];
 }
+
+// Helper convert ISO date string to YYYY-MM-DDTHH:mm for datetime-local input
+const toLocalDatetimeInputValue = (dateStr?: string | Date | null): string => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+// Helper validate meeting startTime
+const validateStartTime = (val: string): string | null => {
+  if (!val || !val.trim()) return 'Vui lòng chọn thời gian bắt đầu cuộc họp';
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return 'Thời gian bắt đầu không hợp lệ';
+  if (d.getTime() < Date.now() - 60000) return 'Thời gian bắt đầu không được nằm trong quá khứ';
+  return null;
+};
 
 export const MeetingsPage: React.FC = () => {
   const { user } = useAuth();
@@ -62,19 +87,29 @@ export const MeetingsPage: React.FC = () => {
 
   // Modal
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
-  // Form states
+  // Form states for create
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [meetingLink, setMeetingLink] = useState('');
   const [location, setLocation] = useState('');
   const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [meetingError, setMeetingError] = useState<string | null>(null);
   const [notifyAll, setNotifyAll] = useState(true);
   const [selectedParticipantIds, setSelectedParticipantIds] = useState<string[]>([]);
   const [sendEmail, setSendEmail] = useState(true);
   const [creating, setCreating] = useState(false);
+
+  // Form states for edit meeting
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingMeeting, setEditingMeeting] = useState<MeetingItem | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editLocation, setEditLocation] = useState('');
+  const [editStartTime, setEditStartTime] = useState('');
+  const [editMeetingError, setEditMeetingError] = useState<string | null>(null);
+  const [editNotifyAll, setEditNotifyAll] = useState(true);
+  const [editSelectedParticipantIds, setEditSelectedParticipantIds] = useState<string[]>([]);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
     fetchMeetings();
@@ -125,19 +160,23 @@ export const MeetingsPage: React.FC = () => {
 
   const handleCreateMeeting = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !startTime) return;
+    if (!title.trim()) return;
+
+    const err = validateStartTime(startTime);
+    if (err) {
+      setMeetingError(err);
+      return;
+    }
 
     try {
       setCreating(true);
       const start = new Date(startTime);
-      const end = new Date(start.getTime() + 60 * 60 * 1000); // Tự động 1 tiếng
 
       await api.post('/meetings', {
         title: title.trim(),
         description: description.trim(),
-        location: location.trim(),
+        location: location.trim() || null,
         startTime: start.toISOString(),
-        endTime: end.toISOString(),
         notifyAll,
         participantIds: notifyAll ? [] : selectedParticipantIds,
         sendEmail,
@@ -147,19 +186,66 @@ export const MeetingsPage: React.FC = () => {
       resetForm();
       fetchMeetings();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Lỗi khi tạo cuộc họp');
+      setMeetingError(error.response?.data?.message || 'Lỗi khi tạo cuộc họp');
     } finally {
       setCreating(false);
+    }
+  };
+
+  // Mở modal chỉnh sửa cuộc họp
+  const openEditModal = (meeting: MeetingItem) => {
+    setEditingMeeting(meeting);
+    setEditTitle(meeting.title);
+    setEditDescription(meeting.description || '');
+    setEditLocation(meeting.location || '');
+    setEditStartTime(toLocalDatetimeInputValue(meeting.startTime));
+    setEditMeetingError(null);
+    setEditNotifyAll(meeting.notifyAll);
+    setEditSelectedParticipantIds(meeting.participants?.map((p) => p.userId) || []);
+    setShowEditModal(true);
+  };
+
+  // Lưu chỉnh sửa cuộc họp
+  const handleSaveEditMeeting = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMeeting || !editTitle.trim()) return;
+
+    const err = validateStartTime(editStartTime);
+    if (err) {
+      setEditMeetingError(err);
+      return;
+    }
+
+    try {
+      setSavingEdit(true);
+      const start = new Date(editStartTime);
+
+      await api.put(`/meetings/${editingMeeting.id}`, {
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        location: editLocation.trim() || null,
+        startTime: start.toISOString(),
+        notifyAll: editNotifyAll,
+        participantIds: editNotifyAll ? [] : editSelectedParticipantIds,
+      });
+
+      setShowEditModal(false);
+      setEditingMeeting(null);
+      setEditMeetingError(null);
+      fetchMeetings();
+    } catch (error: any) {
+      setEditMeetingError(error.response?.data?.message || 'Lỗi khi cập nhật cuộc họp');
+    } finally {
+      setSavingEdit(false);
     }
   };
 
   const resetForm = () => {
     setTitle('');
     setDescription('');
-    setMeetingLink('');
     setLocation('');
     setStartTime('');
-    setEndTime('');
+    setMeetingError(null);
     setNotifyAll(true);
     setSelectedParticipantIds([]);
     setSendEmail(true);
@@ -194,12 +280,6 @@ export const MeetingsPage: React.FC = () => {
     }
   };
 
-  const copyMeetingLink = (link: string) => {
-    navigator.clipboard.writeText(link);
-    setCopiedLink(link);
-    setTimeout(() => setCopiedLink(null), 2000);
-  };
-
   // Filter meetings based on timeframe and search
   const filteredMeetings = meetings.filter((m) => {
     const matchesSearch =
@@ -209,15 +289,12 @@ export const MeetingsPage: React.FC = () => {
 
     const now = new Date();
     const start = new Date(m.startTime);
-    const end = new Date(m.endTime);
 
-    const isToday =
-      start.toDateString() === now.toDateString() ||
-      (start <= now && end >= now);
+    const isToday = start.toDateString() === now.toDateString();
 
     let matchesTimeframe = true;
     if (timeframe === 'upcoming') {
-      matchesTimeframe = end >= now;
+      matchesTimeframe = start >= new Date(now.getTime() - 60 * 60 * 1000);
     } else if (timeframe === 'today') {
       matchesTimeframe = isToday;
     } else if (timeframe === 'my') {
@@ -225,7 +302,7 @@ export const MeetingsPage: React.FC = () => {
         m.createdBy?.id === user?.id ||
         m.participants?.some((p) => p.userId === user?.id);
     } else if (timeframe === 'past') {
-      matchesTimeframe = end < now;
+      matchesTimeframe = start < now;
     }
 
     return matchesSearch && matchesTimeframe;
@@ -402,7 +479,7 @@ export const MeetingsPage: React.FC = () => {
               >
                 {/* Header info */}
                 <div className="space-y-2.5 sm:space-y-3">
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start justify-between gap-2 flex-wrap">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold border ${
                       isLight
                         ? 'bg-indigo-100 text-indigo-800 border-indigo-200'
@@ -412,26 +489,34 @@ export const MeetingsPage: React.FC = () => {
                       {new Date(m.startTime).toLocaleTimeString('vi-VN', {
                         hour: '2-digit',
                         minute: '2-digit',
-                      })}{' '}
-                      -{' '}
-                      {new Date(m.endTime).toLocaleTimeString('vi-VN', {
-                        hour: '2-digit',
-                        minute: '2-digit',
                       })}
                     </span>
 
-                    {(isCreator || user?.role === 'ADMIN') && (
-                      <button
-                        onClick={() => handleDeleteMeeting(m.id)}
-                        className={`p-1.5 rounded-lg transition cursor-pointer ${
-                          isLight
-                            ? 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
-                            : 'text-slate-500 hover:text-rose-400 hover:bg-rose-500/10'
-                        }`}
-                        title="Hủy cuộc họp"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    {(isCreator || user?.role === 'ADMIN' || user?.role === 'SECRETARY' || user?.role === 'MANAGER') && (
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => openEditModal(m)}
+                          className={`p-1.5 rounded-lg transition cursor-pointer ${
+                            isLight
+                              ? 'text-indigo-600 hover:bg-indigo-50'
+                              : 'text-indigo-400 hover:bg-indigo-500/10'
+                          }`}
+                          title="Chỉnh sửa cuộc họp & giờ họp"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMeeting(m.id)}
+                          className={`p-1.5 rounded-lg transition cursor-pointer ${
+                            isLight
+                              ? 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
+                              : 'text-slate-500 hover:text-rose-400 hover:bg-rose-500/10'
+                          }`}
+                          title="Hủy cuộc họp"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -457,57 +542,17 @@ export const MeetingsPage: React.FC = () => {
                     </p>
                   )}
 
-                  {/* Location & Link */}
-                  <div className="space-y-2 text-xs">
-                    {m.location && (
-                      <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${
-                        isLight
-                          ? 'bg-slate-50 border-slate-200 text-slate-700'
-                          : 'bg-slate-900/40 border-slate-800 text-slate-300'
-                      }`}>
-                        <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
-                        <span className="font-medium truncate">{m.location}</span>
-                      </div>
-                    )}
-
-                    {m.meetingLink && (
-                      <div className={`flex flex-col min-[380px]:flex-row min-[380px]:items-center justify-between p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border gap-2 ${
-                        isLight
-                          ? 'bg-blue-50/80 border-blue-200 text-blue-950'
-                          : 'bg-blue-950/40 border-blue-500/30 text-blue-200'
-                      }`}>
-                        <div className="flex items-center gap-2 truncate min-w-0 flex-1">
-                          <Video className="w-4 h-4 text-blue-500 shrink-0" />
-                          <span className={`text-xs font-medium truncate ${isLight ? 'text-blue-900' : 'text-blue-200'}`}>{m.meetingLink}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0 self-end min-[380px]:self-auto">
-                          <button
-                            onClick={() => copyMeetingLink(m.meetingLink!)}
-                            className={`p-1.5 rounded-lg transition cursor-pointer ${
-                              isLight
-                                ? 'text-slate-500 hover:text-slate-800 hover:bg-slate-200'
-                                : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                            }`}
-                            title="Sao chép link"
-                          >
-                            {copiedLink === m.meetingLink ? (
-                              <Check className="w-3.5 h-3.5 text-emerald-500" />
-                            ) : (
-                              <Copy className="w-3.5 h-3.5" />
-                            )}
-                          </button>
-                          <a
-                            href={m.meetingLink}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold text-xs flex items-center gap-1 shadow-md shadow-blue-600/30 transition hover:scale-105"
-                          >
-                            Vào họp <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  {/* Location */}
+                  {m.location && (
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs ${
+                      isLight
+                        ? 'bg-slate-50 border-slate-200 text-slate-700'
+                        : 'bg-slate-900/40 border-slate-800 text-slate-300'
+                    }`}>
+                      <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
+                      <span className="font-medium truncate">{m.location}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Participants list & RSVP footer */}
@@ -640,7 +685,7 @@ export const MeetingsPage: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div>
               <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                 Thời Gian Bắt Đầu <span className="text-rose-400">*</span>
@@ -648,24 +693,42 @@ export const MeetingsPage: React.FC = () => {
               <input
                 type="datetime-local"
                 required
+                min={toLocalDatetimeInputValue(new Date())}
                 value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className={`w-full px-3 py-2 rounded-xl text-xs border focus:outline-none focus:border-indigo-500 transition ${
+                onChange={(e) => {
+                  setStartTime(e.target.value);
+                  if (e.target.value) {
+                    setMeetingError(validateStartTime(e.target.value));
+                  } else {
+                    setMeetingError(null);
+                  }
+                }}
+                className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-medium border focus:outline-none transition ${
+                  meetingError
+                    ? 'border-rose-500 bg-rose-500/5 focus:ring-2 focus:ring-rose-500/20'
+                    : 'focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20'
+                } ${
                   isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/60 border-slate-700 text-white'
                 }`}
               />
+              {meetingError && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-[11px] font-medium text-rose-500">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{meetingError}</span>
+                </div>
+              )}
             </div>
 
             <div>
               <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                Địa Điểm Họp / Ghi Chú Phòng Họp
+                Địa Điểm Họp / Phòng Họp Trực Tiếp
               </label>
               <input
                 type="text"
                 placeholder="VD: Phòng họp Tầng 3 / Trụ sở chính"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className={`w-full px-3 py-2 rounded-xl text-xs border focus:outline-none focus:border-indigo-500 transition ${
+                className={`w-full px-3.5 py-2.5 rounded-xl text-xs border focus:outline-none focus:border-indigo-500 transition ${
                   isLight ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400' : 'bg-slate-800/60 border-slate-700 text-white placeholder-slate-500'
                 }`}
               />
@@ -737,6 +800,164 @@ export const MeetingsPage: React.FC = () => {
               className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer text-center"
             >
               {creating ? 'Đang tạo lịch họp...' : 'Đặt Lịch Họp Mới'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal Chỉnh Sửa Lịch Họp */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title="Chỉnh Sửa Cuộc Họp & Giờ Họp"
+        maxWidth="max-w-2xl"
+      >
+        <form onSubmit={handleSaveEditMeeting} className="space-y-4">
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Chủ Đề Cuộc Họp <span className="text-rose-400">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="VD: Họp giao ban đầu tuần & Triển khai kế hoạch"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className={`w-full px-4 py-2.5 rounded-xl text-sm border focus:outline-none focus:border-indigo-500 transition ${
+                isLight ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-100' : 'bg-slate-800/60 border-slate-700 text-white placeholder-slate-500'
+              }`}
+            />
+          </div>
+
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Nội Dung & Mục Tiêu Cuộc Họp
+            </label>
+            <textarea
+              rows={3}
+              placeholder="Ghi chú nội dung thảo luận, tài liệu chuẩn bị trước..."
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              className={`w-full px-4 py-2 rounded-xl text-xs border focus:outline-none focus:border-indigo-500 transition ${
+                isLight ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-100' : 'bg-slate-800/60 border-slate-700 text-white placeholder-slate-500'
+              }`}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            <div>
+              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                Thời Gian Bắt Đầu <span className="text-rose-400">*</span>
+              </label>
+              <input
+                type="datetime-local"
+                required
+                value={editStartTime}
+                onChange={(e) => {
+                  setEditStartTime(e.target.value);
+                  if (e.target.value) {
+                    setEditMeetingError(validateStartTime(e.target.value));
+                  } else {
+                    setEditMeetingError(null);
+                  }
+                }}
+                className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-medium border focus:outline-none transition ${
+                  editMeetingError
+                    ? 'border-rose-500 bg-rose-500/5 focus:ring-2 focus:ring-rose-500/20'
+                    : 'focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20'
+                } ${
+                  isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/60 border-slate-700 text-white'
+                }`}
+              />
+              {editMeetingError && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-[11px] font-medium text-rose-500">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{editMeetingError}</span>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                Địa Điểm Họp / Phòng Họp Trực Tiếp
+              </label>
+              <input
+                type="text"
+                placeholder="VD: Phòng họp Tầng 3 / Trụ sở chính"
+                value={editLocation}
+                onChange={(e) => setEditLocation(e.target.value)}
+                className={`w-full px-3.5 py-2.5 rounded-xl text-xs border focus:outline-none focus:border-indigo-500 transition ${
+                  isLight ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400' : 'bg-slate-800/60 border-slate-700 text-white placeholder-slate-500'
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Người tham gia */}
+          <div>
+            <div className="flex flex-col min-[380px]:flex-row min-[380px]:items-center justify-between gap-1.5 mb-2">
+              <label className={`text-xs font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                Thành Viên Tham Gia
+              </label>
+              <label className={`flex items-center gap-2 text-xs cursor-pointer ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
+                <input
+                  type="checkbox"
+                  checked={editNotifyAll}
+                  onChange={(e) => setEditNotifyAll(e.target.checked)}
+                  className="rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                />
+                Mời toàn bộ ({members.length} người)
+              </label>
+            </div>
+
+            {!editNotifyAll && (
+              <div className={`flex flex-wrap gap-2 p-3 rounded-xl border max-h-36 overflow-y-auto ${
+                isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-800/40 border-slate-700/60'
+              }`}>
+                {members.map((m) => {
+                  const isSelected = editSelectedParticipantIds.includes(m.id);
+                  return (
+                    <button
+                      type="button"
+                      key={m.id}
+                      onClick={() => {
+                        if (isSelected) {
+                          setEditSelectedParticipantIds(editSelectedParticipantIds.filter((id) => id !== m.id));
+                        } else {
+                          setEditSelectedParticipantIds([...editSelectedParticipantIds, m.id]);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer border ${
+                        isSelected
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/30'
+                          : isLight
+                          ? 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                          : 'bg-slate-800 text-slate-400 hover:text-white border-slate-700'
+                      }`}
+                    >
+                      <UserIcon className="w-3 h-3" />
+                      {m.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className={`pt-4 border-t flex flex-col min-[380px]:flex-row justify-end gap-2 sm:gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <button
+              type="button"
+              onClick={() => setShowEditModal(false)}
+              className={`px-4 py-2 text-xs font-semibold cursor-pointer rounded-xl border border-transparent hover:border-slate-300 dark:hover:border-slate-700 ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              disabled={savingEdit}
+              className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer text-center"
+            >
+              {savingEdit ? 'Đang lưu...' : 'Lưu Thay Đổi Cuộc Họp'}
             </button>
           </div>
         </form>

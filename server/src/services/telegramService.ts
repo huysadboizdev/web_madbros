@@ -45,6 +45,31 @@ export class TelegramService {
   }
 
   /**
+   * Helper format riêng biệt Ngày (DD/MM/YYYY) và Giờ (HH:mm) theo múi giờ Việt Nam
+   */
+  public static formatDeadlineParts(date?: Date | string | null): { dateStr: string; timeStr: string } {
+    if (!date) return { dateStr: 'Không thời hạn', timeStr: '' };
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return { dateStr: String(date), timeStr: '' };
+      const dateStr = d.toLocaleDateString('vi-VN', {
+        timeZone: 'Asia/Ho_Chi_Minh',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+      const timeStr = d.toLocaleTimeString('vi-VN', {
+        timeZone: 'Asia/Ho_Chi_Minh',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      return { dateStr, timeStr };
+    } catch {
+      return { dateStr: String(date), timeStr: '' };
+    }
+  }
+
+  /**
    * Escape HTML entities to prevent Telegram parse errors
    */
   public static escapeHtml(text?: string | null): string {
@@ -140,11 +165,13 @@ export class TelegramService {
     subtasks?: string[];
     telegramTag?: string | null;
   }) {
+    const { dateStr, timeStr } = this.formatDeadlineParts(data.dueDate);
     const msg = TelegramTemplates.taskCreated({
       title: this.escapeHtml(data.title),
       creatorName: this.escapeHtml(data.creatorName),
       assignees: this.escapeHtml(data.assignees.length > 0 ? data.assignees.join(', ') : 'Chưa phân công'),
-      dueDate: this.formatDateTime(data.dueDate),
+      dueDate: dateStr,
+      dueTime: timeStr,
       description: this.escapeHtml(data.description),
       subtasks: data.subtasks?.map((s) => this.escapeHtml(s)),
       telegramTag: this.formatTelegramTag(data.telegramTag),
@@ -162,10 +189,12 @@ export class TelegramService {
     dueDate?: Date | string | null;
     telegramTag?: string | null;
   }) {
+    const { dateStr, timeStr } = this.formatDeadlineParts(data.dueDate);
     const msg = TelegramTemplates.taskOverdueDeadline({
       title: this.escapeHtml(data.title),
       assignees: this.escapeHtml(data.assignees.length > 0 ? data.assignees.join(', ') : 'Nhân sự phụ trách'),
-      dueDate: this.formatDateTime(data.dueDate),
+      dueDate: dateStr,
+      dueTime: timeStr,
       telegramTag: this.formatTelegramTag(data.telegramTag),
     });
 

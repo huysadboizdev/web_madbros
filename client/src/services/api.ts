@@ -91,6 +91,8 @@ api.interceptors.response.use(
           localStorage.setItem('user', JSON.stringify(user));
         }
 
+        window.dispatchEvent(new CustomEvent('auth:token-refreshed', { detail: { accessToken, refreshToken: newRefreshToken, user } }));
+
         api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 

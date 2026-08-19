@@ -16,6 +16,7 @@ import {
   Search,
   Clock,
   Video,
+  MapPin,
   AlertCircle,
   CheckCircle2,
   Send,
@@ -35,7 +36,90 @@ import {
   ListTodo,
   TrendingUp,
   Megaphone,
+  Pencil,
 } from 'lucide-react';
+
+// Helper convert ISO date string to YYYY-MM-DDTHH:mm for datetime-local input
+const toLocalDatetimeInputValue = (dateStr?: string | Date | null): string => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+// Helper combine Date (YYYY-MM-DD) and Time (HH:mm) into ISO UTC string
+const combineDateAndTimeToIso = (dateStr: string, timeStr: string): string | null => {
+  if (!dateStr || !dateStr.trim()) return null;
+  const time = timeStr && timeStr.trim() ? timeStr.trim() : '23:59';
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const [hours, minutes] = time.split(':').map(Number);
+  const d = new Date(year, month - 1, day, hours || 0, minutes || 0, 0, 0);
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString();
+};
+
+// Helper validate Deadline inputs (Date + Time must not be in the past)
+const validateDeadlineInputs = (dateVal: string, timeVal: string): string | null => {
+  if (!dateVal && !timeVal) {
+    return null;
+  }
+  if (!dateVal) {
+    return 'Vui lòng chọn ngày hoàn thành';
+  }
+  if (!timeVal) {
+    return 'Vui lòng chọn giờ hoàn thành (VD: 17:30 hoặc 23:59)';
+  }
+
+  const [year, month, day] = dateVal.split('-').map(Number);
+  const [hours, minutes] = timeVal.split(':').map(Number);
+  const selectedDate = new Date(year, month - 1, day, hours || 0, minutes || 0, 0, 0);
+  const now = new Date();
+
+  if (isNaN(selectedDate.getTime())) {
+    return 'Thời gian hạn chót không hợp lệ';
+  }
+
+  if (selectedDate.getTime() <= now.getTime()) {
+    const isToday =
+      selectedDate.getFullYear() === now.getFullYear() &&
+      selectedDate.getMonth() === now.getMonth() &&
+      selectedDate.getDate() === now.getDate();
+
+    if (isToday) {
+      const currentHourMinute = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+      return `Giờ hoàn thành (${timeVal}) phải lớn hơn giờ hiện tại (${currentHourMinute})`;
+    } else {
+      return 'Hạn chót không được nằm trong quá khứ';
+    }
+  }
+
+  return null;
+};
+
+// Helper validate meeting startTime
+const validateStartTime = (val: string): string | null => {
+  if (!val || !val.trim()) return 'Vui lòng chọn thời gian bắt đầu cuộc họp';
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return 'Thời gian bắt đầu không hợp lệ';
+  if (d.getTime() < Date.now() - 60000) return 'Thời gian bắt đầu không được nằm trong quá khứ';
+  return null;
+};
+
+// Helper format task due date with both Time and Date
+const formatTaskDueDate = (dateStr?: string | null) => {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return null;
+  const time = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  const date = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return `${time} • ${date}`;
+};
 
 export const SecretaryPage: React.FC = () => {
   const { user } = useAuth();
@@ -66,7 +150,9 @@ export const SecretaryPage: React.FC = () => {
   const [taskTitle, setTaskTitle] = useState('');
   const [taskDescription, setTaskDescription] = useState('');
   const [taskPriority, setTaskPriority] = useState('HIGH');
-  const [taskDueDate, setTaskDueDate] = useState('');
+  const [taskDueDateDate, setTaskDueDateDate] = useState('');
+  const [taskDueDateTime, setTaskDueDateTime] = useState('');
+  const [taskDeadlineError, setTaskDeadlineError] = useState<string | null>(null);
   const [taskAssigneeIds, setTaskAssigneeIds] = useState<string[]>([]);
   const [subtasks, setSubtasks] = useState<{ title: string; assignedToId?: string }[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
@@ -78,13 +164,24 @@ export const SecretaryPage: React.FC = () => {
   const [meetingTitle, setMeetingTitle] = useState('');
   const [meetingDescription, setMeetingDescription] = useState('');
   const [meetingStartTime, setMeetingStartTime] = useState('');
-  const [meetingDuration, setMeetingDuration] = useState('60');
+  const [meetingStartTimeError, setMeetingStartTimeError] = useState<string | null>(null);
   const [meetingHostId, setMeetingHostId] = useState(user?.id || '');
-  const [meetingLink, setMeetingLink] = useState('');
   const [meetingLocation, setMeetingLocation] = useState('');
   const [meetingParticipantIds, setMeetingParticipantIds] = useState<string[]>([]);
   const [meetingSendEmail, setMeetingSendEmail] = useState(true);
   const [creatingMeeting, setCreatingMeeting] = useState(false);
+
+  // Form: Edit Delegated Meeting
+  const [showEditMeetingModal, setShowEditMeetingModal] = useState(false);
+  const [editingMeeting, setEditingMeeting] = useState<any>(null);
+  const [editMeetingTitle, setEditMeetingTitle] = useState('');
+  const [editMeetingDescription, setEditMeetingDescription] = useState('');
+  const [editMeetingStartTime, setEditMeetingStartTime] = useState('');
+  const [editMeetingStartTimeError, setEditMeetingStartTimeError] = useState<string | null>(null);
+  const [editMeetingLocation, setEditMeetingLocation] = useState('');
+  const [editMeetingParticipantIds, setEditMeetingParticipantIds] = useState<string[]>([]);
+  const [savingEditMeeting, setSavingEditMeeting] = useState(false);
+
   const { subscribe } = useSocket();
 
   // Toast / Status Message
@@ -168,13 +265,22 @@ export const SecretaryPage: React.FC = () => {
     e.preventDefault();
     if (!taskTitle.trim()) return;
 
+    if (taskDueDateDate || taskDueDateTime) {
+      const err = validateDeadlineInputs(taskDueDateDate, taskDueDateTime);
+      if (err) {
+        setTaskDeadlineError(err);
+        return;
+      }
+    }
+
     try {
       setCreatingTask(true);
+      const dueDateIso = combineDateAndTimeToIso(taskDueDateDate, taskDueDateTime);
       await api.post('/tasks', {
         title: `[Chỉ Đạo BGD] ${taskTitle.trim()}`,
         description: taskDescription ? `📋 Chỉ đạo từ Ban Giám Đốc:\n${taskDescription}` : '📋 Giao việc theo chỉ đạo của Ban Giám Đốc.',
         priority: taskPriority,
-        dueDate: taskDueDate ? new Date(taskDueDate).toISOString() : null,
+        dueDate: dueDateIso,
         assigneeIds: taskAssigneeIds,
         subtasks: subtasks.map((s) => ({ title: s.title })),
         sendEmail: taskSendEmail,
@@ -187,7 +293,9 @@ export const SecretaryPage: React.FC = () => {
       setTaskTitle('');
       setTaskDescription('');
       setTaskPriority('HIGH');
-      setTaskDueDate('');
+      setTaskDueDateDate('');
+      setTaskDueDateTime('');
+      setTaskDeadlineError(null);
       setTaskAssigneeIds([]);
       setSubtasks([]);
       setTaskTelegramTag('');
@@ -250,23 +358,23 @@ export const SecretaryPage: React.FC = () => {
   // ==========================================
   const handleCreateDelegatedMeeting = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!meetingTitle.trim() || !meetingStartTime) {
-      alert('Vui lòng nhập tên cuộc họp và thời gian bắt đầu');
+    if (!meetingTitle.trim()) return;
+
+    const err = validateStartTime(meetingStartTime);
+    if (err) {
+      setMeetingStartTimeError(err);
       return;
     }
 
     try {
       setCreatingMeeting(true);
       const start = new Date(meetingStartTime);
-      const end = new Date(start.getTime() + Number(meetingDuration) * 60000);
 
       await api.post('/meetings', {
         title: `[Lịch Họp BGD] ${meetingTitle.trim()}`,
         description: meetingDescription ? `📋 Lịch họp do Thư ký sắp xếp theo chỉ đạo của BGD:\n${meetingDescription}` : '📋 Cuộc họp do Thư ký sắp xếp theo chỉ đạo của Ban Giám Đốc.',
         startTime: start.toISOString(),
-        endTime: end.toISOString(),
-        link: meetingLink.trim() || null,
-        location: meetingLocation.trim() || 'Phòng Họp Trực Tuyến',
+        location: meetingLocation.trim() || null,
         hostId: meetingHostId || user?.id,
         participantIds: meetingParticipantIds,
         sendEmail: meetingSendEmail,
@@ -278,7 +386,7 @@ export const SecretaryPage: React.FC = () => {
       setMeetingTitle('');
       setMeetingDescription('');
       setMeetingStartTime('');
-      setMeetingLink('');
+      setMeetingStartTimeError(null);
       setMeetingLocation('');
       setMeetingParticipantIds([]);
       const meetingsRes = await api.get('/meetings');
@@ -298,6 +406,52 @@ export const SecretaryPage: React.FC = () => {
       setMeetings(meetings.filter((m) => m.id !== meetingId));
     } catch (error: any) {
       showToast(error.response?.data?.message || 'Lỗi khi hủy cuộc họp', false);
+    }
+  };
+
+  const openEditMeetingModal = (meeting: any) => {
+    setEditingMeeting(meeting);
+    setEditMeetingTitle(meeting.title || '');
+    setEditMeetingDescription(meeting.description || '');
+    setEditMeetingStartTime(toLocalDatetimeInputValue(meeting.startTime));
+    setEditMeetingStartTimeError(null);
+    setEditMeetingLocation(meeting.location || '');
+    setEditMeetingParticipantIds(meeting.participants?.map((p: any) => p.userId || p.user?.id) || []);
+    setShowEditMeetingModal(true);
+  };
+
+  const handleSaveEditMeeting = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMeeting || !editMeetingTitle.trim()) return;
+
+    const err = validateStartTime(editMeetingStartTime);
+    if (err) {
+      setEditMeetingStartTimeError(err);
+      return;
+    }
+
+    try {
+      setSavingEditMeeting(true);
+      const start = new Date(editMeetingStartTime);
+
+      await api.put(`/meetings/${editingMeeting.id}`, {
+        title: editMeetingTitle.trim(),
+        description: editMeetingDescription.trim(),
+        startTime: start.toISOString(),
+        location: editMeetingLocation.trim() || null,
+        participantIds: editMeetingParticipantIds,
+      });
+
+      showToast('Cập nhật cuộc họp thành công!');
+      setShowEditMeetingModal(false);
+      setEditingMeeting(null);
+      setEditMeetingStartTimeError(null);
+      const meetingsRes = await api.get('/meetings');
+      setMeetings(meetingsRes.data || []);
+    } catch (error: any) {
+      showToast(error.response?.data?.message || 'Lỗi khi cập nhật cuộc họp', false);
+    } finally {
+      setSavingEditMeeting(false);
     }
   };
 
@@ -674,8 +828,8 @@ export const SecretaryPage: React.FC = () => {
                               ? 'text-rose-600 dark:text-rose-400'
                               : isLight ? 'text-slate-600' : 'text-slate-400'
                           }`}>
-                            <Clock className="w-3 h-3" />
-                            {t.dueDate ? new Date(t.dueDate).toLocaleDateString('vi-VN') : 'Không giới hạn'}
+                            <Clock className="w-3 h-3 text-rose-500" />
+                            {t.dueDate ? formatTaskDueDate(t.dueDate) : 'Không giới hạn'}
                           </p>
                           <div className="w-24 bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                             <div
@@ -843,7 +997,10 @@ export const SecretaryPage: React.FC = () => {
 
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-[10px] text-slate-400">
-                      <span>Hạn chót: {t.dueDate ? new Date(t.dueDate).toLocaleDateString('vi-VN') : 'Không hạn'}</span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-rose-500 shrink-0" />
+                        {t.dueDate ? formatTaskDueDate(t.dueDate) : 'Không hạn'}
+                      </span>
                       <span className="font-bold text-rose-500">{t.progress || 0}%</span>
                     </div>
                     <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
@@ -928,7 +1085,7 @@ export const SecretaryPage: React.FC = () => {
           {/* Meetings Grid / List */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredMeetings.map((m) => {
-              const isPast = new Date(m.endTime) < new Date();
+              const isPast = new Date(m.startTime) < new Date();
               const acceptedCount = m.participants?.filter((p: any) => p.status === 'ACCEPTED').length || 0;
 
               return (
@@ -956,13 +1113,22 @@ export const SecretaryPage: React.FC = () => {
                       </h3>
                     </div>
 
-                    <button
-                      onClick={() => handleDeleteMeeting(m.id, m.title)}
-                      className="text-slate-400 hover:text-rose-500 p-1 rounded-lg transition cursor-pointer"
-                      title="Hủy cuộc họp"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => openEditMeetingModal(m)}
+                        className="text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 p-1.5 rounded-lg transition cursor-pointer"
+                        title="Chỉnh sửa cuộc họp & giờ họp"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteMeeting(m.id, m.title)}
+                        className="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg transition cursor-pointer"
+                        title="Hủy cuộc họp"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
                   {m.description && (
@@ -980,6 +1146,15 @@ export const SecretaryPage: React.FC = () => {
                       </span>
                       <span className="font-semibold">{new Date(m.startTime).toLocaleString('vi-VN')}</span>
                     </div>
+
+                    {m.location && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400 flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-rose-500" /> Địa điểm:
+                        </span>
+                        <span className="font-semibold truncate max-w-[180px]">{m.location}</span>
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between">
                       <span className="text-slate-400 flex items-center gap-1.5">
@@ -999,17 +1174,6 @@ export const SecretaryPage: React.FC = () => {
                       </span>
                     </div>
                   </div>
-
-                  {m.link && (
-                    <a
-                      href={m.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center gap-2 transition"
-                    >
-                      <Video className="w-3.5 h-3.5" /> Vào Phòng Họp Trực Tuyến <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
                 </div>
               );
             })}
@@ -1132,7 +1296,7 @@ export const SecretaryPage: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div>
               <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                 Mức Độ Ưu Tiên
@@ -1140,7 +1304,7 @@ export const SecretaryPage: React.FC = () => {
               <select
                 value={taskPriority}
                 onChange={(e) => setTaskPriority(e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold border focus:outline-none ${
+                className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold border focus:outline-none focus:border-rose-500 transition cursor-pointer ${
                   isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
                 }`}
               >
@@ -1152,17 +1316,90 @@ export const SecretaryPage: React.FC = () => {
             </div>
 
             <div>
-              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                Hạn Chót Hoàn Thành
-              </label>
-              <input
-                type="date"
-                value={taskDueDate}
-                onChange={(e) => setTaskDueDate(e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-xl text-xs border focus:outline-none ${
-                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
-                }`}
-              />
+              <div className="flex items-center justify-between mb-1.5">
+                <label className={`text-xs font-semibold flex items-center gap-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <span>Hạn Chót (Deadline)</span>
+                  <span className="text-rose-500">*</span>
+                </label>
+                <div className="flex items-center gap-1">
+                  {['12:00', '17:30', '21:00', '23:59'].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => {
+                        setTaskDueDateTime(preset);
+                        if (taskDueDateDate) {
+                          setTaskDeadlineError(validateDeadlineInputs(taskDueDateDate, preset));
+                        }
+                      }}
+                      className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                        taskDueDateTime === preset
+                          ? 'bg-rose-600 text-white shadow-sm'
+                          : isLight
+                          ? 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+                          : 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 min-[340px]:grid-cols-2 gap-2">
+                <div>
+                  <input
+                    type="date"
+                    value={taskDueDateDate}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => {
+                      setTaskDueDateDate(e.target.value);
+                      if (e.target.value || taskDueDateTime) {
+                        setTaskDeadlineError(validateDeadlineInputs(e.target.value, taskDueDateTime));
+                      } else {
+                        setTaskDeadlineError(null);
+                      }
+                    }}
+                    className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none transition ${
+                      taskDeadlineError
+                        ? 'border-rose-500 bg-rose-500/5 focus:ring-2 focus:ring-rose-500/20'
+                        : 'focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
+                    } ${
+                      isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <input
+                    type="time"
+                    value={taskDueDateTime}
+                    placeholder="Chọn giờ"
+                    onChange={(e) => {
+                      setTaskDueDateTime(e.target.value);
+                      if (taskDueDateDate || e.target.value) {
+                        setTaskDeadlineError(validateDeadlineInputs(taskDueDateDate, e.target.value));
+                      } else {
+                        setTaskDeadlineError(null);
+                      }
+                    }}
+                    className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none transition ${
+                      taskDeadlineError
+                        ? 'border-rose-500 bg-rose-500/5 focus:ring-2 focus:ring-rose-500/20'
+                        : 'focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
+                    } ${
+                      isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {taskDeadlineError && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-[11px] font-medium text-rose-500">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{taskDeadlineError}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1330,7 +1567,7 @@ export const SecretaryPage: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div>
               <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                 Thời Gian Bắt Đầu <span className="text-rose-500">*</span>
@@ -1338,52 +1575,30 @@ export const SecretaryPage: React.FC = () => {
               <input
                 type="datetime-local"
                 required
+                min={toLocalDatetimeInputValue(new Date())}
                 value={meetingStartTime}
-                onChange={(e) => setMeetingStartTime(e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-xl text-xs border focus:outline-none ${
+                onChange={(e) => {
+                  setMeetingStartTime(e.target.value);
+                  if (e.target.value) {
+                    setMeetingStartTimeError(validateStartTime(e.target.value));
+                  } else {
+                    setMeetingStartTimeError(null);
+                  }
+                }}
+                className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-medium border focus:outline-none transition ${
+                  meetingStartTimeError
+                    ? 'border-rose-500 bg-rose-500/5 focus:ring-2 focus:ring-rose-500/20'
+                    : 'focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20'
+                } ${
                   isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
                 }`}
               />
-            </div>
-
-            <div>
-              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                Thời Lượng (Phút)
-              </label>
-              <select
-                value={meetingDuration}
-                onChange={(e) => setMeetingDuration(e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold border focus:outline-none ${
-                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
-                }`}
-              >
-                <option value="30">30 Phút</option>
-                <option value="45">45 Phút</option>
-                <option value="60">60 Phút (1 Tiếng)</option>
-                <option value="90">90 Phút (1.5 Tiếng)</option>
-                <option value="120">120 Phút (2 Tiếng)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                Người Chủ Trì Cuộc Họp (Host)
-              </label>
-              <select
-                value={meetingHostId}
-                onChange={(e) => setMeetingHostId(e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold border focus:outline-none ${
-                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
-                }`}
-              >
-                {members.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} ({m.role})
-                  </option>
-                ))}
-              </select>
+              {meetingStartTimeError && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-[11px] font-medium text-rose-500">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{meetingStartTimeError}</span>
+                </div>
+              )}
             </div>
 
             <div>
@@ -1395,7 +1610,7 @@ export const SecretaryPage: React.FC = () => {
                 placeholder="VD: Phòng Họp VIP Tầng 5"
                 value={meetingLocation}
                 onChange={(e) => setMeetingLocation(e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-xl text-xs border focus:outline-none ${
+                className={`w-full px-3.5 py-2.5 rounded-xl text-xs border focus:outline-none focus:border-purple-500 transition ${
                   isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
                 }`}
               />
@@ -1404,17 +1619,21 @@ export const SecretaryPage: React.FC = () => {
 
           <div>
             <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-              Link Phòng Họp Online (Google Meet / Zoom / Teams)
+              Người Chủ Trì Cuộc Họp (Host)
             </label>
-            <input
-              type="url"
-              placeholder="https://meet.google.com/abc-defg-hij"
-              value={meetingLink}
-              onChange={(e) => setMeetingLink(e.target.value)}
-              className={`w-full px-3.5 py-2.5 rounded-xl text-xs border focus:outline-none ${
+            <select
+              value={meetingHostId}
+              onChange={(e) => setMeetingHostId(e.target.value)}
+              className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold border focus:outline-none focus:border-purple-500 transition ${
                 isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
               }`}
-            />
+            >
+              {members.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name} ({m.role})
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -1530,6 +1749,155 @@ export const SecretaryPage: React.FC = () => {
               className="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-purple-600/30 transition flex items-center gap-1.5 cursor-pointer"
             >
               <Send className="w-4 h-4" /> Gửi Yêu Cầu Chỉnh Sửa
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ==========================================
+          MODAL: CHỈNH SỬA CUỘC HỌP THAY SẾP
+      ========================================== */}
+      <Modal
+        isOpen={showEditMeetingModal}
+        onClose={() => setShowEditMeetingModal(false)}
+        title="✏️ Chỉnh Sửa Lịch Họp Doanh Nghiệp"
+      >
+        <form onSubmit={handleSaveEditMeeting} className="space-y-4">
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Tiêu Đề Cuộc Họp <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="VD: Họp giao ban đầu tuần Ban Giám Đốc & Trưởng Phòng"
+              value={editMeetingTitle}
+              onChange={(e) => setEditMeetingTitle(e.target.value)}
+              className={`w-full px-3.5 py-2.5 rounded-xl text-xs focus:outline-none focus:border-purple-500 transition border ${
+                isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+              }`}
+            />
+          </div>
+
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Nội Dung & Mục Đích Cuộc Họp
+            </label>
+            <textarea
+              rows={3}
+              placeholder="Mô tả chương trình họp, tài liệu cần chuẩn bị..."
+              value={editMeetingDescription}
+              onChange={(e) => setEditMeetingDescription(e.target.value)}
+              className={`w-full px-3.5 py-2.5 rounded-xl text-xs focus:outline-none focus:border-purple-500 transition border ${
+                isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+              }`}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            <div>
+              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                Thời Gian Bắt Đầu <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="datetime-local"
+                required
+                value={editMeetingStartTime}
+                onChange={(e) => {
+                  setEditMeetingStartTime(e.target.value);
+                  if (e.target.value) {
+                    setEditMeetingStartTimeError(validateStartTime(e.target.value));
+                  } else {
+                    setEditMeetingStartTimeError(null);
+                  }
+                }}
+                className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-medium border focus:outline-none transition ${
+                  editMeetingStartTimeError
+                    ? 'border-rose-500 bg-rose-500/5 focus:ring-2 focus:ring-rose-500/20'
+                    : 'focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20'
+                } ${
+                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+                }`}
+              />
+              {editMeetingStartTimeError && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-[11px] font-medium text-rose-500">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{editMeetingStartTimeError}</span>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                Địa Điểm / Phòng Họp Trực Tiếp
+              </label>
+              <input
+                type="text"
+                placeholder="VD: Phòng Hội Nghị Tầng 2"
+                value={editMeetingLocation}
+                onChange={(e) => setEditMeetingLocation(e.target.value)}
+                className={`w-full px-3.5 py-2.5 rounded-xl text-xs border focus:outline-none focus:border-purple-500 transition ${
+                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
+                }`}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Thành Viên Tham Dự Cuộc Họp
+            </label>
+            <div className={`p-3 rounded-2xl border max-h-36 overflow-y-auto space-y-1.5 ${
+              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'
+            }`}>
+              {members.map((m) => {
+                const isSelected = editMeetingParticipantIds.includes(m.id);
+                return (
+                  <label
+                    key={m.id}
+                    className={`flex items-center justify-between p-2 rounded-xl text-xs cursor-pointer transition ${
+                      isSelected
+                        ? isLight ? 'bg-purple-100 text-purple-900' : 'bg-purple-600/20 text-purple-300 border border-purple-500/30'
+                        : isLight ? 'hover:bg-slate-200/60' : 'hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setEditMeetingParticipantIds([...editMeetingParticipantIds, m.id]);
+                          } else {
+                            setEditMeetingParticipantIds(editMeetingParticipantIds.filter((id) => id !== m.id));
+                          }
+                        }}
+                        className="rounded border-slate-400 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="font-bold">{m.name}</span>
+                      <span className="text-[10px] text-slate-400">({m.role})</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">{m.email}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className={`pt-4 border-t flex justify-end gap-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <button
+              type="button"
+              onClick={() => setShowEditMeetingModal(false)}
+              className={`px-4 py-2 text-xs font-semibold cursor-pointer ${isLight ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-white'}`}
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              disabled={savingEditMeeting}
+              className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-purple-600/30 transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Pencil className="w-4 h-4" /> {savingEditMeeting ? 'Đang lưu...' : 'Lưu Thay Đổi Cuộc Họp'}
             </button>
           </div>
         </form>

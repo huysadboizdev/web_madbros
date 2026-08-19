@@ -67,8 +67,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const handleAutoLogout = () => {
       logout();
     };
+
+    // Lắng nghe sự kiện token được làm mới thành công
+    const handleTokenRefreshed = (e: any) => {
+      const { accessToken: newAccess, refreshToken: newRefresh, user: newUser } = e.detail || {};
+      if (newAccess) {
+        setToken(newAccess);
+        setAccessToken(newAccess);
+      }
+      if (newRefresh) {
+        setRefreshToken(newRefresh);
+      }
+      if (newUser) {
+        setUser(newUser);
+      }
+    };
+
     window.addEventListener('auth:logout', handleAutoLogout);
-    return () => window.removeEventListener('auth:logout', handleAutoLogout);
+    window.addEventListener('auth:token-refreshed', handleTokenRefreshed);
+    return () => {
+      window.removeEventListener('auth:logout', handleAutoLogout);
+      window.removeEventListener('auth:token-refreshed', handleTokenRefreshed);
+    };
   }, []);
 
   const login = async (credentials: { email: string; password: string }) => {

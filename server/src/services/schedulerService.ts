@@ -105,6 +105,13 @@ export class SchedulerService {
   }
 
   /**
+   * Xóa trạng thái cảnh báo cũ khi task được chỉnh sửa hoặc gia hạn deadline
+   */
+  public static resetAlertForTask(taskId: string) {
+    this.alertedTasks.delete(taskId);
+  }
+
+  /**
    * Dừng scheduler nếu cần
    */
   public static stop() {

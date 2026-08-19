@@ -32,9 +32,13 @@ export class SocketService {
         const decoded: TokenPayload = verifyToken(token);
         socket.data.user = decoded;
         next();
-      } catch (err) {
-        console.warn('[Socket Auth Error] Token không hợp lệ:', err);
-        return next(new Error('Invalid or expired token'));
+      } catch (err: any) {
+        if (err?.name === 'TokenExpiredError') {
+          console.log(`[Socket Auth] Token đã hết hạn (${err.expiredAt?.toISOString?.() || err.expiredAt || 'jwt expired'}). Yêu cầu client refresh token.`);
+          return next(new Error('TokenExpiredError'));
+        }
+        console.warn('[Socket Auth Error] Token không hợp lệ:', err?.message || err);
+        return next(new Error('Invalid token'));
       }
     });
 

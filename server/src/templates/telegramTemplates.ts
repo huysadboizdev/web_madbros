@@ -15,6 +15,7 @@ export const TelegramTemplates = {
     creatorName: string;
     assignees: string;
     dueDate: string;
+    dueTime?: string;
     description?: string;
     subtasks?: string[];
     telegramTag?: string;
@@ -26,6 +27,9 @@ export const TelegramTemplates = {
           data.subtasks.map((s, idx) => `  ${idx + 1}. ${s}`).join('\n') +
           '\n'
         : '';
+    const deadlineLine = data.dueTime
+      ? `• <b>Hạn hoàn thành:</b> ${data.dueTime} ngày ${data.dueDate}\n`
+      : `• <b>Hạn hoàn thành:</b> ${data.dueDate}\n`;
 
     return (
       `${tagHeader}<b>THÔNG BÁO GIAO VIỆC</b>\n` +
@@ -33,7 +37,7 @@ export const TelegramTemplates = {
       `• <b>Công việc:</b> ${data.title}\n` +
       `• <b>Người giao:</b> ${data.creatorName}\n` +
       `• <b>Người phụ trách:</b> ${data.assignees}\n` +
-      `• <b>Hạn hoàn thành:</b> ${data.dueDate}\n` +
+      deadlineLine +
       (data.description ? `• <b>Nội dung:</b> <i>${data.description}</i>\n` : '') +
       subtaskText
     ).trim();
@@ -46,16 +50,20 @@ export const TelegramTemplates = {
     title: string;
     assignees: string;
     dueDate: string;
+    dueTime?: string;
     telegramTag?: string;
   }): string {
     const tagHeader = data.telegramTag ? `${data.telegramTag}\n` : '';
+    const deadlineBlock = data.dueTime
+      ? `• <b>Hạn chót:</b> ${data.dueDate}\n• <b>Giờ hoàn thành:</b> ${data.dueTime}\n`
+      : `• <b>Hạn chót:</b> ${data.dueDate}\n`;
 
     return (
       `${tagHeader}<b>CẢNH BÁO: ĐẾN HẠN CÔNG VIỆC CHƯA XONG</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
       `• <b>Công việc:</b> ${data.title}\n` +
       `• <b>Người phụ trách:</b> ${data.assignees}\n` +
-      `• <b>Hạn hoàn thành:</b> ${data.dueDate}\n` +
+      deadlineBlock +
       `• <b>Tình trạng:</b> Chưa hoàn thành (Yêu cầu khẩn trương xử lý hoặc báo cáo tiến độ)`
     ).trim();
   },

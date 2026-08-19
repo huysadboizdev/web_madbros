@@ -74,6 +74,96 @@ interface TaskItem {
   createdAt: string;
 }
 
+// Helper convert ISO date string to YYYY-MM-DDTHH:mm for datetime-local input
+const toLocalDatetimeInputValue = (dateStr?: string | Date | null): string => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+// Helper parse ISO string into separate Date (YYYY-MM-DD) and Time (HH:mm)
+const parseIsoToDateAndTime = (isoString?: string | Date | null): { date: string; time: string } => {
+  if (!isoString) return { date: '', time: '' };
+  const d = new Date(isoString);
+  if (isNaN(d.getTime())) return { date: '', time: '' };
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return {
+    date: `${year}-${month}-${day}`,
+    time: `${hours}:${minutes}`,
+  };
+};
+
+// Helper combine Date (YYYY-MM-DD) and Time (HH:mm) into ISO UTC string
+const combineDateAndTimeToIso = (dateStr: string, timeStr: string): string | null => {
+  if (!dateStr || !dateStr.trim()) return null;
+  const time = timeStr && timeStr.trim() ? timeStr.trim() : '23:59';
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const [hours, minutes] = time.split(':').map(Number);
+  const d = new Date(year, month - 1, day, hours || 0, minutes || 0, 0, 0);
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString();
+};
+
+// Helper validate Deadline inputs (Date + Time must not be in the past)
+const validateDeadlineInputs = (dateVal: string, timeVal: string): string | null => {
+  if (!dateVal && !timeVal) {
+    return null;
+  }
+  if (!dateVal) {
+    return 'Vui lòng chọn ngày hoàn thành';
+  }
+  if (!timeVal) {
+    return 'Vui lòng chọn giờ hoàn thành (VD: 17:30 hoặc 23:59)';
+  }
+
+  const [year, month, day] = dateVal.split('-').map(Number);
+  const [hours, minutes] = timeVal.split(':').map(Number);
+  const selectedDate = new Date(year, month - 1, day, hours || 0, minutes || 0, 0, 0);
+  const now = new Date();
+
+  if (isNaN(selectedDate.getTime())) {
+    return 'Thời gian hạn chót không hợp lệ';
+  }
+
+  if (selectedDate.getTime() <= now.getTime()) {
+    const isToday =
+      selectedDate.getFullYear() === now.getFullYear() &&
+      selectedDate.getMonth() === now.getMonth() &&
+      selectedDate.getDate() === now.getDate();
+
+    if (isToday) {
+      const currentHourMinute = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+      return `Giờ hoàn thành (${timeVal}) phải lớn hơn giờ hiện tại (${currentHourMinute})`;
+    } else {
+      return 'Hạn chót không được nằm trong quá khứ';
+    }
+  }
+
+  return null;
+};
+
+// Helper format task due date with both Time and Date
+const formatTaskDueDate = (dateStr?: string | null) => {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return null;
+  const time = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  const date = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return `${time} • ${date}`;
+};
+
 export const TasksPage: React.FC = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
@@ -122,11 +212,13 @@ export const TasksPage: React.FC = () => {
   const [showDeclineModal, setShowDeclineModal] = useState(false);
   const [declineReason, setDeclineReason] = useState('');
 
-  // Form states for create
+  // Form states for create task
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('MEDIUM');
-  const [dueDate, setDueDate] = useState('');
+  const [dueDateDate, setDueDateDate] = useState('');
+  const [dueDateTime, setDueDateTime] = useState('');
+  const [deadlineError, setDeadlineError] = useState<string | null>(null);
   const [telegramTag, setTelegramTag] = useState('');
   const [selectedAssigneeIds, setSelectedAssigneeIds] = useState<string[]>([]);
   const [initialSubtasks, setInitialSubtasks] = useState<{ title: string }[]>([]);
@@ -141,7 +233,9 @@ export const TasksPage: React.FC = () => {
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editPriority, setEditPriority] = useState('MEDIUM');
-  const [editDueDate, setEditDueDate] = useState('');
+  const [editDueDateDate, setEditDueDateDate] = useState('');
+  const [editDueDateTime, setEditDueDateTime] = useState('');
+  const [editDeadlineError, setEditDeadlineError] = useState<string | null>(null);
   const [editAssigneeIds, setEditAssigneeIds] = useState<string[]>([]);
   const [savingEdit, setSavingEdit] = useState(false);
 
@@ -211,12 +305,21 @@ export const TasksPage: React.FC = () => {
     e.preventDefault();
     if (!title.trim()) return;
 
+    if (dueDateDate || dueDateTime) {
+      const err = validateDeadlineInputs(dueDateDate, dueDateTime);
+      if (err) {
+        setDeadlineError(err);
+        return;
+      }
+    }
+
     try {
+      const dueDateIso = combineDateAndTimeToIso(dueDateDate, dueDateTime);
       await api.post('/tasks', {
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim(),
         priority,
-        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+        dueDate: dueDateIso,
         telegramTag: telegramTag.trim(),
         assigneeIds: selectedAssigneeIds,
         subtasks: initialSubtasks.filter((s) => s.title.trim().length > 0),
@@ -227,7 +330,9 @@ export const TasksPage: React.FC = () => {
       setTitle('');
       setDescription('');
       setPriority('MEDIUM');
-      setDueDate('');
+      setDueDateDate('');
+      setDueDateTime('');
+      setDeadlineError(null);
       setTelegramTag('');
       setSelectedAssigneeIds([]);
       setInitialSubtasks([]);
@@ -390,7 +495,10 @@ export const TasksPage: React.FC = () => {
     setEditTitle(task.title);
     setEditDescription(task.description || '');
     setEditPriority(task.priority);
-    setEditDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
+    const { date, time } = parseIsoToDateAndTime(task.dueDate);
+    setEditDueDateDate(date);
+    setEditDueDateTime(time);
+    setEditDeadlineError(null);
     setEditAssigneeIds(task.assignees?.map((a) => a.id) || []);
     setShowEditModal(true);
   };
@@ -399,17 +507,28 @@ export const TasksPage: React.FC = () => {
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingTask || !editTitle.trim()) return;
+
+    if (editDueDateDate || editDueDateTime) {
+      const err = validateDeadlineInputs(editDueDateDate, editDueDateTime);
+      if (err) {
+        setEditDeadlineError(err);
+        return;
+      }
+    }
+
     try {
       setSavingEdit(true);
+      const dueDateIso = combineDateAndTimeToIso(editDueDateDate, editDueDateTime);
       await api.put(`/tasks/${editingTask.id}`, {
         title: editTitle.trim(),
         description: editDescription.trim(),
         priority: editPriority,
-        dueDate: editDueDate ? new Date(editDueDate).toISOString() : null,
+        dueDate: dueDateIso,
         assigneeIds: editAssigneeIds,
       });
       setShowEditModal(false);
       setEditingTask(null);
+      setEditDeadlineError(null);
       fetchTasks();
       if (selectedTask?.id === editingTask.id) {
         const res = await api.get('/tasks');
@@ -965,9 +1084,13 @@ export const TasksPage: React.FC = () => {
                             </div>
 
                             {t.dueDate && (
-                              <span className="flex items-center gap-1 text-slate-400 font-medium">
-                                <Calendar className="w-3 h-3 text-slate-500" />
-                                {new Date(t.dueDate).toLocaleDateString('vi-VN')}
+                              <span className={`flex items-center gap-1 font-medium ${
+                                new Date(t.dueDate) < new Date() && t.status !== 'DONE'
+                                  ? 'text-rose-500 font-bold'
+                                  : 'text-slate-400'
+                              }`}>
+                                <Clock className="w-3 h-3 text-slate-500 shrink-0" />
+                                {formatTaskDueDate(t.dueDate)}
                               </span>
                             )}
                           </div>
@@ -1052,6 +1175,17 @@ export const TasksPage: React.FC = () => {
                           </div>
                         ))}
                       </div>
+
+                      {t.dueDate && (
+                        <span className={`text-[10px] flex items-center gap-1 font-medium ${
+                          new Date(t.dueDate) < new Date() && t.status !== 'DONE'
+                            ? 'text-rose-500 font-bold'
+                            : isLight ? 'text-slate-600' : 'text-slate-400'
+                        }`}>
+                          <Clock className="w-3 h-3 text-blue-500 shrink-0" />
+                          {formatTaskDueDate(t.dueDate)}
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
@@ -1095,7 +1229,7 @@ export const TasksPage: React.FC = () => {
                   <th className="py-3.5 px-4">Trạng Thái</th>
                   <th className="py-3.5 px-4">Tiến Độ</th>
                   <th className="py-3.5 px-4">Người Thực Hiện</th>
-                  <th className="py-3.5 px-4">Hạn Chót</th>
+                  <th className="py-3.5 px-4">Hạn Chót & Giờ</th>
                   <th className="py-3.5 px-4 text-right">Thao Tác</th>
                 </tr>
               </thead>
@@ -1173,14 +1307,18 @@ export const TasksPage: React.FC = () => {
                           ))}
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         {t.dueDate ? (
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-slate-400" />
-                            {new Date(t.dueDate).toLocaleDateString('vi-VN')}
+                          <span className={`flex items-center gap-1.5 font-medium ${
+                            new Date(t.dueDate) < new Date() && t.status !== 'DONE'
+                              ? 'text-rose-500 font-bold'
+                              : isLight ? 'text-slate-700' : 'text-slate-300'
+                          }`}>
+                            <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                            {formatTaskDueDate(t.dueDate)}
                           </span>
                         ) : (
-                          '--'
+                          <span className="text-slate-400">--</span>
                         )}
                       </td>
                       <td className="py-3.5 px-4 text-right whitespace-nowrap">
@@ -1299,7 +1437,7 @@ export const TasksPage: React.FC = () => {
                 </div>
                 <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                   Tạo bởi <strong className={isLight ? 'text-slate-800 font-bold' : 'text-slate-200'}>{selectedTask.createdBy?.name}</strong> • Hạn chót:{' '}
-                  <span className="font-semibold">{selectedTask.dueDate ? new Date(selectedTask.dueDate).toLocaleDateString('vi-VN') : 'Không giới hạn'}</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400">{selectedTask.dueDate ? formatTaskDueDate(selectedTask.dueDate) : 'Không giới hạn'}</span>
                 </p>
               </div>
 
@@ -1712,7 +1850,7 @@ export const TasksPage: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div>
               <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                 Mức Độ Ưu Tiên
@@ -1720,7 +1858,7 @@ export const TasksPage: React.FC = () => {
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-xl text-xs font-semibold border focus:outline-none focus:border-blue-500 transition cursor-pointer ${
+                className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold border focus:outline-none focus:border-blue-500 transition cursor-pointer ${
                   isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/80 border-slate-700 text-white'
                 }`}
               >
@@ -1732,17 +1870,90 @@ export const TasksPage: React.FC = () => {
             </div>
 
             <div>
-              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                Hạn Chót (Deadline)
-              </label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-xl text-xs border focus:outline-none focus:border-blue-500 transition ${
-                  isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/80 border-slate-700 text-white'
-                }`}
-              />
+              <div className="flex items-center justify-between mb-1.5">
+                <label className={`text-xs font-semibold flex items-center gap-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <span>Hạn Chót (Deadline)</span>
+                  <span className="text-rose-500">*</span>
+                </label>
+                <div className="flex items-center gap-1">
+                  {['12:00', '17:30', '21:00', '23:59'].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => {
+                        setDueDateTime(preset);
+                        if (dueDateDate) {
+                          setDeadlineError(validateDeadlineInputs(dueDateDate, preset));
+                        }
+                      }}
+                      className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                        dueDateTime === preset
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : isLight
+                          ? 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 min-[340px]:grid-cols-2 gap-2">
+                <div>
+                  <input
+                    type="date"
+                    value={dueDateDate}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => {
+                      setDueDateDate(e.target.value);
+                      if (e.target.value || dueDateTime) {
+                        setDeadlineError(validateDeadlineInputs(e.target.value, dueDateTime));
+                      } else {
+                        setDeadlineError(null);
+                      }
+                    }}
+                    className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none transition ${
+                      deadlineError
+                        ? 'border-rose-500 bg-rose-500/5 focus:ring-2 focus:ring-rose-500/20'
+                        : 'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                    } ${
+                      isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/80 border-slate-700 text-white'
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <input
+                    type="time"
+                    value={dueDateTime}
+                    placeholder="Chọn giờ"
+                    onChange={(e) => {
+                      setDueDateTime(e.target.value);
+                      if (dueDateDate || e.target.value) {
+                        setDeadlineError(validateDeadlineInputs(dueDateDate, e.target.value));
+                      } else {
+                        setDeadlineError(null);
+                      }
+                    }}
+                    className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none transition ${
+                      deadlineError
+                        ? 'border-rose-500 bg-rose-500/5 focus:ring-2 focus:ring-rose-500/20'
+                        : 'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                    } ${
+                      isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/80 border-slate-700 text-white'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {deadlineError && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-[11px] font-medium text-rose-500">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{deadlineError}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1902,7 +2113,7 @@ export const TasksPage: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div>
               <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                 Mức Độ Ưu Tiên
@@ -1910,7 +2121,7 @@ export const TasksPage: React.FC = () => {
               <select
                 value={editPriority}
                 onChange={(e) => setEditPriority(e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-xl text-xs font-semibold border focus:outline-none focus:border-blue-500 transition cursor-pointer ${
+                className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold border focus:outline-none focus:border-blue-500 transition cursor-pointer ${
                   isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/80 border-slate-700 text-white'
                 }`}
               >
@@ -1922,17 +2133,89 @@ export const TasksPage: React.FC = () => {
             </div>
 
             <div>
-              <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                Hạn Chót (Deadline)
-              </label>
-              <input
-                type="date"
-                value={editDueDate}
-                onChange={(e) => setEditDueDate(e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-xl text-xs border focus:outline-none focus:border-blue-500 transition ${
-                  isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/80 border-slate-700 text-white'
-                }`}
-              />
+              <div className="flex items-center justify-between mb-1.5">
+                <label className={`text-xs font-semibold flex items-center gap-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <span>Hạn Chót (Deadline)</span>
+                  <span className="text-rose-500">*</span>
+                </label>
+                <div className="flex items-center gap-1">
+                  {['12:00', '17:30', '21:00', '23:59'].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => {
+                        setEditDueDateTime(preset);
+                        if (editDueDateDate) {
+                          setEditDeadlineError(validateDeadlineInputs(editDueDateDate, preset));
+                        }
+                      }}
+                      className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium transition cursor-pointer ${
+                        editDueDateTime === preset
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : isLight
+                          ? 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 min-[340px]:grid-cols-2 gap-2">
+                <div>
+                  <input
+                    type="date"
+                    value={editDueDateDate}
+                    onChange={(e) => {
+                      setEditDueDateDate(e.target.value);
+                      if (e.target.value || editDueDateTime) {
+                        setEditDeadlineError(validateDeadlineInputs(e.target.value, editDueDateTime));
+                      } else {
+                        setEditDeadlineError(null);
+                      }
+                    }}
+                    className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none transition ${
+                      editDeadlineError
+                        ? 'border-rose-500 bg-rose-500/5 focus:ring-2 focus:ring-rose-500/20'
+                        : 'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                    } ${
+                      isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/80 border-slate-700 text-white'
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <input
+                    type="time"
+                    value={editDueDateTime}
+                    placeholder="Chọn giờ"
+                    onChange={(e) => {
+                      setEditDueDateTime(e.target.value);
+                      if (editDueDateDate || e.target.value) {
+                        setEditDeadlineError(validateDeadlineInputs(editDueDateDate, e.target.value));
+                      } else {
+                        setEditDeadlineError(null);
+                      }
+                    }}
+                    className={`w-full px-3 py-2 rounded-xl text-xs font-medium border focus:outline-none transition ${
+                      editDeadlineError
+                        ? 'border-rose-500 bg-rose-500/5 focus:ring-2 focus:ring-rose-500/20'
+                        : 'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                    } ${
+                      isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-800/80 border-slate-700 text-white'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {editDeadlineError && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-[11px] font-medium text-rose-500">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{editDeadlineError}</span>
+                </div>
+              )}
             </div>
           </div>
 

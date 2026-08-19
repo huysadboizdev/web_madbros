@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
+import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { Bell, CheckCircle2, AlertCircle, Calendar, Sparkles, X } from 'lucide-react';
 
@@ -84,9 +85,12 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return;
     }
 
-    // Kết nối đến backend WebSocket
+    // Kết nối đến backend WebSocket với dynamic token callback
     const newSocket = io(window.location.origin, {
-      auth: { token },
+      auth: (cb) => {
+        const currentToken = localStorage.getItem('accessToken') || localStorage.getItem('token');
+        cb({ token: currentToken });
+      },
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: Infinity,
@@ -104,6 +108,47 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.log('🔌 [Socket Disconnected]', reason);
       setIsConnected(false);
     });
+
+    // Tự động xử lý khi WebSocket bị lỗi xác thực do Token hết hạn
+    newSocket.on('connect_error', async (err) => {
+      if (err.message === 'TokenExpiredError' || err.message?.toLowerCase().includes('expired') || err.message?.toLowerCase().includes('token')) {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken) {
+          try {
+            console.log('⚡ [Socket Auth] Token hết hạn, đang tự động gia hạn phiên đăng nhập...');
+            const res = await axios.post('/api/auth/refresh', { refreshToken });
+            const { accessToken: newAccess, refreshToken: newRefresh, user: newUser } = res.data;
+            if (newAccess) {
+              localStorage.setItem('accessToken', newAccess);
+              localStorage.setItem('token', newAccess);
+              if (newRefresh) localStorage.setItem('refreshToken', newRefresh);
+              if (newUser) localStorage.setItem('user', JSON.stringify(newUser));
+
+              window.dispatchEvent(new CustomEvent('auth:token-refreshed', {
+                detail: { accessToken: newAccess, refreshToken: newRefresh, user: newUser },
+              }));
+
+              newSocket.auth = { token: newAccess };
+              newSocket.connect();
+            }
+          } catch (refreshErr) {
+            console.warn('⚡ [Socket Auth] Gia hạn phiên thất bại, vui lòng đăng nhập lại.');
+          }
+        }
+      }
+    });
+
+    // Lắng nghe sự kiện token được làm mới từ HTTP Interceptor
+    const handleTokenRefreshed = (e: any) => {
+      const newToken = e.detail?.accessToken;
+      if (newToken && socketRef.current) {
+        socketRef.current.auth = { token: newToken };
+        if (!socketRef.current.connected) {
+          socketRef.current.connect();
+        }
+      }
+    };
+    window.addEventListener('auth:token-refreshed', handleTokenRefreshed);
 
     // Lắng nghe sự kiện tài khoản được phê duyệt -> Tự động mở khóa ngay lập tức
     newSocket.on('user:approved', (data) => {
@@ -140,6 +185,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setSocket(newSocket);
 
     return () => {
+      window.removeEventListener('auth:token-refreshed', handleTokenRefreshed);
       newSocket.disconnect();
       socketRef.current = null;
     };

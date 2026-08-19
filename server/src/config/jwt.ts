@@ -10,9 +10,9 @@ export interface TokenPayload {
   workspaceId: string;
 }
 
-// 1. Tạo Access Token (Ngắn hạn: 15 phút)
+// 1. Tạo Access Token (2 giờ)
 export const generateAccessToken = (payload: TokenPayload): string => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '2h' });
 };
 
 // 2. Tạo Refresh Token (Dài hạn: 7 ngày)

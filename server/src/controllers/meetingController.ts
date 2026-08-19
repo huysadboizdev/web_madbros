@@ -46,7 +46,7 @@ export class MeetingController {
     try {
       const workspaceId = req.user!.workspaceId;
       const createdById = req.user!.userId;
-      const { title, description, meetingLink, location, startTime, endTime, notifyAll, participantIds, sendEmail } = req.body;
+      const { title, description, meetingLink, link, location, startTime, endTime, notifyAll, participantIds, sendEmail } = req.body;
 
       if (!title || !startTime) {
         return res.status(400).json({ message: 'Vui lòng cung cấp tiêu đề và thời gian bắt đầu cuộc họp' });
@@ -54,6 +54,7 @@ export class MeetingController {
 
       const start = new Date(startTime);
       const end = endTime ? new Date(endTime) : new Date(start.getTime() + 60 * 60 * 1000);
+      const finalMeetingLink = (meetingLink || link)?.trim() || null;
 
       const workspace = await prisma.workspace.findUnique({
         where: { id: workspaceId },
@@ -79,7 +80,7 @@ export class MeetingController {
           data: {
             title: title.trim(),
             description,
-            meetingLink: meetingLink?.trim() || null,
+            meetingLink: finalMeetingLink,
             location: location?.trim() || null,
             startTime: start,
             endTime: end,
@@ -124,16 +125,18 @@ export class MeetingController {
           .filter((u) => targetUserIds.includes(u.id))
           .map((u) => u.email);
 
-        EmailService.sendMeetingInvite(workspaceId, recipientEmails, {
-          title: meeting.title,
-          description: meeting.description,
-          startTime: meeting.startTime,
-          endTime: meeting.endTime,
-          meetingLink: meeting.meetingLink,
-          location: meeting.location,
-          creatorName: creator?.name || 'Ban Quản Trị',
-          workspaceName: workspace.name,
-        }).catch((err) => console.error('[Async Email Error]', err));
+        if (recipientEmails.length > 0) {
+          EmailService.sendMeetingInvite(workspaceId, recipientEmails, {
+            title: meeting.title,
+            description: meeting.description,
+            startTime: meeting.startTime,
+            endTime: meeting.endTime,
+            meetingLink: meeting.meetingLink,
+            location: meeting.location,
+            creatorName: creator?.name || 'Ban Quản Trị',
+            workspaceName: workspace.name,
+          }).catch((err) => console.error('[Async Email Error]', err));
+        }
       }
 
       // 🤖 Tự động bắn thông báo Lịch họp mới lên Telegram (Tối giản: không link, chỉ giờ bắt đầu)
@@ -167,33 +170,71 @@ export class MeetingController {
     try {
       const id = String(req.params.id);
       const workspaceId = req.user!.workspaceId;
-      const { title, description, meetingLink, location, startTime, endTime } = req.body;
+      const { title, description, meetingLink, link, location, startTime, endTime, notifyAll, participantIds } = req.body;
 
       const meeting = await prisma.meeting.findFirst({
         where: { id, workspaceId },
+        include: { participants: true },
       });
 
       if (!meeting) {
         return res.status(404).json({ message: 'Không tìm thấy cuộc họp' });
       }
 
-      const updated = await prisma.meeting.update({
-        where: { id },
-        data: {
-          title: title ? title.trim() : undefined,
-          description,
-          meetingLink,
-          location,
+      const finalMeetingLink = (meetingLink !== undefined ? meetingLink : link) !== undefined 
+        ? ((meetingLink || link)?.trim() || null) 
+        : undefined;
+
+      const updated = await prisma.$transaction(async (tx) => {
+        const updateData: any = {
+          title: title !== undefined ? title.trim() : undefined,
+          description: description !== undefined ? description : undefined,
+          location: location !== undefined ? (location ? location.trim() : null) : undefined,
           startTime: startTime ? new Date(startTime) : undefined,
-          endTime: endTime ? new Date(endTime) : undefined,
-        },
+          endTime: endTime ? new Date(endTime) : (startTime ? new Date(new Date(startTime).getTime() + 60 * 60 * 1000) : undefined),
+          notifyAll: notifyAll !== undefined ? !!notifyAll : undefined,
+        };
+
+        if (finalMeetingLink !== undefined) {
+          updateData.meetingLink = finalMeetingLink;
+        }
+
+        const result = await tx.meeting.update({
+          where: { id },
+          data: updateData,
+          include: {
+            createdBy: { select: { id: true, name: true, email: true, avatar: true } },
+            participants: {
+              include: {
+                user: { select: { id: true, name: true, email: true, avatar: true } },
+              },
+            },
+          },
+        });
+
+        if (participantIds && Array.isArray(participantIds)) {
+          await tx.meetingParticipant.deleteMany({ where: { meetingId: id } });
+          const allTargetIds = Array.from(new Set([meeting.createdById, ...participantIds]));
+          if (allTargetIds.length > 0) {
+            await tx.meetingParticipant.createMany({
+              data: allTargetIds.map((userId) => ({
+                meetingId: id,
+                userId,
+                status: userId === meeting.createdById ? 'ACCEPTED' : 'INVITED',
+              })),
+            });
+          }
+        }
+
+        return result;
       });
 
       // ⚡ Real-Time WebSocket
-      SocketService.emitToWorkspace(workspaceId, 'meeting:updated', { meetingId: id });
+      SocketService.emitToWorkspace(workspaceId, 'meeting:updated', { meetingId: id, meeting: updated });
 
       return res.json({ message: 'Cập nhật cuộc họp thành công', meeting: updated });
     } catch (error) {
+      console.error('[Update Meeting Error]', error);
       return res.status(500).json({ message: 'Lỗi khi cập nhật cuộc họp' });
     }
   }
