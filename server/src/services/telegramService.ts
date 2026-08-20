@@ -159,19 +159,23 @@ export class TelegramService {
     title: string;
     description?: string | null;
     priority?: string;
-    dueDate?: Date | string | null;
     creatorName: string;
     assignees: string[];
     subtasks?: string[];
     telegramTag?: string | null;
   }) {
-    const { dateStr, timeStr } = this.formatDeadlineParts(data.dueDate);
+    const priorityLabels: Record<string, string> = {
+      LOW: 'Thấp',
+      MEDIUM: 'Trung bình',
+      HIGH: 'Cao',
+      URGENT: 'Khẩn cấp',
+    };
     const msg = TelegramTemplates.taskCreated({
       title: this.escapeHtml(data.title),
       creatorName: this.escapeHtml(data.creatorName),
-      assignees: this.escapeHtml(data.assignees.length > 0 ? data.assignees.join(', ') : 'Chưa phân công'),
-      dueDate: dateStr,
-      dueTime: timeStr,
+      assignees: this.escapeHtml(data.assignees.length > 0 ? data.assignees.join(', ') : 'Chưa có - nhân viên tự nhận trên bảng'),
+      priority: priorityLabels[data.priority || 'MEDIUM'] || 'Trung bình',
+      createdAt: this.formatDateTime(new Date()),
       description: this.escapeHtml(data.description),
       subtasks: data.subtasks?.map((s) => this.escapeHtml(s)),
       telegramTag: this.formatTelegramTag(data.telegramTag),
@@ -317,14 +321,19 @@ export class TelegramService {
   // =========================================================================
 
   /**
-   * 2.1 Nhân viên bấm "Tiếp nhận" công việc (Đã tắt để tránh loãng nhóm)
+   * 2.1 Nhân viên nhận công việc trên bảng
    */
-  public static async notifyTaskAccepted(_data: {
+  public static async notifyTaskAccepted(data: {
     title: string;
     userName: string;
   }) {
-    // Tối giản: Không bắn tin nhắn nhận việc trung gian lên Telegram
-    return false;
+    const msg = TelegramTemplates.taskAccepted({
+      title: this.escapeHtml(data.title),
+      userName: this.escapeHtml(data.userName),
+      acceptedAt: this.formatDateTime(new Date()),
+    });
+
+    return this.sendMessage(msg);
   }
 
   /**

@@ -14,8 +14,8 @@ export const TelegramTemplates = {
     title: string;
     creatorName: string;
     assignees: string;
-    dueDate: string;
-    dueTime?: string;
+    priority: string;
+    createdAt: string;
     description?: string;
     subtasks?: string[];
     telegramTag?: string;
@@ -27,19 +27,33 @@ export const TelegramTemplates = {
           data.subtasks.map((s, idx) => `  ${idx + 1}. ${s}`).join('\n') +
           '\n'
         : '';
-    const deadlineLine = data.dueTime
-      ? `• <b>Hạn hoàn thành:</b> ${data.dueTime} ngày ${data.dueDate}\n`
-      : `• <b>Hạn hoàn thành:</b> ${data.dueDate}\n`;
-
     return (
-      `${tagHeader}<b>THÔNG BÁO GIAO VIỆC</b>\n` +
+      `${tagHeader}<b>CÔNG VIỆC MỚI TRÊN BẢNG</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
       `• <b>Công việc:</b> ${data.title}\n` +
-      `• <b>Người giao:</b> ${data.creatorName}\n` +
+      `• <b>Người đăng:</b> ${data.creatorName}\n` +
       `• <b>Người phụ trách:</b> ${data.assignees}\n` +
-      deadlineLine +
+      `• <b>Mức ưu tiên:</b> ${data.priority}\n` +
+      `• <b>Trạng thái:</b> Chờ nhận việc\n` +
+      `• <b>Thời gian đăng:</b> ${data.createdAt}\n` +
       (data.description ? `• <b>Nội dung:</b> <i>${data.description}</i>\n` : '') +
       subtaskText
+    ).trim();
+  },
+
+  /** Nhân viên nhận một công việc trên bảng. */
+  taskAccepted(data: {
+    title: string;
+    userName: string;
+    acceptedAt: string;
+  }): string {
+    return (
+      `<b>CÔNG VIỆC ĐÃ CÓ NGƯỜI NHẬN</b>\n` +
+      `━━━━━━━━━━━━━━━━━━━━\n` +
+      `• <b>Công việc:</b> ${data.title}\n` +
+      `• <b>Người nhận:</b> ${data.userName}\n` +
+      `• <b>Trạng thái:</b> Đang làm\n` +
+      `• <b>Thời gian nhận:</b> ${data.acceptedAt}`
     ).trim();
   },
 
@@ -235,10 +249,4 @@ export const TelegramTemplates = {
     return '';
   },
 
-  /**
-   * 11. MẪU TIẾP NHẬN VIỆC (VÔ HIỆU HÓA ĐỂ TRÁNH SPAM)
-   */
-  taskAccepted(_data: { title: string; userName: string }): string {
-    return '';
-  },
 };

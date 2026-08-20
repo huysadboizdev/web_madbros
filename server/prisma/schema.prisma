@@ -8,12 +8,12 @@ generator client {
 }
 
 model Workspace {
-  id            String        @id @default(uuid())
+  id            String    @id @default(uuid())
   name          String
-  code          String        @unique // Invite code for members to join
-  codeExpiresAt DateTime?     // Thời hạn hiệu lực 15 phút của mã phòng
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  code          String    @unique // Invite code for members to join
+  codeExpiresAt DateTime? // Thời hạn hiệu lực 15 phút của mã phòng
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   users         User[]
   tasks         Task[]
@@ -25,49 +25,101 @@ model Workspace {
 }
 
 model User {
-  id              String               @id @default(uuid())
-  email           String               @unique
-  name            String
-  password        String
-  role            String               @default("MEMBER") // ADMIN, MANAGER, MEMBER
-  status          String               @default("ACTIVE") // ACTIVE, PENDING_APPROVAL, BLOCKED
-  joinCodeUsed    String?              // Mã phòng Workspace mà người dùng nhập để xin vào
-  requestedAt     DateTime?            // Thời gian gửi yêu cầu xin gia nhập
-  avatar          String?
-  workspaceId     String
-  workspace       Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String
+  password     String
+  role         String    @default("MEMBER") // ADMIN, MANAGER, MEMBER
+  status       String    @default("ACTIVE") // ACTIVE, PENDING_APPROVAL, BLOCKED
+  joinCodeUsed String? // Mã phòng Workspace mà người dùng nhập để xin vào
+  requestedAt  DateTime? // Thời gian gửi yêu cầu xin gia nhập
+  avatar       String?
+  workspaceId  String
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  createdTasks    Task[]               @relation("TaskCreator")
-  assignedTasks   TaskAssignee[]
-  subtasks        Subtask[]            @relation("SubtaskAssignee")
-  createdMeetings Meeting[]            @relation("MeetingCreator")
-  meetings        MeetingParticipant[]
-  transactions    Transaction[]
-  notifications   Notification[]
-  assignedAssets  Asset[]              @relation("AssetAssignee")
-  announcements   Announcement[]       @relation("AnnouncementCreator")
+  createdTasks            Task[]               @relation("TaskCreator")
+  assignedTasks           TaskAssignee[]
+  subtasks                Subtask[]            @relation("SubtaskAssignee")
+  createdMeetings         Meeting[]            @relation("MeetingCreator")
+  meetings                MeetingParticipant[]
+  transactions            Transaction[]
+  notifications           Notification[]
+  assignedAssets          Asset[]              @relation("AssetAssignee")
+  announcements           Announcement[]       @relation("AnnouncementCreator")
+  taskSubmissions         TaskSubmission[]     @relation("TaskSubmissionAuthor")
+  reviewedTaskSubmissions TaskSubmission[]     @relation("TaskSubmissionReviewer")
+  taskActivities          TaskActivity[]       @relation("TaskActivityActor")
 }
 
 model Task {
-  id             String         @id @default(uuid())
+  id             String    @id @default(uuid())
   title          String
   description    String?
-  priority       String         @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
-  status         String         @default("PENDING_ACCEPT") // PENDING_ACCEPT, IN_PROGRESS, REVIEW, DONE
+  priority       String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status         String    @default("PENDING_ACCEPT") // PENDING_ACCEPT, IN_PROGRESS, DONE
   dueDate        DateTime?
-  completionNote String?        // Ghi chú/link báo cáo khi nộp duyệt task
-  reviewFeedback String?        // Nhận xét khi duyệt hoặc yêu cầu làm lại
+  completionNote String? // Ghi chú/link báo cáo khi nộp duyệt task
+  reviewFeedback String? // Nhận xét khi duyệt hoặc yêu cầu làm lại
   createdById    String
-  createdBy      User           @relation("TaskCreator", fields: [createdById], references: [id])
+  createdBy      User      @relation("TaskCreator", fields: [createdById], references: [id])
   workspaceId    String
-  workspace      Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  subtasks       Subtask[]
-  assignees      TaskAssignee[]
+  subtasks    Subtask[]
+  assignees   TaskAssignee[]
+  submissions TaskSubmission[]
+  activities  TaskActivity[]
+}
+
+model TaskSubmission {
+  id            String    @id @default(uuid())
+  taskId        String
+  task          Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  submittedById String
+  submittedBy   User      @relation("TaskSubmissionAuthor", fields: [submittedById], references: [id], onDelete: Cascade)
+  note          String?
+  reviewStatus  String    @default("PENDING") // PENDING, APPROVED, CHANGES_REQUESTED, FAILED
+  feedback      String?
+  reviewedById  String?
+  reviewedBy    User?     @relation("TaskSubmissionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt    DateTime?
+  createdAt     DateTime  @default(now())
+
+  attachments TaskAttachment[]
+
+  @@index([taskId, createdAt])
+}
+
+model TaskAttachment {
+  id           String         @id @default(uuid())
+  submissionId String
+  submission   TaskSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  originalName String
+  storedName   String         @unique
+  mimeType     String
+  size         Int
+  createdAt    DateTime       @default(now())
+
+  @@index([submissionId])
+}
+
+model TaskActivity {
+  id         String   @id @default(uuid())
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  actorId    String?
+  actor      User?    @relation("TaskActivityActor", fields: [actorId], references: [id], onDelete: SetNull)
+  type       String // CREATED, ACCEPTED, DECLINED, SUBMITTED, APPROVED, CHANGES_REQUESTED, FAILED, EDITED
+  fromStatus String?
+  toStatus   String?
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([taskId, createdAt])
 }
 
 model Subtask {
@@ -97,20 +149,20 @@ model TaskAssignee {
 }
 
 model Meeting {
-  id          String               @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   description String?
-  meetingLink String?              // Zoom / Google Meet URL
-  location    String?              // Offline meeting room or office
+  meetingLink String? // Zoom / Google Meet URL
+  location    String? // Offline meeting room or office
   startTime   DateTime
   endTime     DateTime
-  notifyAll   Boolean              @default(true)
+  notifyAll   Boolean   @default(true)
   workspaceId String
-  workspace   Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   createdById String
-  createdBy   User                 @relation("MeetingCreator", fields: [createdById], references: [id])
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
+  createdBy   User      @relation("MeetingCreator", fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   participants MeetingParticipant[]
 }
@@ -129,9 +181,9 @@ model MeetingParticipant {
 
 model Transaction {
   id          String    @id @default(uuid())
-  type        String    // INCOME or EXPENSE
+  type        String // INCOME or EXPENSE
   amount      Float
-  category    String    // e.g., "Lương thưởng", "Dự án", "Thuê văn phòng", "Thiết bị", "Marketing", "Khác"
+  category    String // e.g., "Lương thưởng", "Dự án", "Thuê văn phòng", "Thiết bị", "Marketing", "Khác"
   description String?
   date        DateTime  @default(now())
   workspaceId String
@@ -144,16 +196,16 @@ model Transaction {
 
 model Asset {
   id           String    @id @default(uuid())
-  code         String    // Mã tài sản: TS-001, LAP-002, PC-003...
-  name         String    // Tên tài sản: MacBook Pro M2, Bàn làm việc, Máy in Canon...
-  category     String    // Thiết bị IT, Nội thất văn phòng, Phương tiện, Bản quyền, Khác
+  code         String // Mã tài sản: TS-001, LAP-002, PC-003...
+  name         String // Tên tài sản: MacBook Pro M2, Bàn làm việc, Máy in Canon...
+  category     String // Thiết bị IT, Nội thất văn phòng, Phương tiện, Bản quyền, Khác
   value        Float     @default(0) // Giá trị tài sản (VND)
   status       String    @default("IN_USE") // IN_USE, AVAILABLE, MAINTENANCE, BROKEN, LIQUIDATED
   assignedToId String?
   assignedTo   User?     @relation("AssetAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
   assignedDate DateTime?
-  location     String?   // Vị trí: Phòng Kỹ Thuật, Kho Tầng 2...
-  note         String?   // Ghi chú cấu hình, số serial
+  location     String? // Vị trí: Phòng Kỹ Thuật, Kho Tầng 2...
+  note         String? // Ghi chú cấu hình, số serial
   workspaceId  String
   workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   createdAt    DateTime  @default(now())

@@ -265,22 +265,12 @@ export const SecretaryPage: React.FC = () => {
     e.preventDefault();
     if (!taskTitle.trim()) return;
 
-    if (taskDueDateDate || taskDueDateTime) {
-      const err = validateDeadlineInputs(taskDueDateDate, taskDueDateTime);
-      if (err) {
-        setTaskDeadlineError(err);
-        return;
-      }
-    }
-
     try {
       setCreatingTask(true);
-      const dueDateIso = combineDateAndTimeToIso(taskDueDateDate, taskDueDateTime);
       await api.post('/tasks', {
         title: `[Chỉ Đạo BGD] ${taskTitle.trim()}`,
         description: taskDescription ? `📋 Chỉ đạo từ Ban Giám Đốc:\n${taskDescription}` : '📋 Giao việc theo chỉ đạo của Ban Giám Đốc.',
         priority: taskPriority,
-        dueDate: dueDateIso,
         assigneeIds: taskAssigneeIds,
         subtasks: subtasks.map((s) => ({ title: s.title })),
         sendEmail: taskSendEmail,
@@ -758,7 +748,7 @@ export const SecretaryPage: React.FC = () => {
                     <th className="py-3.5 px-4">Tên Công Việc & Chỉ Đạo Của Sếp</th>
                     <th className="py-3.5 px-4">Người Thực Hiện</th>
                     <th className="py-3.5 px-4">Độ Ưu Tiên</th>
-                    <th className="py-3.5 px-4">Hạn Chót & Tiến Độ</th>
+                    <th className="py-3.5 px-4">Tiến Độ</th>
                     <th className="py-3.5 px-4">Trạng Thái</th>
                     <th className="py-3.5 px-4 text-right">Thao Tác Thư Ký</th>
                   </tr>
@@ -823,14 +813,7 @@ export const SecretaryPage: React.FC = () => {
 
                       <td className="py-4 px-4">
                         <div className="space-y-1">
-                          <p className={`text-[11px] font-semibold flex items-center gap-1 ${
-                            t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'DONE'
-                              ? 'text-rose-600 dark:text-rose-400'
-                              : isLight ? 'text-slate-600' : 'text-slate-400'
-                          }`}>
-                            <Clock className="w-3 h-3 text-rose-500" />
-                            {t.dueDate ? formatTaskDueDate(t.dueDate) : 'Không giới hạn'}
-                          </p>
+                          <p className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>{t.progress || 0}% hoàn thành</p>
                           <div className="w-24 bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                             <div
                               className="bg-rose-500 h-1.5 rounded-full transition-all"
@@ -997,10 +980,7 @@ export const SecretaryPage: React.FC = () => {
 
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-[10px] text-slate-400">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-rose-500 shrink-0" />
-                        {t.dueDate ? formatTaskDueDate(t.dueDate) : 'Không hạn'}
-                      </span>
+                      <span>Tiến độ công việc</span>
                       <span className="font-bold text-rose-500">{t.progress || 0}%</span>
                     </div>
                     <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
@@ -1296,7 +1276,7 @@ export const SecretaryPage: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div>
             <div>
               <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                 Mức Độ Ưu Tiên
@@ -1315,7 +1295,7 @@ export const SecretaryPage: React.FC = () => {
               </select>
             </div>
 
-            <div>
+            <div className="hidden" aria-hidden="true">
               <div className="flex items-center justify-between mb-1.5">
                 <label className={`text-xs font-semibold flex items-center gap-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                   <span>Hạn Chót (Deadline)</span>
