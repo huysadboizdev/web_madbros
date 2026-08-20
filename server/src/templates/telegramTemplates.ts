@@ -148,6 +148,7 @@ export const TelegramTemplates = {
   meetingCreated(data: {
     title: string;
     creatorName: string;
+    priority: string;
     startTime: string;
     location?: string | null;
     description?: string | null;
@@ -159,6 +160,7 @@ export const TelegramTemplates = {
       `<b>THÔNG BÁO LỊCH HỌP</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n` +
       `• <b>Cuộc họp:</b> ${data.title}\n` +
+      `• <b>Mức ưu tiên:</b> ${data.priority}\n` +
       `• <b>Thời gian bắt đầu:</b> ${data.startTime}\n` +
       locText +
       `• <b>Người chủ trì:</b> ${data.creatorName}\n` +

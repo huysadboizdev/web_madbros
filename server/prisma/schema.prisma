@@ -152,6 +152,7 @@ model Meeting {
   id          String    @id @default(uuid())
   title       String
   description String?
+  priority    String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
   meetingLink String? // Zoom / Google Meet URL
   location    String? // Offline meeting room or office
   startTime   DateTime

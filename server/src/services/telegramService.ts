@@ -211,6 +211,7 @@ export class TelegramService {
   public static async notifyMeetingCreated(data: {
     title: string;
     description?: string | null;
+    priority?: string;
     startTime: Date | string;
     endTime?: Date | string;
     meetingLink?: string | null;
@@ -218,9 +219,16 @@ export class TelegramService {
     creatorName: string;
     participantCount?: number;
   }) {
+    const priorityLabels: Record<string, string> = {
+      LOW: 'Thấp',
+      MEDIUM: 'Trung bình',
+      HIGH: 'Cao',
+      URGENT: 'Khẩn cấp',
+    };
     const msg = TelegramTemplates.meetingCreated({
       title: this.escapeHtml(data.title),
       creatorName: this.escapeHtml(data.creatorName),
+      priority: priorityLabels[data.priority || 'MEDIUM'] || 'Trung bình',
       startTime: this.formatDateTime(data.startTime),
       location: this.escapeHtml(data.location),
       description: this.escapeHtml(data.description),

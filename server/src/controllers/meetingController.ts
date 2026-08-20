@@ -46,10 +46,13 @@ export class MeetingController {
     try {
       const workspaceId = req.user!.workspaceId;
       const createdById = req.user!.userId;
-      const { title, description, meetingLink, link, location, startTime, endTime, notifyAll, participantIds, sendEmail } = req.body;
+      const { title, description, priority, meetingLink, link, location, startTime, endTime, notifyAll, participantIds, sendEmail } = req.body;
 
       if (!title || !startTime) {
         return res.status(400).json({ message: 'Vui lòng cung cấp tiêu đề và thời gian bắt đầu cuộc họp' });
+      }
+      if (priority !== undefined && !['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(priority)) {
+        return res.status(400).json({ message: 'Mức độ ưu tiên cuộc họp không hợp lệ' });
       }
 
       const start = new Date(startTime);
@@ -80,6 +83,7 @@ export class MeetingController {
           data: {
             title: title.trim(),
             description,
+            priority: priority || 'MEDIUM',
             meetingLink: finalMeetingLink,
             location: location?.trim() || null,
             startTime: start,
@@ -107,7 +111,7 @@ export class MeetingController {
             await tx.notification.create({
               data: {
                 userId,
-                title: '📅 Lịch họp mới',
+                title: `${newMeeting.priority === 'URGENT' ? '🔴' : newMeeting.priority === 'HIGH' ? '🟠' : newMeeting.priority === 'LOW' ? '🔵' : '🟡'} Lịch họp mới`,
                 content: `Cuộc họp "${newMeeting.title}" lúc ${new Date(startTime).toLocaleTimeString('vi-VN')} ngày ${new Date(startTime).toLocaleDateString('vi-VN')}`,
                 type: 'MEETING',
                 link: `/meetings?id=${newMeeting.id}`,
@@ -143,6 +147,7 @@ export class MeetingController {
       TelegramService.notifyMeetingCreated({
         title: meeting.title,
         description: meeting.description,
+        priority: meeting.priority,
         startTime: meeting.startTime,
         location: meeting.location,
         creatorName: creator?.name || 'Ban Quản Trị',
@@ -170,7 +175,11 @@ export class MeetingController {
     try {
       const id = String(req.params.id);
       const workspaceId = req.user!.workspaceId;
-      const { title, description, meetingLink, link, location, startTime, endTime, notifyAll, participantIds } = req.body;
+      const { title, description, priority, meetingLink, link, location, startTime, endTime, notifyAll, participantIds } = req.body;
+
+      if (priority !== undefined && !['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(priority)) {
+        return res.status(400).json({ message: 'Mức độ ưu tiên cuộc họp không hợp lệ' });
+      }
 
       const meeting = await prisma.meeting.findFirst({
         where: { id, workspaceId },
@@ -189,6 +198,7 @@ export class MeetingController {
         const updateData: any = {
           title: title !== undefined ? title.trim() : undefined,
           description: description !== undefined ? description : undefined,
+          priority: priority !== undefined ? priority : undefined,
           location: location !== undefined ? (location ? location.trim() : null) : undefined,
           startTime: startTime ? new Date(startTime) : undefined,
           endTime: endTime ? new Date(endTime) : (startTime ? new Date(new Date(startTime).getTime() + 60 * 60 * 1000) : undefined),
@@ -309,4 +319,3 @@ export class MeetingController {
     }
   }
 }
-

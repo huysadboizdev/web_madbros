@@ -39,6 +39,29 @@ import {
   Pencil,
 } from 'lucide-react';
 
+type MeetingPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+
+const MEETING_PRIORITY_OPTIONS: Array<{ value: MeetingPriority; label: string; dotClass: string }> = [
+  { value: 'LOW', label: 'Thấp', dotClass: 'bg-sky-500' },
+  { value: 'MEDIUM', label: 'Trung bình', dotClass: 'bg-amber-400' },
+  { value: 'HIGH', label: 'Cao', dotClass: 'bg-orange-500' },
+  { value: 'URGENT', label: 'Khẩn cấp', dotClass: 'bg-rose-500' },
+];
+
+const getMeetingPriorityMeta = (priority?: MeetingPriority) => {
+  const current = priority || 'MEDIUM';
+  const className: Record<MeetingPriority, string> = {
+    LOW: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30',
+    MEDIUM: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
+    HIGH: 'bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/30',
+    URGENT: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30',
+  };
+  return {
+    label: MEETING_PRIORITY_OPTIONS.find((option) => option.value === current)?.label || 'Trung bình',
+    className: className[current],
+  };
+};
+
 // Helper convert ISO date string to YYYY-MM-DDTHH:mm for datetime-local input
 const toLocalDatetimeInputValue = (dateStr?: string | Date | null): string => {
   if (!dateStr) return '';
@@ -138,6 +161,7 @@ export const SecretaryPage: React.FC = () => {
   const [taskStatusFilter, setTaskStatusFilter] = useState('ALL');
   const [taskPriorityFilter, setTaskPriorityFilter] = useState('ALL');
   const [meetingSearch, setMeetingSearch] = useState('');
+  const [meetingPriorityFilter, setMeetingPriorityFilter] = useState<'ALL' | MeetingPriority>('ALL');
 
   // Modals
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
@@ -163,6 +187,7 @@ export const SecretaryPage: React.FC = () => {
   // Form: Create Delegated Meeting
   const [meetingTitle, setMeetingTitle] = useState('');
   const [meetingDescription, setMeetingDescription] = useState('');
+  const [meetingPriority, setMeetingPriority] = useState<MeetingPriority>('MEDIUM');
   const [meetingStartTime, setMeetingStartTime] = useState('');
   const [meetingStartTimeError, setMeetingStartTimeError] = useState<string | null>(null);
   const [meetingHostId, setMeetingHostId] = useState(user?.id || '');
@@ -176,6 +201,7 @@ export const SecretaryPage: React.FC = () => {
   const [editingMeeting, setEditingMeeting] = useState<any>(null);
   const [editMeetingTitle, setEditMeetingTitle] = useState('');
   const [editMeetingDescription, setEditMeetingDescription] = useState('');
+  const [editMeetingPriority, setEditMeetingPriority] = useState<MeetingPriority>('MEDIUM');
   const [editMeetingStartTime, setEditMeetingStartTime] = useState('');
   const [editMeetingStartTimeError, setEditMeetingStartTimeError] = useState<string | null>(null);
   const [editMeetingLocation, setEditMeetingLocation] = useState('');
@@ -363,6 +389,7 @@ export const SecretaryPage: React.FC = () => {
       await api.post('/meetings', {
         title: `[Lịch Họp BGD] ${meetingTitle.trim()}`,
         description: meetingDescription ? `📋 Lịch họp do Thư ký sắp xếp theo chỉ đạo của BGD:\n${meetingDescription}` : '📋 Cuộc họp do Thư ký sắp xếp theo chỉ đạo của Ban Giám Đốc.',
+        priority: meetingPriority,
         startTime: start.toISOString(),
         location: meetingLocation.trim() || null,
         hostId: meetingHostId || user?.id,
@@ -375,6 +402,7 @@ export const SecretaryPage: React.FC = () => {
       // Reset form
       setMeetingTitle('');
       setMeetingDescription('');
+      setMeetingPriority('MEDIUM');
       setMeetingStartTime('');
       setMeetingStartTimeError(null);
       setMeetingLocation('');
@@ -403,6 +431,7 @@ export const SecretaryPage: React.FC = () => {
     setEditingMeeting(meeting);
     setEditMeetingTitle(meeting.title || '');
     setEditMeetingDescription(meeting.description || '');
+    setEditMeetingPriority(meeting.priority || 'MEDIUM');
     setEditMeetingStartTime(toLocalDatetimeInputValue(meeting.startTime));
     setEditMeetingStartTimeError(null);
     setEditMeetingLocation(meeting.location || '');
@@ -427,6 +456,7 @@ export const SecretaryPage: React.FC = () => {
       await api.put(`/meetings/${editingMeeting.id}`, {
         title: editMeetingTitle.trim(),
         description: editMeetingDescription.trim(),
+        priority: editMeetingPriority,
         startTime: start.toISOString(),
         location: editMeetingLocation.trim() || null,
         participantIds: editMeetingParticipantIds,
@@ -460,7 +490,9 @@ export const SecretaryPage: React.FC = () => {
 
   // Filtered Meetings
   const filteredMeetings = meetings.filter((m) => {
-    return !meetingSearch || m.title.toLowerCase().includes(meetingSearch.toLowerCase()) || m.location?.toLowerCase().includes(meetingSearch.toLowerCase());
+    const matchesSearch = !meetingSearch || m.title.toLowerCase().includes(meetingSearch.toLowerCase()) || m.location?.toLowerCase().includes(meetingSearch.toLowerCase());
+    const matchesPriority = meetingPriorityFilter === 'ALL' || (m.priority || 'MEDIUM') === meetingPriorityFilter;
+    return matchesSearch && matchesPriority;
   });
 
   // Stat metrics
@@ -1054,6 +1086,18 @@ export const SecretaryPage: React.FC = () => {
               />
             </div>
 
+            <select
+              value={meetingPriorityFilter}
+              onChange={(e) => setMeetingPriorityFilter(e.target.value as 'ALL' | MeetingPriority)}
+              aria-label="Lọc cuộc họp theo mức ưu tiên"
+              className={`w-full sm:w-auto px-3 py-2 rounded-xl text-xs font-bold border focus:outline-none focus:border-purple-500 cursor-pointer ${
+                isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-900/80 border-slate-700 text-slate-300'
+              }`}
+            >
+              <option value="ALL">Tất cả ưu tiên</option>
+              {MEETING_PRIORITY_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+
             <button
               onClick={() => setShowCreateMeetingModal(true)}
               className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-600/30 transition flex items-center gap-1.5 cursor-pointer self-end sm:self-auto"
@@ -1067,6 +1111,7 @@ export const SecretaryPage: React.FC = () => {
             {filteredMeetings.map((m) => {
               const isPast = new Date(m.startTime) < new Date();
               const acceptedCount = m.participants?.filter((p: any) => p.status === 'ACCEPTED').length || 0;
+              const priorityMeta = getMeetingPriorityMeta(m.priority);
 
               return (
                 <div
@@ -1087,6 +1132,9 @@ export const SecretaryPage: React.FC = () => {
                         }`}
                       >
                         {isPast ? 'Đã diễn ra' : 'Sắp diễn ra'}
+                      </span>
+                      <span className={`inline-block ml-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${priorityMeta.className}`}>
+                        {priorityMeta.label}
                       </span>
                       <h3 className={`font-bold text-sm leading-snug ${isLight ? 'text-slate-900' : 'text-white'}`}>
                         {m.title}
@@ -1547,6 +1595,27 @@ export const SecretaryPage: React.FC = () => {
             />
           </div>
 
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Mức Độ Ưu Tiên
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {MEETING_PRIORITY_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setMeetingPriority(option.value)}
+                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-bold transition cursor-pointer ${meetingPriority === option.value
+                    ? 'bg-purple-600 border-purple-600 text-white shadow-md shadow-purple-600/20'
+                    : isLight ? 'bg-slate-50 border-slate-200 text-slate-700 hover:border-purple-300' : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-purple-500/50'}`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${option.dotClass}`} />
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div>
               <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
@@ -1772,6 +1841,27 @@ export const SecretaryPage: React.FC = () => {
                 isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-800 border-slate-700 text-white'
               }`}
             />
+          </div>
+
+          <div>
+            <label className={`block text-xs font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              Mức Độ Ưu Tiên
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {MEETING_PRIORITY_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setEditMeetingPriority(option.value)}
+                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-bold transition cursor-pointer ${editMeetingPriority === option.value
+                    ? 'bg-purple-600 border-purple-600 text-white shadow-md shadow-purple-600/20'
+                    : isLight ? 'bg-slate-50 border-slate-200 text-slate-700 hover:border-purple-300' : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-purple-500/50'}`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${option.dotClass}`} />
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
